@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secretary Dashboard - Uskudar</title>
+    <link rel="stylesheet" href="../../css/common.css">
+    <link rel="stylesheet" href="../../css/components/header.css">
+    <link rel="stylesheet" href="../../css/components/sidebar.css">
+    <link rel="stylesheet" href="../../css/pages/secretary/secretary-dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header Component -->
+    <header class="header">
+        <a href="#" class="logo">Uskudar</a>
+        <div class="search-bar">
+            <input type="text" class="search-input" placeholder="Search...">
+        </div>
+        <div class="user-menu">
+            <div class="user-info">
+                <span class="user-name">Secretary Name</span>
+                <span class="user-role">Secretary</span>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="dropdown-menu">
+                <a href="#"><i class="fas fa-user"></i> Profile</a>
+                <a href="#"><i class="fas fa-cog"></i> Settings</a>
+                <a href="#" class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sidebar Component -->
+    <aside class="sidebar">
+        <nav class="nav-menu">
+            <div class="nav-section">
+                <div class="nav-section-title">Main</div>
+                <a href="#" class="nav-link active">
+                    <i class="fas fa-home"></i>
+                    Dashboard
+                </a>
+                <a href="#" class="nav-link">
+                    <i class="fas fa-users"></i>
+                    Students
+                </a>
+                <a href="#" class="nav-link">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                    Instructors
+                </a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">Management</div>
+                <a href="#" class="nav-link">
+                    <i class="fas fa-calendar-alt"></i>
+                    Schedule
+                </a>
+                <a href="#" class="nav-link">
+                    <i class="fas fa-book"></i>
+                    Courses
+                </a>
+                <a href="#" class="nav-link">
+                    <i class="fas fa-file-alt"></i>
+                    Reports
+                </a>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="dashboard-header">
+            <h1>Welcome, <span id="secretaryName">Secretary Name</span></h1>
+            <p class="secretary-info">Administrative Office</p>
+        </div>
+
+        <div class="dashboard-grid">
+            <!-- Quick Actions -->
+            <div class="card">
+                <h2>Quick Actions</h2>
+                <div class="quick-actions">
+                    <div class="action-card">
+                        <i class="fas fa-user-plus"></i>
+                        <h3>Add Student</h3>
+                        <p>Register new student</p>
+                    </div>
+                    <div class="action-card">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                        <h3>Add Instructor</h3>
+                        <p>Register new instructor</p>
+                    </div>
+                    <div class="action-card">
+                        <i class="fas fa-calendar-plus"></i>
+                        <h3>Schedule Class</h3>
+                        <p>Create new class schedule</p>
+                    </div>
+                    <div class="action-card">
+                        <i class="fas fa-file-export"></i>
+                        <h3>Generate Report</h3>
+                        <p>Create system reports</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activities -->
+            <div class="card">
+                <h2>Recent Activities</h2>
+                <div class="activity-list">
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fas fa-user-plus"></i>
+                        </div>
+                        <div class="activity-info">
+                            <h3>New Student Registration</h3>
+                            <p>Ahmed Mohamed registered for Spring 2024</p>
+                            <span class="activity-time">2 hours ago</span>
+                        </div>
+                        <span class="status-badge active">Completed</span>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <div class="activity-info">
+                            <h3>Schedule Update</h3>
+                            <p>Updated Mathematics I class schedule</p>
+                            <span class="activity-time">5 hours ago</span>
+                        </div>
+                        <span class="status-badge pending">Pending</span>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <div class="activity-info">
+                            <h3>Report Generation</h3>
+                            <p>Generated monthly enrollment report</p>
+                            <span class="activity-time">1 day ago</span>
+                        </div>
+                        <span class="status-badge completed">Completed</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Student List -->
+            <div class="card">
+                <h2>Recent Students</h2>
+                <div class="student-list">
+                    <div class="student-item">
+                        <div class="student-info">
+                            <h3>Ahmed Mohamed</h3>
+                            <p>ID: 12345</p>
+                            <p>Computer Science</p>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="action-btn edit"><i class="fas fa-edit"></i></button>
+                            <button class="action-btn delete"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                    <div class="student-item">
+                        <div class="student-info">
+                            <h3>Sarah Ahmed</h3>
+                            <p>ID: 12346</p>
+                            <p>Information Technology</p>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="action-btn edit"><i class="fas fa-edit"></i></button>
+                            <button class="action-btn delete"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../../js/main.js"></script>
+    <script>
+        // Load user data
+        document.addEventListener('DOMContentLoaded', () => {
+            const userData = JSON.parse(localStorage.getItem('userData'));
+            if (userData) {
+                document.getElementById('secretaryName').textContent = userData.name;
+                document.querySelector('.user-name').textContent = userData.name;
+            }
+        });
+
+        // Toggle user menu
+        document.querySelector('.user-info').addEventListener('click', () => {
+            document.querySelector('.dropdown-menu').classList.toggle('show');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.user-menu')) {
+                document.querySelector('.dropdown-menu').classList.remove('show');
+            }
+        });
+
+        // Handle action buttons
+        document.querySelectorAll('.action-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const action = e.target.closest('.action-btn').classList.contains('edit') ? 'edit' : 'delete';
+                const item = e.target.closest('.student-item');
+                // Handle edit/delete action
+                console.log(`${action} student:`, item);
+            });
+        });
+
+        // Handle quick action cards
+        document.querySelectorAll('.action-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const action = card.querySelector('h3').textContent;
+                console.log(`Quick action: ${action}`);
+                // Handle quick action
+            });
+        });
+    </script>
+</body>
+</html> 

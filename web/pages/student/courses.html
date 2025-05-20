@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Courses - Student Dashboard - Uskudar</title>
+    <link rel="stylesheet" href="../../css/common.css">
+    <link rel="stylesheet" href="../../css/components/header.css">
+    <link rel="stylesheet" href="../../css/components/sidebar.css">
+    <link rel="stylesheet" href="../../css/pages/student/student-dashboard.css">
+    <link rel="stylesheet" href="../../css/pages/student/student-courses.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+    .apply-deadline-info {
+        margin: 0.7em 0 0.2em 0;
+        color: #174ea6;
+        font-size: 1em;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.5em;
+    }
+    .apply-deadline-info i {
+        color: #2563eb;
+    }
+    </style>
+</head>
+<body>
+    <!-- Header Component -->
+    <header class="header">
+        <a href="dashboard.html" class="logo">Uskudar</a>
+        <div class="search-bar">
+            <input type="text" class="search-input" placeholder="Search...">
+        </div>
+        <div class="header-right">
+            <div class="notifications">
+                <button class="notification-btn" id="notificationBtn">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge">2</span>
+                </button>
+                <div class="notification-dropdown">
+                    <div class="notification-header">
+                        <h3>Notifications</h3>
+                        <button class="mark-all-read">Mark all as read</button>
+                    </div>
+                    <div class="notification-list">
+                        <div class="notification-item">
+                            <i class="fas fa-bell"></i>
+                            <div class="notification-content">
+                                <p>New grade posted for Mathematics I</p>
+                                <span class="notification-time">2 hours ago</span>
+                            </div>
+                        </div>
+                        <div class="notification-item">
+                            <i class="fas fa-calendar"></i>
+                            <div class="notification-content">
+                                <p>Upcoming exam: Programming Final</p>
+                                <span class="notification-time">1 day ago</span>
+                            </div>
+                        </div>
+                        <div class="notification-item read">
+                            <i class="fas fa-file-alt"></i>
+                            <div class="notification-content">
+                                <p>New assignment posted: Project Submission</p>
+                                <span class="notification-time">2 days ago</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="user-menu">
+                <div class="user-info">
+                    <span class="user-name">Student Name</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="dropdown-menu">
+                    <a href="profile.html"><i class="fas fa-user"></i> Profile</a>
+                    <a href="#" id="settingsBtn"><i class="fas fa-cog"></i> Settings</a>
+                    <a href="#" class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sidebar Component -->
+    <aside class="sidebar">
+        <nav class="nav-menu">
+            <div class="nav-section">
+                <div class="nav-section-title">Main</div>
+                <a href="dashboard.html" class="nav-link">
+                    <i class="fas fa-home"></i>
+                    Dashboard
+                </a>
+                <a href="courses.html" class="nav-link">
+                    <i class="fas fa-book"></i>
+                    Courses
+                </a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">Schedule & Exams</div>
+                <a href="schedule.html" class="nav-link">
+                    <i class="fas fa-calendar-alt"></i>
+                    Class Schedule
+                </a>
+                <a href="exam-schedule.html" class="nav-link">
+                    <i class="fas fa-file-alt"></i>
+                    Exam Schedule
+                </a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">Academic</div>
+                <a href="grades.html" class="nav-link">
+                    <i class="fas fa-graduation-cap"></i>
+                    Grades
+                </a>
+                <a href="assignments.html" class="nav-link">
+                    <i class="fas fa-file-alt"></i>
+                    Assignments
+                </a>
+                <a href="resit.html" class="nav-link">
+                    <i class="fas fa-redo"></i>
+                    Resit Exams
+                </a>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="dashboard-header">
+            <h1>My Courses</h1>
+            <div class="header-actions">
+                <div class="period-selector">
+                    <select id="academicYear" class="period-select">
+                        <option value="2024-2025">2024-2025</option>
+                        <option value="2023-2024">2023-2024</option>
+                        <option value="2022-2023">2022-2023</option>
+                    </select>
+                    <select id="academicTerm" class="period-select">
+                        <option value="spring">Spring</option>
+                        <option value="fall">Fall</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="courses-grid">
+                <!-- Course cards will be dynamically added here -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Under Development Modal -->
+    <div id="underDevModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Under Development</h2>
+                <button class="close-modal" onclick="closeUnderDevModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>This feature is currently under development. Please check back later!</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../js/main.js" type="module"></script>
+    <script src="../../js/pages/student/courses.js" type="module"></script>
+</body>
+</html> 

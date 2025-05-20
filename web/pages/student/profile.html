@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Student Dashboard - Uskudar</title>
+    <link rel="stylesheet" href="../../css/common.css">
+    <link rel="stylesheet" href="../../css/components/header.css">
+    <link rel="stylesheet" href="../../css/components/sidebar.css">
+    <link rel="stylesheet" href="../../css/pages/student/student-dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header Component -->
+    <header class="header">
+        <a href="dashboard.html" class="logo">Uskudar</a>
+        <div class="search-bar">
+            <input type="text" class="search-input" placeholder="Search...">
+        </div>
+        <div class="header-right">
+            <div class="notifications">
+                <button class="notification-btn" id="notificationBtn">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge">2</span>
+                </button>
+                <div class="notification-dropdown">
+                    <div class="notification-header">
+                        <h3>Notifications</h3>
+                        <button class="mark-all-read">Mark all as read</button>
+                    </div>
+                    <div class="notification-list">
+                        <!-- Notifications will be populated dynamically -->
+                    </div>
+                </div>
+            </div>
+            <div class="user-avatar">
+                <img src="../../assets/images/default-avatar.png" alt="Profile Picture" class="avatar-img" id="userAvatar">
+            </div>
+            <div class="user-menu">
+                <div class="user-info">
+                    <span class="user-name">Loading...</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="dropdown-menu">
+                    <a href="profile.html"><i class="fas fa-user"></i> Profile</a>
+                    <a href="#" id="settingsBtn"><i class="fas fa-cog"></i> Settings</a>
+                    <a href="#" class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sidebar Component -->
+    <aside class="sidebar">
+        <nav class="nav-menu">
+            <div class="nav-section">
+                <div class="nav-section-title">Main</div>
+                <a href="dashboard.html" class="nav-link">
+                    <i class="fas fa-home"></i>
+                    Dashboard
+                </a>
+                <a href="courses.html" class="nav-link">
+                    <i class="fas fa-book"></i>
+                    Courses
+                </a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">Schedule & Exams</div>
+                <a href="schedule.html" class="nav-link">
+                    <i class="fas fa-calendar-alt"></i>
+                    Class Schedule
+                </a>
+                <a href="exam-schedule.html" class="nav-link">
+                    <i class="fas fa-file-alt"></i>
+                    Exam Schedule
+                </a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">Academic</div>
+                <a href="grades.html" class="nav-link">
+                    <i class="fas fa-graduation-cap"></i>
+                    Grades
+                </a>
+                <a href="assignments.html" class="nav-link">
+                    <i class="fas fa-file-alt"></i>
+                    Assignments
+                </a>
+                <a href="resit.html" class="nav-link">
+                    <i class="fas fa-redo"></i>
+                    Resit Exams
+                </a>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="dashboard-header">
+            <h1>Profile</h1>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="card">
+                <div class="profile-section">
+                    <div class="profile-header">
+                        <div class="profile-info">
+                            <h2 id="profileName">Loading...</h2>
+                            <p id="profileId">Student ID: Loading...</p>
+                            <p id="profileEmail">Loading...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="profile-section">
+                    <h3>Personal Information</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>Full Name</label>
+                            <p id="fullName">Loading...</p>
+                        </div>
+                        <div class="info-item">
+                            <label>Date of Birth</label>
+                            <p id="dob">Loading...</p>
+                        </div>
+                        <div class="info-item">
+                            <label>Gender</label>
+                            <p id="gender">Loading...</p>
+                        </div>
+                        <div class="info-item">
+                            <label>Nationality</label>
+                            <p id="nationality">Loading...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="profile-section">
+                    <h3>Academic Information</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>Department</label>
+                            <p id="department">Loading...</p>
+                        </div>
+                        <div class="info-item">
+                            <label>Program</label>
+                            <p id="program">Loading...</p>
+                        </div>
+                        <div class="info-item">
+                            <label>Year</label>
+                            <p id="year">Loading...</p>
+                        </div>
+                        <div class="info-item">
+                            <label>GPA</label>
+                            <p id="gpa">Loading...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { checkStudentAuth, getLoggedInStudentData, updateUIWithStudentData, handleStudentLogout } from '../../js/utils/studentAuth.js';
+
+        // Check if student is logged in
+        checkStudentAuth();
+
+        // Load and display student data
+        async function loadStudentData() {
+            try {
+                const studentData = await getLoggedInStudentData();
+                updateUIWithStudentData(studentData);
+
+                // Update additional profile information
+                document.getElementById('dob').textContent = studentData.dateOfBirth || 'no info';
+                document.getElementById('gender').textContent = studentData.gender || 'no info';
+                document.getElementById('nationality').textContent = studentData.nationality || 'no info';
+                document.getElementById('department').textContent = studentData.department || 'no info';
+                document.getElementById('program').textContent = studentData.program || 'no info';
+                document.getElementById('year').textContent = studentData.year || 'no info';
+                document.getElementById('gpa').textContent = studentData.gpa || 'no info';
+
+                // Create default avatar with initials
+                const initials = studentData.name
+                    .split(' ')
+                    .map(word => word[0])
+                    .join('')
+                    .toUpperCase();
+                
+                const canvas = document.createElement('canvas');
+                canvas.width = 100;
+                canvas.height = 100;
+                const ctx = canvas.getContext('2d');
+                
+                ctx.fillStyle = '#3498db';
+                ctx.fillRect(0, 0, 100, 100);
+                
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 40px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(initials, 50, 50);
+                
+                document.getElementById('userAvatar').src = canvas.toDataURL();
+            } catch (error) {
+                console.error('Error loading student data:', error);
+                // Handle error (e.g., show error message to user)
+            }
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStudentData();
+
+            // Handle logout
+            document.getElementById('logoutBtn').addEventListener('click', (e) => {
+                e.preventDefault();
+                handleStudentLogout();
+            });
+
+            // Toggle notification dropdown
+            const notificationBtn = document.getElementById('notificationBtn');
+            const notificationDropdown = document.querySelector('.notification-dropdown');
+            
+            notificationBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                notificationDropdown.classList.toggle('show');
+            });
+
+            // Close notification dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.notifications')) {
+                    notificationDropdown.classList.remove('show');
+                }
+            });
+
+            // Handle mark all as read
+            document.querySelector('.mark-all-read').addEventListener('click', () => {
+                document.querySelectorAll('.notification-item').forEach(item => {
+                    item.classList.add('read');
+                });
+                document.querySelector('.notification-badge').style.display = 'none';
+            });
+
+            // Toggle user menu
+            document.querySelector('.user-info').addEventListener('click', () => {
+                document.querySelector('.dropdown-menu').classList.toggle('show');
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.user-menu')) {
+                    document.querySelector('.dropdown-menu').classList.remove('show');
+                }
+            });
+
+            // Set active link in sidebar
+            const currentPage = window.location.pathname.split('/').pop();
+            const activeLink = document.querySelector(`.nav-link[href="${currentPage}"]`);
+            if (activeLink) {
+                activeLink.classList.add('active');
+            }
+        });
+    </script>
+</body>
+</html> 

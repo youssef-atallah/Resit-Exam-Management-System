@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule - Uskudar University</title>
+    <link rel="stylesheet" href="../../css/common.css">
+    <link rel="stylesheet" href="../../css/components/header.css">
+    <link rel="stylesheet" href="../../css/components/sidebar.css">
+    <link rel="stylesheet" href="../../css/pages/instructor/instructor-dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header Component -->
+    <header class="header">
+        <a href="dashboard.html" class="logo">Uskudar</a>
+        <div class="search-bar">
+            <input type="text" class="search-input" placeholder="Search schedule...">
+        </div>
+        <div class="header-right">
+            <div class="notifications">
+                <button class="notification-btn" id="notificationBtn">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge">2</span>
+                </button>
+                <div class="notification-dropdown">
+                    <div class="notification-header">
+                        <h3>Notifications</h3>
+                        <button class="mark-all-read">Mark all as read</button>
+                    </div>
+                    <div class="notification-list">
+                        <div class="notification-item">
+                            <i class="fas fa-bell"></i>
+                            <div class="notification-content">
+                                <p>New grade posted for Mathematics I</p>
+                                <span class="notification-time">2 hours ago</span>
+                            </div>
+                        </div>
+                        <div class="notification-item">
+                            <i class="fas fa-calendar"></i>
+                            <div class="notification-content">
+                                <p>Upcoming exam: Programming Final</p>
+                                <span class="notification-time">1 day ago</span>
+                            </div>
+                        </div>
+                        <div class="notification-item read">
+                            <i class="fas fa-file-alt"></i>
+                            <div class="notification-content">
+                                <p>New assignment posted: Project Submission</p>
+                                <span class="notification-time">2 days ago</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="user-menu">
+                <div class="user-info">
+                    <span class="user-name">Instructor Name</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="dropdown-menu">
+                    <a href="profile.html"><i class="fas fa-user"></i> Profile</a>
+                    <a href="#" id="settingsBtn"><i class="fas fa-cog"></i> Settings</a>
+                    <a href="#" class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sidebar Component -->
+    <aside class="sidebar">
+        <nav class="nav-menu">
+            <div class="nav-section">
+                <div class="nav-section-title">Main</div>
+                <a href="dashboard.html" class="nav-link active">
+                    <i class="fas fa-home"></i>
+                    Dashboard
+                </a>
+                <a href="courses.html" class="nav-link">
+                    <i class="fas fa-book"></i>
+                    Courses
+                </a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">Schedule & Exams</div>
+                <a href="class-schedule.html" class="nav-link">
+                    <i class="fas fa-calendar-alt"></i>
+                    Class Schedule
+                </a>
+                <a href="exam-schedule.html" class="nav-link">
+                    <i class="fas fa-file-alt"></i>
+                    Exam Schedule
+                </a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">Academic</div>
+                <a href="assignments.html" class="nav-link">
+                    <i class="fas fa-file-alt"></i>
+                    Assignments
+                </a>
+                <a href="resit.html" class="nav-link">
+                    <i class="fas fa-redo"></i>
+                    Resit Exams
+                </a>
+            </div>
+        </nav>
+    </aside>
+
+    
+    <main class="main-content">
+        <div class="under-development">
+            <i class="fas fa-tools"></i>
+            <h2>Under Development</h2>
+            <p>The schedule section is currently being developed. We're working hard to bring you a comprehensive scheduling system that will help you manage your classes efficiently. Please check back soon!</p>
+        </div>
+    </main>
+
+    <script src="../../js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set active link in sidebar
+            const currentPage = window.location.pathname.split('/').pop();
+            const activeLink = document.querySelector(`.nav-link[href="${currentPage}"]`);
+            if (activeLink) {
+                activeLink.classList.add('active');
+            }
+
+            // Initialize header functionality
+            const userData = JSON.parse(localStorage.getItem('userData'));
+            if (userData) {
+                const userNameElement = document.querySelector('.user-name');
+                if (userNameElement) {
+                    userNameElement.textContent = userData.name;
+                }
+            }
+
+            // Toggle notification dropdown
+            const notificationBtn = document.getElementById('notificationBtn');
+            const notificationDropdown = document.querySelector('.notification-dropdown');
+            
+            if (notificationBtn && notificationDropdown) {
+                notificationBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    notificationDropdown.classList.toggle('show');
+                });
+            }
+
+            // Close notification dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (notificationDropdown && !e.target.closest('.notifications')) {
+                    notificationDropdown.classList.remove('show');
+                }
+            });
+
+            // Handle mark all as read
+            const markAllReadBtn = document.querySelector('.mark-all-read');
+            if (markAllReadBtn) {
+                markAllReadBtn.addEventListener('click', () => {
+                    document.querySelectorAll('.notification-item').forEach(item => {
+                        item.classList.add('read');
+                    });
+                    const badge = document.querySelector('.notification-badge');
+                    if (badge) {
+                        badge.style.display = 'none';
+                    }
+                });
+            }
+
+            // Toggle user menu
+            const userInfo = document.querySelector('.user-info');
+            const dropdownMenu = document.querySelector('.dropdown-menu');
+            if (userInfo && dropdownMenu) {
+                userInfo.addEventListener('click', () => {
+                    dropdownMenu.classList.toggle('show');
+                });
+            }
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (dropdownMenu && !e.target.closest('.user-menu')) {
+                    dropdownMenu.classList.remove('show');
+                }
+            });
+
+            // Handle logout
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    try {
+                        localStorage.removeItem('userData');
+                        localStorage.removeItem('token');
+                        sessionStorage.clear();
+                        window.location.href = '../../index.html';
+                    } catch (error) {
+                        console.error('Logout error:', error);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html> 

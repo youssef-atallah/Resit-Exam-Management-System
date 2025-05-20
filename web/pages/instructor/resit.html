@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resit Exams - Instructor Dashboard - Uskudar</title>
+    <link rel="stylesheet" href="../../css/common.css">
+    <link rel="stylesheet" href="../../css/components/header.css">
+    <link rel="stylesheet" href="../../css/components/sidebar.css">
+    <link rel="stylesheet" href="../../css/pages/instructor/instructor-dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Additional styles for resit exam management */
+        .resit-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 0 1rem;
+        }
+
+        .resit-header h1 {
+            color: #2c3e50;
+            font-size: 2rem;
+            margin: 0;
+        }
+
+        .resit-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 1rem;
+            background: white;
+            padding: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .resit-tab {
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            color: #666;
+            position: relative;
+        }
+
+        .resit-tab.active {
+            background-color: #1976d2;
+            color: white;
+        }
+
+        .resit-tab:hover:not(.active) {
+            background-color: #f5f5f5;
+        }
+
+        .resit-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 2rem;
+            padding: 1rem;
+        }
+
+        .resit-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .resit-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: #1976d2;
+        }
+
+        .resit-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .resit-info {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .resit-info h3 {
+            color: #2c3e50;
+            font-size: 1.4rem;
+            margin: 0 0 1rem 0;
+            padding-right: 2rem;
+        }
+
+        .resit-info .course-code {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .resit-info p {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin: 0.75rem 0;
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        .resit-info i {
+            color: #1976d2;
+            width: 20px;
+            font-size: 1.1rem;
+        }
+
+        .resit-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin: 1rem 0;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .resit-stat {
+            text-align: center;
+        }
+
+        .resit-stat-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.25rem;
+        }
+
+        .resit-stat-label {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-top: 1rem;
+        }
+
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .status-open {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-closed {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-graded {
+            background-color: #cce5ff;
+            color: #004085;
+        }
+
+        .resit-actions {
+            display: flex;
+            justify-content: flex-end;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+            gap: 0.75rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: #1976d2;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1565c0;
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #2c3e50;
+        }
+
+        .btn-secondary:hover {
+            background: #e9ecef;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #1976d2;
+            color: #1976d2;
+        }
+
+        .btn-outline:hover {
+            background: #e3f2fd;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 2rem;
+            width: 90%;
+            max-width: 800px;
+            border-radius: 12px;
+            position: relative;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .students-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 1.5rem;
+        }
+
+        .students-table th,
+        .students-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .students-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .students-table tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .grade-input {
+            width: 100px;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        .grade-input:focus {
+            border-color: #1976d2;
+            outline: none;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            color: #ddd;
+            margin-bottom: 1.5rem;
+        }
+
+        .empty-state p {
+            color: #666;
+            font-size: 1.1rem;
+            margin: 0;
+        }
+
+        .resit-actions-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .resit-actions-bar .btn {
+            flex: 1;
+            min-width: 200px;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Component -->
+    <header class="header">
+        <a href="dashboard.html" class="logo">Uskudar</a>
+        <div class="search-bar">
+            <input type="text" class="search-input" placeholder="Search schedule...">
+        </div>
+        <div class="header-right">
+            <div class="notifications">
+                <button class="notification-btn" id="notificationBtn">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge">3</span>
+                </button>
+                <div class="notification-dropdown">
+                    <div class="notification-header">
+                        <h3>Notifications</h3>
+                        <button class="mark-all-read">Mark all as read</button>
+                    </div>
+                    <div class="notification-list">
+                        <div class="notification-item">
+                            <i class="fas fa-file-alt"></i>
+                            <div class="notification-content">
+                                <p>New assignment submission: Mathematics I</p>
+                                <span class="notification-time">1 hour ago</span>
+                            </div>
+                        </div>
+                        <div class="notification-item">
+                            <i class="fas fa-calendar"></i>
+                            <div class="notification-content">
+                                <p>Upcoming class: Programming I</p>
+                                <span class="notification-time">2 hours ago</span>
+                            </div>
+                        </div>
+                        <div class="notification-item read">
+                            <i class="fas fa-user"></i>
+                            <div class="notification-content">
+                                <p>New student registration: Physics I</p>
+                                <span class="notification-time">1 day ago</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="user-menu">
+                <div class="user-info">
+                    <span class="user-name">Instructor Name</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="dropdown-menu">
+                    <a href="profile.html"><i class="fas fa-user"></i> Profile</a>
+                    <a href="#" id="settingsBtn"><i class="fas fa-cog"></i> Settings</a>
+                    <a href="#" class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sidebar Component -->
+    <aside class="sidebar">
+        <nav class="nav-menu">
+            <div class="nav-section">
+                <div class="nav-section-title">Main</div>
+                <a href="dashboard.html" class="nav-link">
+                    <i class="fas fa-home"></i>
+                    Dashboard
+                </a>
+                <a href="courses.html" class="nav-link">
+                    <i class="fas fa-book"></i>
+                    Courses
+                </a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">Schedule & Exams</div>
+                <a href="class-schedule.html" class="nav-link">
+                    <i class="fas fa-calendar-alt"></i>
+                    Class Schedule
+                </a>
+                <a href="exam-schedule.html" class="nav-link">
+                    <i class="fas fa-file-alt"></i>
+                    Exam Schedule
+                </a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">Academic</div>
+                <a href="assignments.html" class="nav-link">
+                    <i class="fas fa-file-alt"></i>
+                    Assignments
+                </a>
+                <a href="resit.html" class="nav-link active">
+                    <i class="fas fa-redo"></i>
+                    Resit Exams
+                </a>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="dashboard-header">
+            <h1>Resit Exams</h1>
+        </div>
+
+        <!-- Resit Tabs -->
+        <div class="resit-tabs">
+            <div class="resit-tab active" data-tab="active">Active Resits</div>
+            <div class="resit-tab" data-tab="pending">Pending Confirmation</div>
+            <div class="resit-tab" data-tab="completed">Completed</div>
+        </div>
+
+        <!-- Resit Sections -->
+        <div class="resit-section" id="active-resits">
+            <div class="resit-grid">
+                <!-- Resit cards will be dynamically added here -->
+            </div>
+        </div>
+
+        <div class="resit-section" id="pending-resits" style="display: none;">
+            <div class="resit-grid">
+                <!-- Resit cards will be dynamically added here -->
+            </div>
+        </div>
+
+        <div class="resit-section" id="completed-resits" style="display: none;">
+            <div class="resit-grid">
+                <!-- Resit cards will be dynamically added here -->
+            </div>
+        </div>
+    </main>
+
+    <script src="../../js/main.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="../../js/pages/instructor/resit.js"></script>
+</body>
+</html> 

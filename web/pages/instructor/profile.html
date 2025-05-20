@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Instructor Dashboard - Uskudar</title>
+    <link rel="stylesheet" href="../../css/common.css">
+    <link rel="stylesheet" href="../../css/components/header.css">
+    <link rel="stylesheet" href="../../css/components/sidebar.css">
+    <link rel="stylesheet" href="../../css/pages/instructor/instructor-dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header Component -->
+    <header class="header">
+        <a href="dashboard.html" class="logo">Uskudar</a>
+        <div class="search-bar">
+            <input type="text" class="search-input" placeholder="Search schedule...">
+        </div>
+        <div class="header-right">
+            <div class="notifications">
+                <button class="notification-btn" id="notificationBtn">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge">3</span>
+                </button>
+                <div class="notification-dropdown">
+                    <div class="notification-header">
+                        <h3>Notifications</h3>
+                        <button class="mark-all-read">Mark all as read</button>
+                    </div>
+                    <div class="notification-list">
+                        <div class="notification-item">
+                            <i class="fas fa-file-alt"></i>
+                            <div class="notification-content">
+                                <p>New assignment submission: Mathematics I</p>
+                                <span class="notification-time">1 hour ago</span>
+                            </div>
+                        </div>
+                        <div class="notification-item">
+                            <i class="fas fa-calendar"></i>
+                            <div class="notification-content">
+                                <p>Upcoming class: Programming I</p>
+                                <span class="notification-time">2 hours ago</span>
+                            </div>
+                        </div>
+                        <div class="notification-item read">
+                            <i class="fas fa-user"></i>
+                            <div class="notification-content">
+                                <p>New student registration: Physics I</p>
+                                <span class="notification-time">1 day ago</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="user-menu">
+                <div class="user-info">
+                    <span class="user-name">Instructor Name1</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="dropdown-menu">
+                    <a href="profile.html"><i class="fas fa-user"></i> Profile</a>
+                    <a href="#" id="settingsBtn"><i class="fas fa-cog"></i> Settings</a>
+                    <a href="#" class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sidebar Component -->
+    <aside class="sidebar">
+        <nav class="nav-menu">
+            <div class="nav-section">
+                <div class="nav-section-title">Main</div>
+                <a href="dashboard.html" class="nav-link">
+                    <i class="fas fa-home"></i>
+                    Dashboard
+                </a>
+                <a href="courses.html" class="nav-link">
+                    <i class="fas fa-book"></i>
+                    Courses
+                </a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">Schedule & Exams</div>
+                <a href="class-schedule.html" class="nav-link">
+                    <i class="fas fa-calendar-alt"></i>
+                    Class Schedule
+                </a>
+                <a href="exam-schedule.html" class="nav-link">
+                    <i class="fas fa-file-alt"></i>
+                    Exam Schedule
+                </a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">Academic</div>
+                <a href="assignments.html" class="nav-link">
+                    <i class="fas fa-file-alt"></i>
+                    Assignments
+                </a>
+                <a href="resit.html" class="nav-link">
+                    <i class="fas fa-redo"></i>
+                    Resit Exams
+                </a>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="dashboard-header">
+            <h1>Profile</h1>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="card">
+                <div class="profile-section">
+                    <div class="profile-header">
+                        <div class="profile-info">
+                            <h2 id="profileName">Instructor Name</h2>
+                            <p id="profileId">Instructor ID: 12345</p>
+                            <p id="profileEmail">instructor@uskudar.edu.tr</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="profile-section">
+                    <h3>Personal Information</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>Full Name</label>
+                            <p id="fullName">Instructor Name</p>
+                        </div>
+                        <div class="info-item">
+                            <label>Date of Birth</label>
+                            <p id="dob">01/01/1980</p>
+                        </div>
+                        <div class="info-item">
+                            <label>Gender</label>
+                            <p id="gender">Male</p>
+                        </div>
+                        <div class="info-item">
+                            <label>Nationality</label>
+                            <p id="nationality">Turkish</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="profile-section">
+                    <h3>Academic Information</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>Department</label>
+                            <p id="department">Computer Engineering</p>
+                        </div>
+                        <div class="info-item">
+                            <label>Title</label>
+                            <p id="title">Associate Professor</p>
+                        </div>
+                        <div class="info-item">
+                            <label>Office</label>
+                            <p id="office">Room 301</p>
+                        </div>
+                        <div class="info-item">
+                            <label>Office Hours</label>
+                            <p id="officeHours">Mon, Wed 14:00 - 16:00</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="profile-section">
+                    <h3>Contact Information</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>Email</label>
+                            <p id="email">instructor@uskudar.edu.tr</p>
+                        </div>
+                        <div class="info-item">
+                            <label>Phone</label>
+                            <p id="phone">+90 (216) 123 4567</p>
+                        </div>
+                        <div class="info-item">
+                            <label>Extension</label>
+                            <p id="extension">1234</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../../js/main.js"></script>
+    <script src="../../js/pages/instructor/profile.js"></script>
+</body>
+</html> 

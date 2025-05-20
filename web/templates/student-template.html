@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard - Uskudar</title>
+    <link rel="stylesheet" href="../../css/common.css">
+    <link rel="stylesheet" href="../../css/components/header.css">
+    <link rel="stylesheet" href="../../css/components/sidebar.css">
+    <link rel="stylesheet" href="../../css/pages/student/student-dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header Component -->
+    <header class="header">
+        <a href="dashboard.html" class="logo">Uskudar</a>
+        <div class="search-bar">
+            <input type="text" class="search-input" placeholder="Search...">
+        </div>
+        <div class="header-right">
+            <div class="notifications">
+                <button class="notification-btn" id="notificationBtn">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge">2</span>
+                </button>
+                <div class="notification-dropdown">
+                    <div class="notification-header">
+                        <h3>Notifications</h3>
+                        <button class="mark-all-read">Mark all as read</button>
+                    </div>
+                    <div class="notification-list">
+                        <!-- Notifications will be populated here -->
+                    </div>
+                </div>
+            </div>
+            <div class="user-avatar">
+                <img src="../../assets/images/default-avatar.png" alt="Profile Picture" class="avatar-img" id="userAvatar">
+            </div>
+            <div class="user-menu">
+                <div class="user-info">
+                    <span class="user-name">Student Name</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="dropdown-menu">
+                    <a href="profile.html"><i class="fas fa-user"></i> Profile</a>
+                    <a href="#" id="settingsBtn"><i class="fas fa-cog"></i> Settings</a>
+                    <a href="#" class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sidebar Component -->
+    <aside class="sidebar">
+        <nav class="nav-menu">
+            <div class="nav-section">
+                <div class="nav-section-title">Main</div>
+                <a href="dashboard.html" class="nav-link">
+                    <i class="fas fa-home"></i>
+                    Dashboard
+                </a>
+                <a href="courses.html" class="nav-link">
+                    <i class="fas fa-book"></i>
+                    Courses
+                </a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">Schedule & Exams</div>
+                <a href="schedule.html" class="nav-link">
+                    <i class="fas fa-calendar-alt"></i>
+                    Class Schedule
+                </a>
+                <a href="exam-schedule.html" class="nav-link">
+                    <i class="fas fa-file-alt"></i>
+                    Exam Schedule
+                </a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">Academic</div>
+                <a href="grades.html" class="nav-link">
+                    <i class="fas fa-graduation-cap"></i>
+                    Grades
+                </a>
+                <a href="assignments.html" class="nav-link">
+                    <i class="fas fa-file-alt"></i>
+                    Assignments
+                </a>
+                <a href="resit.html" class="nav-link">
+                    <i class="fas fa-redo"></i>
+                    Resit
+                </a>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Page content goes here -->
+    </main>
+
+    <script src="../../js/main.js"></script>
+    <script>
+        // Common functionality for all pages
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load user data
+            const userData = JSON.parse(localStorage.getItem('userData'));
+            if (userData) {
+                // Update user name
+                document.querySelector('.user-name').textContent = userData.name;
+                
+                // Update avatar if exists
+                if (userData.avatar) {
+                    document.getElementById('userAvatar').src = userData.avatar;
+                } else {
+                    // Use default avatar with user initials if no avatar
+                    const initials = userData.name
+                        .split(' ')
+                        .map(word => word[0])
+                        .join('')
+                        .toUpperCase();
+                    
+                    // Create a canvas for the default avatar
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 100;
+                    canvas.height = 100;
+                    const ctx = canvas.getContext('2d');
+                    
+                    // Draw background
+                    ctx.fillStyle = '#3498db';
+                    ctx.fillRect(0, 0, 100, 100);
+                    
+                    // Draw initials
+                    ctx.fillStyle = 'white';
+                    ctx.font = 'bold 40px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(initials, 50, 50);
+                    
+                    // Set the canvas as the avatar source
+                    document.getElementById('userAvatar').src = canvas.toDataURL();
+                }
+            }
+
+            // Toggle notification dropdown
+            document.getElementById('notificationBtn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                document.querySelector('.notification-dropdown').classList.toggle('show');
+            });
+
+            // Close notification dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.notifications')) {
+                    document.querySelector('.notification-dropdown').classList.remove('show');
+                }
+            });
+
+            // Toggle user menu
+            document.querySelector('.user-info').addEventListener('click', () => {
+                document.querySelector('.dropdown-menu').classList.toggle('show');
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.user-menu')) {
+                    document.querySelector('.dropdown-menu').classList.remove('show');
+                }
+            });
+
+            // Handle logout
+            document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+                e.preventDefault();
+                try {
+                    localStorage.removeItem('userData');
+                    localStorage.removeItem('token');
+                    sessionStorage.clear();
+                    window.location.href = '../../index.html';
+                } catch (error) {
+                    console.error('Logout error:', error);
+                }
+            });
+
+            // Handle search
+            const searchInput = document.querySelector('.search-input');
+            searchInput.addEventListener('input', debounce(async (e) => {
+                const query = e.target.value.trim();
+                if (query.length >= 2) {
+                    try {
+                        const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+                        const results = await response.json();
+                        // TODO: Implement search results display
+                    } catch (error) {
+                        console.error('Search error:', error);
+                    }
+                }
+            }, 300));
+
+            // Set active link in sidebar
+            const currentPage = window.location.pathname.split('/').pop();
+            const activeLink = document.querySelector(`.nav-link[href="${currentPage}"]`);
+            if (activeLink) {
+                activeLink.classList.add('active');
+            }
+        });
+
+        // Debounce function for search
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+    </script>
+</body>
+</html> 

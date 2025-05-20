@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Courses - Uskudar University</title>
+    <link rel="stylesheet" href="../../css/common.css">
+    <link rel="stylesheet" href="../../css/components/header.css">
+    <link rel="stylesheet" href="../../css/components/sidebar.css">
+    <link rel="stylesheet" href="../../css/pages/instructor/instructor-dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+  <!-- Header Component -->
+  <header class="header">
+      <a href="dashboard.html" class="logo">Uskudar</a>
+      <div class="search-bar">
+          <input type="text" class="search-input" placeholder="Search courses...">
+      </div>
+      <div class="header-right">
+          <div class="notifications">
+              <button class="notification-btn" id="notificationBtn">
+                  <i class="fas fa-bell"></i>
+                  <span class="notification-badge">3</span>
+              </button>
+              <div class="notification-dropdown">
+                  <div class="notification-header">
+                      <h3>Notifications</h3>
+                      <button class="mark-all-read">Mark all as read</button>
+                  </div>
+                  <div class="notification-list">
+                      <div class="notification-item">
+                          <i class="fas fa-file-alt"></i>
+                          <div class="notification-content">
+                              <p>New assignment submission: Mathematics I</p>
+                              <span class="notification-time">1 hour ago</span>
+                          </div>
+                      </div>
+                      <div class="notification-item">
+                          <i class="fas fa-calendar"></i>
+                          <div class="notification-content">
+                              <p>Upcoming class: Programming I</p>
+                              <span class="notification-time">2 hours ago</span>
+                          </div>
+                      </div>
+                      <div class="notification-item read">
+                          <i class="fas fa-user"></i>
+                          <div class="notification-content">
+                              <p>New student registration: Physics I</p>
+                              <span class="notification-time">1 day ago</span>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          </div>
+          <div class="user-menu">
+              <div class="user-info">
+                  <span class="user-name">Instructor Name</span>
+                  <i class="fas fa-chevron-down"></i>
+              </div>
+              <div class="dropdown-menu">
+                  <a href="profile.html"><i class="fas fa-user"></i> Profile</a>
+                  <a href="#" id="settingsBtn"><i class="fas fa-cog"></i> Settings</a>
+                  <a href="#" class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+              </div>
+          </div>
+      </div>
+  </header>
+
+  <!-- Sidebar Component -->
+  <aside class="sidebar">
+      <nav class="nav-menu">
+          <div class="nav-section">
+              <div class="nav-section-title">Main</div>
+              <a href="dashboard.html" class="nav-link">
+                  <i class="fas fa-home"></i>
+                  Dashboard
+              </a>
+              <a href="courses.html" class="nav-link active">
+                  <i class="fas fa-book"></i>
+                  Courses
+              </a>
+          </div>
+          <div class="nav-section">
+              <div class="nav-section-title">Schedule & Exams</div>
+              <a href="class-schedule.html" class="nav-link">
+                  <i class="fas fa-calendar-alt"></i>
+                  Class Schedule
+              </a>
+              <a href="exam-schedule.html" class="nav-link">
+                  <i class="fas fa-file-alt"></i>
+                  Exam Schedule
+              </a>
+          </div>
+          <div class="nav-section">
+              <div class="nav-section-title">Academic</div>
+              <a href="assignments.html" class="nav-link">
+                  <i class="fas fa-file-alt"></i>
+                  Assignments
+              </a>
+              <a href="resit.html" class="nav-link">
+                  <i class="fas fa-redo"></i>
+                  Resit Exams
+              </a>
+          </div>
+      </nav>
+  </aside>
+
+  <main class="main-content">
+      <div class="page-header">
+          <h1>My Courses</h1>
+          <div class="academic-period">
+              <select id="academicYear" class="period-select">
+                  <option value="2023-2024">2023-2024</option>
+                  <option value="2022-2023">2022-2023</option>
+              </select>
+              <select id="academicTerm" class="period-select">
+                  <option value="spring">Spring</option>
+                  <option value="fall">Fall</option>
+              </select>
+          </div>
+      </div>
+
+      <div class="courses-container">
+          <div class="courses-header">
+              <div class="filters-section">
+                  <div class="filter-group">
+                      <label for="yearLevelFilter">Year Level:</label>
+                      <select id="yearLevelFilter" class="filter-select">
+                          <option value="all">All Years</option>
+                          <option value="1">First Year</option>
+                          <option value="2">Second Year</option>
+                          <option value="3">Third Year</option>
+                          <option value="4">Fourth Year</option>
+                          <option value="5">Fifth Year</option>
+                          <option value="6">Sixth Year</option>
+                      </select>
+                  </div>
+              </div>
+          </div>
+
+          <div class="courses-grid">
+              <!-- Course cards will be dynamically populated here -->
+          </div>
+      </div>
+
+      <!-- Create Resit Modal -->
+      <div id="createResitModal" class="modal">
+          <div class="modal-content">
+              <span class="close-modal">&times;</span>
+              <h2>Create Resit Exam</h2>
+              <form id="createResitForm">
+                  <div class="form-group">
+                      <label for="courseName">Course:</label>
+                      <input type="text" id="courseName" readonly>
+                  </div>
+                  <div class="form-group">
+                      <label for="courseCode">Course Code:</label>
+                      <input type="text" id="courseCode" readonly>
+                  </div>
+                  <div class="form-group">
+                      <label>Allowed Grades:</label>
+                      <div class="grade-input-section">
+                          <div class="custom-grade-input">
+                              <input type="text" id="customGrade" placeholder="Enter grade letter (e.g., FF)" maxlength="2">
+                              <button type="button" class="btn btn-secondary" onclick="addCustomGrade()">Add Grade</button>
+                          </div>
+                          <div id="customGradesList" class="custom-grades-list"></div>
+                      </div>
+                      <div class="checkbox-group" id="gradeCheckboxes">
+                          <label>
+                              <input type="checkbox" name="lettersAllowed" value="FF"> FF
+                          </label>
+                          <label>
+                              <input type="checkbox" name="lettersAllowed" value="FD"> FD
+                          </label>
+                          <label>
+                              <input type="checkbox" name="lettersAllowed" value="DD"> DD
+                          </label>
+                          <label>
+                              <input type="checkbox" name="lettersAllowed" value="DC"> DC
+                          </label>
+                          <label>
+                              <input type="checkbox" name="lettersAllowed" value="CC"> CC
+                          </label>
+                          <label>
+                              <input type="checkbox" name="lettersAllowed" value="CB"> CB
+                          </label>
+                          <label>
+                              <input type="checkbox" name="lettersAllowed" value="BB"> BB
+                          </label>
+                      </div>
+                  </div>
+                  <div class="form-actions">
+                      <button type="submit" class="btn btn-primary">Create Resit Exam</button>
+                      <button type="button" class="btn btn-secondary" onclick="closeModal('createResitModal')">Cancel</button>
+                  </div>
+              </form>
+          </div>
+      </div>
+      
+  </main>
+
+  <style>
+      /* Additional styles for the Create Resit functionality */
+      .action-btn.resit {
+          background-color: var(--primary-color);
+          color: white;
+      }
+
+      .action-btn.resit:hover {
+          background-color: var(--primary-color-dark);
+      }
+
+      .modal {
+          display: none;
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(0,0,0,0.5);
+          z-index: 1000;
+      }
+
+      .modal-content {
+          background-color: white;
+          margin: 10% auto;
+          padding: 2rem;
+          width: 90%;
+          max-width: 500px;
+          border-radius: 8px;
+          position: relative;
+      }
+
+      .close-modal {
+          position: absolute;
+          right: 1rem;
+          top: 1rem;
+          font-size: 1.5rem;
+          cursor: pointer;
+      }
+
+      .form-group {
+          margin-bottom: 1.5rem;
+      }
+
+      .form-group label {
+          display: block;
+          margin-bottom: 0.5rem;
+          font-weight: 500;
+      }
+
+      .form-group input[type="text"] {
+          width: 100%;
+          padding: 0.5rem;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+          background-color: #f5f5f5;
+      }
+
+      .checkbox-group {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+          gap: 1rem;
+          margin-top: 0.5rem;
+          max-height: 200px;
+          overflow-y: auto;
+          padding: 1rem;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+      }
+
+      .checkbox-group label {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-weight: normal;
+          padding: 0.5rem;
+          border-radius: 4px;
+          transition: background-color 0.2s;
+          position: relative;
+      }
+
+      .checkbox-group label:hover {
+          background-color: #f5f5f5;
+      }
+
+      .checkbox-group label .delete-grade {
+          display: none;
+          position: absolute;
+          right: 0.5rem;
+          background: none;
+          border: none;
+          color: #ff4444;
+          cursor: pointer;
+          padding: 0.25rem;
+          font-size: 0.9rem;
+          opacity: 0;
+          transition: opacity 0.2s;
+      }
+
+      .checkbox-group label:hover .delete-grade {
+          display: block;
+          opacity: 1;
+      }
+
+      .checkbox-group label .delete-grade:hover {
+          color: #ff0000;
+      }
+
+      .checkbox-group input[type="checkbox"] {
+          width: 16px;
+          height: 16px;
+          cursor: pointer;
+      }
+
+      .form-actions {
+          display: flex;
+          gap: 1rem;
+          margin-top: 2rem;
+      }
+
+      .btn {
+          padding: 0.5rem 1rem;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          font-weight: 500;
+      }
+
+      .btn-primary {
+          background-color: var(--primary-color);
+          color: white;
+      }
+
+      .btn-secondary {
+          background-color: #e0e0e0;
+          color: #333;
+      }
+
+      .grade-input-section {
+          margin-bottom: 1rem;
+      }
+
+      .custom-grade-input {
+          display: flex;
+          gap: 0.5rem;
+          margin-bottom: 1rem;
+      }
+
+      .custom-grade-input input {
+          flex: 1;
+          padding: 0.5rem;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+          text-transform: uppercase;
+      }
+
+      .custom-grades-list {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.5rem;
+          margin-bottom: 1rem;
+      }
+
+      .custom-grade-tag {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.25rem 0.5rem;
+          background-color: #e3f2fd;
+          border-radius: 4px;
+          font-size: 0.9rem;
+      }
+
+      .custom-grade-tag button {
+          background: none;
+          border: none;
+          color: #666;
+          cursor: pointer;
+          padding: 0;
+          font-size: 1rem;
+      }
+
+      .custom-grade-tag button:hover {
+          color: #ff0000;
+      }
+
+      .courses-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+          gap: 2rem;
+          padding: 1rem;
+      }
+
+      .course-card {
+          background: white;
+          border-radius: 12px;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          padding: 1.5rem;
+          transition: transform 0.2s, box-shadow 0.2s;
+          position: relative;
+          overflow: hidden;
+      }
+
+      .course-card:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .course-header {
+          margin-bottom: 1.5rem;
+          padding-bottom: 1rem;
+          border-bottom: 2px solid #f0f0f0;
+      }
+
+      .course-header h3 {
+          color: #2c3e50;
+          font-size: 1.4rem;
+          margin: 0 0 0.5rem 0;
+      }
+
+      .course-code {
+          background: #e3f2fd;
+          color: #1976d2;
+          padding: 0.25rem 0.75rem;
+          border-radius: 20px;
+          font-size: 0.9rem;
+          font-weight: 500;
+      }
+
+      .course-info {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+          gap: 1rem;
+          margin-bottom: 1.5rem;
+      }
+
+      .info-item {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          color: #666;
+      }
+
+      .info-item i {
+          color: #1976d2;
+          font-size: 1.1rem;
+      }
+
+      .course-stats {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1rem;
+          margin-bottom: 1.5rem;
+          padding: 1rem;
+          background: #f8f9fa;
+          border-radius: 8px;
+      }
+
+      .stat {
+          text-align: center;
+      }
+
+      .stat-value {
+          display: block;
+          font-size: 1.5rem;
+          font-weight: 600;
+          color: #2c3e50;
+          margin-bottom: 0.25rem;
+      }
+
+      .stat-label {
+          font-size: 0.9rem;
+          color: #666;
+      }
+
+      .course-actions {
+          display: flex;
+          justify-content: center;
+          padding-top: 1rem;
+          border-top: 2px solid #f0f0f0;
+      }
+
+      .action-btn.resit {
+          background: linear-gradient(135deg, #1976d2, #1565c0);
+          color: white;
+          padding: 0.75rem 1.5rem;
+          border-radius: 8px;
+          font-weight: 500;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          transition: all 0.3s ease;
+          box-shadow: 0 2px 4px rgba(25, 118, 210, 0.2);
+          width: 100%;
+          justify-content: center;
+      }
+
+      .action-btn.resit:hover {
+          background: linear-gradient(135deg, #1565c0, #0d47a1);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 8px rgba(25, 118, 210, 0.3);
+      }
+
+      .action-btn.resit i {
+          font-size: 1.1rem;
+      }
+
+      .action-btn.resit span {
+          font-size: 1.1rem;
+      }
+
+      /* Add a subtle pattern to the background */
+      .courses-container {
+          background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
+          padding: 2rem;
+          border-radius: 16px;
+          margin: 1rem;
+      }
+
+      .courses-header {
+          background: white;
+          padding: 1.5rem;
+          border-radius: 12px;
+          margin-bottom: 2rem;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      }
+
+      .filters-section {
+          display: flex;
+          gap: 1.5rem;
+          flex-wrap: wrap;
+      }
+
+      .filter-group {
+          flex: 1;
+          min-width: 200px;
+      }
+
+      .filter-group label {
+          display: block;
+          margin-bottom: 0.5rem;
+          color: #2c3e50;
+          font-weight: 500;
+      }
+
+      .filter-select {
+          width: 100%;
+          padding: 0.75rem;
+          border: 1px solid #ddd;
+          border-radius: 8px;
+          background-color: white;
+          color: #2c3e50;
+          font-size: 1rem;
+          transition: border-color 0.2s;
+      }
+
+      .filter-select:focus {
+          border-color: #1976d2;
+          outline: none;
+      }
+
+      .page-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 2rem;
+          padding: 0 1rem;
+      }
+
+      .page-header h1 {
+          color: #2c3e50;
+          font-size: 2rem;
+          margin: 0;
+      }
+
+      .academic-period {
+          display: flex;
+          gap: 1rem;
+      }
+
+      .period-select {
+          padding: 0.75rem;
+          border: 1px solid #ddd;
+          border-radius: 8px;
+          background-color: white;
+          color: #2c3e50;
+          font-size: 1rem;
+          min-width: 150px;
+      }
+  </style>
+
+  <script src="../../js/main.js"></script>
+  <script src="../../js/pages/instructor/courses.js"></script>
+  <script>
+      document.addEventListener('DOMContentLoaded', () => {
+          // Set active link in sidebar
+          const currentPage = window.location.pathname.split('/').pop();
+          const activeLink = document.querySelector(`.nav-link[href="${currentPage}"]`);
+          if (activeLink) {
+              activeLink.classList.add('active');
+          }
+
+          // Initialize header functionality
+          const userData = JSON.parse(localStorage.getItem('userData'));
+          if (userData) {
+              const userNameElement = document.querySelector('.user-name');
+              if (userNameElement) {
+                  userNameElement.textContent = userData.name;
+              }
+          }
+
+          // Toggle notification dropdown
+          const notificationBtn = document.getElementById('notificationBtn');
+          const notificationDropdown = document.querySelector('.notification-dropdown');
+          
+          if (notificationBtn && notificationDropdown) {
+              notificationBtn.addEventListener('click', (e) => {
+                  e.stopPropagation();
+                  notificationDropdown.classList.toggle('show');
+              });
+          }
+
+          // Close notification dropdown when clicking outside
+          document.addEventListener('click', (e) => {
+              if (notificationDropdown && !e.target.closest('.notifications')) {
+                  notificationDropdown.classList.remove('show');
+              }
+          });
+
+          // Handle mark all as read
+          const markAllReadBtn = document.querySelector('.mark-all-read');
+          if (markAllReadBtn) {
+              markAllReadBtn.addEventListener('click', () => {
+                  document.querySelectorAll('.notification-item').forEach(item => {
+                      item.classList.add('read');
+                  });
+                  const badge = document.querySelector('.notification-badge');
+                  if (badge) {
+                      badge.style.display = 'none';
+                  }
+              });
+          }
+
+          // Toggle user menu
+          const userInfo = document.querySelector('.user-info');
+          const dropdownMenu = document.querySelector('.dropdown-menu');
+          if (userInfo && dropdownMenu) {
+              userInfo.addEventListener('click', () => {
+                  dropdownMenu.classList.toggle('show');
+              });
+          }
+
+          // Close dropdown when clicking outside
+          document.addEventListener('click', (e) => {
+              if (dropdownMenu && !e.target.closest('.user-menu')) {
+                  dropdownMenu.classList.remove('show');
+              }
+          });
+
+          // Handle logout
+          const logoutBtn = document.getElementById('logoutBtn');
+          if (logoutBtn) {
+              logoutBtn.addEventListener('click', async (e) => {
+                  e.preventDefault();
+                  try {
+                      localStorage.removeItem('userData');
+                      localStorage.removeItem('token');
+                      sessionStorage.clear();
+                      window.location.href = '../../index.html';
+                  } catch (error) {
+                      console.error('Logout error:', error);
+                  }
+              });
+          }
+
+          // Create Resit Exam functionality
+          window.createResitExam = function(courseCode, courseName) {
+              document.getElementById('courseCode').value = courseCode;
+              document.getElementById('courseName').value = courseName;
+              openModal('createResitModal');
+          };
+
+          // Modal functionality
+          function openModal(modalId) {
+              document.getElementById(modalId).style.display = 'block';
+          }
+
+          function closeModal(modalId) {
+              document.getElementById(modalId).style.display = 'none';
+          }
+
+          // Close modal when clicking the close button
+          document.querySelectorAll('.close-modal').forEach(button => {
+              button.addEventListener('click', () => {
+                  const modal = button.closest('.modal');
+                  modal.style.display = 'none';
+              });
+          });
+
+          // Close modal when clicking outside
+          window.addEventListener('click', (e) => {
+              if (e.target.classList.contains('modal')) {
+                  e.target.style.display = 'none';
+              }
+          });
+
+          // Add custom grade functionality
+          window.addCustomGrade = function() {
+              const customGradeInput = document.getElementById('customGrade');
+              const grade = customGradeInput.value.trim().toUpperCase();
+              
+              if (grade.length !== 2) {
+                  alert('Please enter a 2-letter grade');
+                  return;
+              }
+
+              // Check if grade already exists
+              const existingGrades = document.querySelectorAll('#gradeCheckboxes input[type="checkbox"]');
+              for (const checkbox of existingGrades) {
+                  if (checkbox.value === grade) {
+                      alert('This grade already exists');
+                      return;
+                  }
+              }
+
+              // Add new checkbox
+              const checkboxGroup = document.getElementById('gradeCheckboxes');
+              const newLabel = document.createElement('label');
+              newLabel.innerHTML = `
+                  <input type="checkbox" name="lettersAllowed" value="${grade}"> ${grade}
+                  <button type="button" class="delete-grade" onclick="removeGrade(this, '${grade}')">
+                      <i class="fas fa-times"></i>
+                  </button>
+              `;
+              checkboxGroup.appendChild(newLabel);
+
+              // Clear input
+              customGradeInput.value = '';
+          };
+
+          // Function to remove a grade
+          window.removeGrade = function(button, grade) {
+              const label = button.closest('label');
+              label.remove();
+          };
+
+          // Initialize delete buttons for existing grades
+          document.querySelectorAll('#gradeCheckboxes label').forEach(label => {
+              const grade = label.querySelector('input').value;
+              const deleteButton = document.createElement('button');
+              deleteButton.className = 'delete-grade';
+              deleteButton.innerHTML = '<i class="fas fa-times"></i>';
+              deleteButton.onclick = function() { removeGrade(this, grade); };
+              label.appendChild(deleteButton);
+          });
+
+          // Handle custom grade input enter key
+          document.getElementById('customGrade').addEventListener('keypress', function(e) {
+              if (e.key === 'Enter') {
+                  e.preventDefault();
+                  addCustomGrade();
+              }
+          });
+
+          // Update form submission to include custom grades
+          document.getElementById('createResitForm').addEventListener('submit', async (e) => {
+              e.preventDefault();
+              
+              const userData = JSON.parse(localStorage.getItem('userData'));
+              if (!userData || !userData.id) {
+                  alert('Please log in to create a resit exam');
+                  return;
+              }
+
+              const courseCode = document.getElementById('courseCode').value;
+              const lettersAllowed = Array.from(document.querySelectorAll('input[name="lettersAllowed"]:checked'))
+                  .map(checkbox => checkbox.value);
+
+              if (lettersAllowed.length === 0) {
+                  alert('Please select at least one allowed grade');
+                  return;
+              }
+
+              try {
+                  const response = await fetch(`/api/instructor/r-exam/${userData.id}`, {
+                      method: 'POST',
+                      headers: {
+                          'Content-Type': 'application/json',
+                          'Authorization': `Bearer ${localStorage.getItem('token')}`
+                      },
+                      body: JSON.stringify({
+                          courseId: courseCode,
+                          lettersAllowed
+                      })
+                  });
+
+                  const data = await response.json();
+                  
+                  if (data.success) {
+                      alert('Resit exam created successfully');
+                      closeModal('createResitModal');
+                      window.location.href = 'resit.html';
+                  } else {
+                      alert(data.error || 'Failed to create resit exam');
+                  }
+              } catch (error) {
+                  console.error('Error creating resit exam:', error);
+                  alert('Failed to create resit exam. Please try again later.');
+              }
+          });
+      });
+  </script>
+
+</body>
+</html> 

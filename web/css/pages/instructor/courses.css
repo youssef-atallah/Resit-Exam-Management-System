@@ -1,0 +1,69 @@
+.course-info {
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    margin: 1rem 0;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.info-row:last-child {
+    margin-bottom: 0;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #495057;
+}
+
+.info-item i {
+    color: #6c757d;
+    width: 20px;
+    text-align: center;
+}
+
+.info-item span {
+    font-size: 0.9rem;
+}
+
+.course-actions {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.action-btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.view-resit {
+    background-color: #0d6efd;
+    color: white;
+}
+
+.view-resit:hover {
+    background-color: #0b5ed7;
+}
+
+.create-resit {
+    background-color: #198754;
+    color: white;
+}
+
+.create-resit:hover {
+    background-color: #157347;
+} 
