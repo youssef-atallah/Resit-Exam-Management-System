@@ -145,7 +145,7 @@ export const deleteInstructor: RequestHandler<{ id: string}> = async (req, res):
   }
 
   // delete the user (which will cascade to instructors and all related tables)
-  await db.deleteUser(id);
+  await db.deleteInstructor(id);
   res.status(200).json({ message: 'Instructor deleted successfully' });
 };
 
@@ -171,7 +171,7 @@ export const updateInstructorInfo: RequestHandler<{ id: string }> = async (req, 
       return;
     }
 
-    await db.updateInstructor(id, name, email, password, instructor.id);
+    await db.updateInstructor(id, name, email, password);
     res.status(200).send('Instructor information updated successfully');
   } catch (error) {
     if (error instanceof Error && error.message === 'Unauthorized') {
@@ -598,9 +598,6 @@ export const updateResitExam: RequestHandler<{ id: string }> = async (req, res):
   const { 
     courseId,
     lettersAllowed,
-    examDate,
-    deadline,
-    location
   } = req.body;
 
   try {
@@ -802,51 +799,31 @@ export const getResitExamAllResults: RequestHandler<{ resitExamId: string }> = a
 
 // Handler to get a specific resit exam by ID
 export const getResitExam: RequestHandler<{ id: string }> = async (req, res) => {
-const { id } = req.params;
-try {
-  // Fetch the resit exam details
-  const resitExam = await db.getResitExam(id);
-  console.log(resitExam);
-  if (!resitExam) {
-    res.status(404).json({ success: false, error: 'Resit exam not found' });
-    return;
-  }
-
-  // Fetch related course details
-  const course = await db.getCourseById(resitExam.course_id);
-  console.log(course);
-  if (!course) {
-    res.status(404).json({ success: false, error: 'Course not found' });
-    return;
-  }
-
-  // Fetch instructor details
-  const instructor = course.instructor_id;
-  console.log(instructor);
-
-
-  // // Fetch enrolled students
-  // const studentResults = await db.getResitExamAllResults(id);
-  // const students = studentResults.map(result => result.studentId);
-
-  // console.log(students);
-  // Construct the response with all related data
-  res.status(200).json({
-    success: true,
-    resitExam: {
-      ...resitExam,
-      course: {
-        id: course.id,
-        name: course.name,
-        department: course.department
-      },
-      instructors: instructor,
-      // students
+  const { id } = req.params;
+  
+  try {
+    // Fetch the resit exam with all related data (now includes all required fields)
+    const resitExam = await db.getResitExam(id);
+    
+    if (!resitExam) {
+      res.status(404).json({ 
+        success: false, 
+        error: 'Resit exam not found' 
+      });
+      return;
     }
-  });
-} catch (error) {
-  console.error('Error getting resit exam:', error);
-  res.status(500).json({ success: false, error: 'Error getting resit exam' });
-}
+    
+    // Return the complete resit exam data
+    res.status(200).json({
+      success: true,
+      resitExam
+    });
+  } catch (error) {
+    console.error('Error getting resit exam:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Error getting resit exam',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
 };
-

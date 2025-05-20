@@ -146,8 +146,8 @@ export const deleteStudent: RequestHandler<{ id: string}> = async (req, res) => 
       return;
     }
 
-    // Delete the user (which will cascade to students and all related tables)
-    await db.deleteUser(id);
+    // Delete the student (which will trigger the cascade and delete the user)
+    await db.deleteStudent(id);
     res.status(200).json({
       success: true,
       message: 'Student deleted successfully',
@@ -189,13 +189,15 @@ export const updateStudentInfo: RequestHandler<{ id: string }> = async (req, res
   }
 
   try {
-    await db.updateStudentInfo(id, name, email, password, secretary);
+    console.log(`Updating student ${id} with name ${name}, email ${email}, password ${password}, secretary ${secretary}`)
+    await db.updateStudentInfo(id, name, email, password);
     res.status(200).send('Student information updated successfully');
   } catch (error) {
+    console.error('Database error in updateStudentInfo:', error);
     if (error instanceof Error && error.message === 'Unauthorized') {
       res.status(403).send('Unauthorized to update student');
     } else {
-      res.status(500).send('Error updating student information');
+      res.status(500).send(`Error updating student information: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 };
@@ -356,7 +358,7 @@ export const removeStudentFromCourse: RequestHandler<{ id: string }> = async (re
   }
 
   try {
-    await db.removeStudentFromCourse(id, courseId, secretaryId);
+    await db.removeStudentFromCourse(id, courseId);
     res.status(200).send('Student removed from course successfully');
   } catch (error) {
     if (error instanceof Error) {

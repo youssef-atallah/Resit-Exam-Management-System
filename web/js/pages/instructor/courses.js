@@ -56,7 +56,8 @@ function createCourseCard(course) {
 
     card.innerHTML = `
         <div class="course-header">
-            <h3>${course.courseName || 'Unnamed Course'}</h3>        </div>
+            <h3>${course.courseName || 'Unnamed Course'}</h3>
+        </div>
         <div class="course-info">
             <div class="info-row">
                 <div class="info-item">
@@ -85,7 +86,7 @@ function createCourseCard(course) {
                     <i class="fas fa-eye"></i>
                     <span>View Resit</span>
                 </button>` :
-                `<button class="action-btn create-resit" onclick="createResitExam('${course.courseId}', '${course.courseName}')">
+                `<button class="action-btn create-resit" onclick="createResitExam('${course.courseId}', '${course.courseName}', '${course.instructor_id}')">
                     <i class="fas fa-plus"></i>
                     <span>Create Resit</span>
                 </button>`

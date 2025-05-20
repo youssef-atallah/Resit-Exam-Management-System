@@ -158,6 +158,10 @@
                       <label for="courseCode">Course Code:</label>
                       <input type="text" id="courseCode" readonly>
                   </div>
+                  <div class="form-group" style="display: none;">
+                      <label for="instructorId">Instructor ID:</label>
+                      <input type="text" id="instructorId" readonly>
+                  </div>
                   <div class="form-group">
                       <label>Allowed Grades:</label>
                       <div class="grade-input-section">
@@ -200,6 +204,11 @@
       </div>
       
   </main>
+
+  <!-- Notification Containers -->
+  <div id="notificationContainer">
+      <!-- Messages will be injected here by JS -->
+  </div>
 
   <style>
       /* Additional styles for the Create Resit functionality */
@@ -525,7 +534,7 @@
           padding: 1.5rem;
           border-radius: 12px;
           margin-bottom: 2rem;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+          box-shadow: 0 2px 4px rgba(0,0,0,0.05);
       }
 
       .filters-section {
@@ -589,6 +598,64 @@
           color: #2c3e50;
           font-size: 1rem;
           min-width: 150px;
+      }
+
+      /* Notification styles */
+      .notification {
+          position: fixed;
+          /* Center the notification */
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%); 
+          padding: 18px 30px; /* Slightly adjusted padding */
+          border-radius: 10px; /* Slightly more rounded corners */
+          box-shadow: 0 5px 15px rgba(0,0,0,0.25);
+          z-index: 1000;
+          display: flex;
+          align-items: center;
+          gap: 15px; /* Slightly increased gap */
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          font-size: 1rem; /* Slightly larger font for center */
+          min-width: 300px; /* Ensure it has some width */
+          max-width: 90%; /* Don't let it get too wide on small screens */
+          /* Animation: fade in, then fade out */
+          animation: fadeInNotification 0.5s ease-out, fadeOutNotificationCenter 0.5s ease-in 2.5s forwards;
+      }
+
+      .notification.success-message {
+          background-color: #28a745; /* Vibrant green */
+          color: white;
+      }
+
+      .notification.error-message {
+          background-color: #dc3545; /* Vibrant red */
+          color: white;
+      }
+
+      .notification i {
+          font-size: 1.4rem; /* Icon size adjusted */
+      }
+
+      @keyframes fadeInNotification {
+          from {
+              opacity: 0;
+              transform: translate(-50%, -60%); /* Start slightly above center */
+          }
+          to {
+              opacity: 1;
+              transform: translate(-50%, -50%); /* Settle in center */
+          }
+      }
+
+      @keyframes fadeOutNotificationCenter {
+          from {
+              opacity: 1;
+              transform: translate(-50%, -50%);
+          }
+          to {
+              opacity: 0;
+              transform: translate(-50%, -40%); /* Move slightly up as it fades */
+          }
       }
   </style>
 
@@ -677,9 +744,10 @@
           }
 
           // Create Resit Exam functionality
-          window.createResitExam = function(courseCode, courseName) {
+          window.createResitExam = function(courseCode, courseName, instructorId) {
               document.getElementById('courseCode').value = courseCode;
               document.getElementById('courseName').value = courseName;
+              document.getElementById('instructorId').value = instructorId;
               openModal('createResitModal');
           };
 
@@ -769,13 +837,8 @@
           document.getElementById('createResitForm').addEventListener('submit', async (e) => {
               e.preventDefault();
               
-              const userData = JSON.parse(localStorage.getItem('userData'));
-              if (!userData || !userData.id) {
-                  alert('Please log in to create a resit exam');
-                  return;
-              }
-
               const courseCode = document.getElementById('courseCode').value;
+              const instructorId = document.getElementById('instructorId').value;
               const lettersAllowed = Array.from(document.querySelectorAll('input[name="lettersAllowed"]:checked'))
                   .map(checkbox => checkbox.value);
 
@@ -785,11 +848,10 @@
               }
 
               try {
-                  const response = await fetch(`/api/instructor/r-exam/${userData.id}`, {
+                  const response = await fetch(`http://localhost:3000/instructor/r-exam/${instructorId}`, {
                       method: 'POST',
                       headers: {
-                          'Content-Type': 'application/json',
-                          'Authorization': `Bearer ${localStorage.getItem('token')}`
+                          'Content-Type': 'application/json'
                       },
                       body: JSON.stringify({
                           courseId: courseCode,
@@ -799,20 +861,48 @@
 
                   const data = await response.json();
                   
+                  // Function to show notifications
+                  function showUINotification(message, type) {
+                      const container = document.getElementById('notificationContainer');
+                      const notificationId = 'uiNotification-' + Date.now(); // Unique ID for each notification
+                      const notificationDiv = document.createElement('div');
+                      notificationDiv.id = notificationId;
+                      notificationDiv.className = `notification ${type}-message`;
+                      
+                      let iconClass = '';
+                      if (type === 'success') {
+                          iconClass = 'fas fa-check-circle';
+                      } else if (type === 'error') {
+                          iconClass = 'fas fa-exclamation-triangle'; // More suitable error icon
+                      }
+
+                      notificationDiv.innerHTML = `<i class="${iconClass}"></i><span>${message}</span>`;
+                      container.appendChild(notificationDiv);
+
+                      // Automatically remove the notification after 3 seconds
+                      setTimeout(() => {
+                          const Ntf = document.getElementById(notificationId);
+                             if(Ntf) Ntf.remove();
+                      }, 3000);
+                  }
+
                   if (data.success) {
-                      alert('Resit exam created successfully');
+                      showUINotification('Resit exam created successfully!', 'success');
                       closeModal('createResitModal');
-                      window.location.href = 'resit.html';
+                      // Optional: Delay redirect to allow user to see message
+                      setTimeout(() => {
+                          window.location.href = 'resit.html';
+                      }, 2000); // 1 second delay
                   } else {
-                      alert(data.error || 'Failed to create resit exam');
+                      showUINotification(data.error || 'Failed to create resit exam. Please try again.', 'error');
                   }
               } catch (error) {
                   console.error('Error creating resit exam:', error);
-                  alert('Failed to create resit exam. Please try again later.');
+                  showUINotification('An unexpected error occurred. Please try again later.', 'error');
               }
           });
       });
   </script>
 
 </body>
-</html> 
+</html>

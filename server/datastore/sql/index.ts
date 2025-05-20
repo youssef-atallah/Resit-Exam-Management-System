@@ -31,7 +31,7 @@ export class SqlDatastore implements Datastore {
     const createdAt = new Date().toISOString();
     await this.db.run(
       `INSERT INTO courses (id, name, department, instructor_id, created_at, created_by, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, datetime(?, 'localtime', '+3 hours'), ?, datetime(?, 'localtime', '+3 hours'))`,
       [
         course.id,
         course.name,
@@ -39,7 +39,7 @@ export class SqlDatastore implements Datastore {
         course.instructor_id,
         createdAt,
         course.createdBy,
-        course.updatedAt
+        createdAt
       ]
     );
   }
@@ -57,11 +57,16 @@ export class SqlDatastore implements Datastore {
     return rows.map((row: any) => row.student_id);
   }
   async deleteCourse(id: string, secretaryId: string): Promise<void> {
-    await this.db.run(`DELETE FROM courses WHERE id = ?`, [id]);
+    try {
+      await this.db.run(`DELETE FROM courses WHERE id = ?`, [id]);
+    } catch (error) {
+      console.error('Error deleting course:', error);
+      throw error;
+    }
   }
   async updateCourse(id: string, name: string, instructor: string, department: string, secretaryId: string): Promise<void> {
     await this.db.run(
-      `UPDATE courses SET name = ?, instructor_id = ?, department = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+      `UPDATE courses SET name = ?, instructor_id = ?, department = ?, updated_at = datetime('now', 'localtime', '+3 hours') WHERE id = ?`,
       [name, instructor, department, id]
     );
   }
@@ -79,8 +84,8 @@ export class SqlDatastore implements Datastore {
     );
     const now = new Date().toISOString();
     await this.db.run(
-      `INSERT INTO students (id, created_at, created_by, updated_at) VALUES (?, ?, ?, ?)`,
-      [student.id, now, student.createdBy, student.updatedAt]
+      `INSERT INTO students (id, created_at, created_by, updated_at) VALUES (?, datetime(?, 'localtime', '+3 hours'), ?, datetime(?, 'localtime', '+3 hours'))`,
+      [student.id, now, student.createdBy, now]
     );
   }
   async getAstudent(id: string): Promise<Student | undefined> {
@@ -151,15 +156,66 @@ export class SqlDatastore implements Datastore {
         throw error;
     }
   }
-  async deleteStudent(id: string, secretaryID: string): Promise<void> {
-    // Delete from students table - this will cascade to users table due to ON DELETE CASCADE
-    await this.db.run(`DELETE FROM students WHERE id = ?`, [id]);
+  async deleteStudent(id: string): Promise<void> {
+    try {
+      // First, check if student exists
+      const student = await this.db.get('SELECT * FROM students WHERE id = ?', [id]);
+      if (!student) {
+        throw new Error('Student not found');
+      }
+
+      // Delete from all tables that reference students
+      await this.db.run('DELETE FROM course_students WHERE student_id = ?', [id]);
+      await this.db.run('DELETE FROM student_course_grades WHERE student_id = ?', [id]);
+      await this.db.run('DELETE FROM resit_exam_students WHERE student_id = ?', [id]);
+      await this.db.run('DELETE FROM resit_exam_application WHERE student_id = ?', [id]);
+
+      // Delete from all tables that might reference users
+      await this.db.run('DELETE FROM secretaries WHERE id = ?', [id]);
+      await this.db.run('DELETE FROM instructors WHERE id = ?', [id]);
+      
+      // Delete the user record directly before deleting student
+      await this.db.run('DELETE FROM users WHERE id = ?', [id]);
+
+      // Delete the student record
+      await this.db.run('DELETE FROM students WHERE id = ?', [id]);
+
+    } catch (error) {
+      console.error('Error deleting student:', error);
+      throw error;
+    }
   }
-  async updateStudentInfo(id: string, name: string, email: string, password: string, secretaryId: string): Promise<void> {
-    await this.db.run(
-      `UPDATE students SET name = ?, email = ?, password = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
-      [name, email, password, id]
-    );
+  async updateStudentInfo(id: string, name: string, email: string, password: string): Promise<void> {
+    try {
+      // Update users table (which has all the columns)
+      await this.db.run(
+        `UPDATE users SET email = ?, name = ?, password = ? WHERE id = ?`,
+        [email, name, password, id]
+      );
+
+      // Get current timestamp in UTC+3
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      const milliseconds = String(now.getMilliseconds()).padStart(3, '0');
+      
+      // Format timestamp with UTC+3 timezone
+      const updatedAt = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${milliseconds}+03:00`;
+      
+      // Update students table with the UTC+3 timestamp
+      await this.db.run(
+        `UPDATE students SET updated_at = datetime(?, 'localtime', '+3 hours') WHERE id = ?`,
+        [updatedAt, id]
+      );
+
+    } catch (error) {
+      console.error('Database error in updateStudentInfo:', error);
+      throw error;
+    }
   }
   async addCourseToStudent(studentId: string, courseId: string, grade: number | null, gradeLetter: string | null): Promise<boolean> {
     try {
@@ -207,8 +263,31 @@ export class SqlDatastore implements Datastore {
       throw error;
     }
   }
-  async removeStudentFromCourse(studentId: string, courseId: string, secretaryId: string): Promise<void> {
-    await this.db.run(`DELETE FROM course_students WHERE student_id = ? AND course_id = ?`, [studentId, courseId]);
+  async removeStudentFromCourse(studentId: string, courseId: string): Promise<void> {
+    try {
+      // First get any resit exams associated with this course
+      const resitExam = await this.db.get(
+        `SELECT resit_exam_id FROM courses WHERE id = ?`,
+        [courseId]
+      );
+
+      // Remove the student from the course
+      await this.db.run(`DELETE FROM course_students WHERE student_id = ? AND course_id = ?`, [studentId, courseId]);
+
+      // Remove the student's grades for this course
+      await this.db.run(`DELETE FROM student_course_grades WHERE student_id = ? AND course_id = ?`, [studentId, courseId]);
+
+      // If there's a resit exam for this course, remove the student from it
+      if (resitExam && resitExam.resit_exam_id) {
+        await this.db.run(
+          `DELETE FROM resit_exam_students WHERE student_id = ? AND resit_exam_id = ?`,
+          [studentId, resitExam.resit_exam_id]
+        );
+      }
+    } catch (error) {
+      console.error('Error removing student from course:', error);
+      throw error;
+    }
   }
   async addRistExamToStudent(studentId: string, resitExamId: string): Promise<boolean> {
     const result = await this.db.run(
@@ -219,7 +298,12 @@ export class SqlDatastore implements Datastore {
     return (result.changes ?? 0) > 0;
   }
   async removeStudentFromResitExam(studentId: string, resitExamId: string): Promise<void> {
-    await this.db.run(`DELETE FROM resit_exam_students WHERE student_id = ? AND resit_exam_id = ?`, [studentId, resitExamId]);
+    try {
+      await this.db.run(`DELETE FROM resit_exam_students WHERE student_id = ? AND resit_exam_id = ?`, [studentId, resitExamId]);
+    } catch (error) {
+      console.error('Error removing student from resit exam:', error);
+      throw error;
+    }
   }
   async listStudents(): Promise<Student[] | undefined> {
     const students = await this.db.all('SELECT * FROM students');
@@ -234,7 +318,7 @@ export class SqlDatastore implements Datastore {
       [instructor.id, instructor.name, instructor.email, instructor.password]
     );
     await this.db.run(
-      `INSERT INTO instructors (id, created_at, created_by, updated_at) VALUES (?, ?, ?, ?)`,
+      `INSERT INTO instructors (id, created_at, created_by, updated_at) VALUES (?, datetime(?, 'localtime', '+3 hours'), ?, datetime(?, 'localtime', '+3 hours'))`,
       [instructor.id, instructor.createdAt, instructor.createdBy, instructor.updatedAt]
     );
   }
@@ -251,9 +335,18 @@ export class SqlDatastore implements Datastore {
     // Get the instructor's courses
     const coursesRows = await this.db.all('SELECT id FROM courses WHERE instructor_id = ?', [id]);
     const courses = coursesRows.map((row: any) => row.id);
-    // Get the instructor's resit exams
-    const resitExamRows = await this.db.all('SELECT resit_exam_id FROM resit_exam_instructors WHERE instructor_id = ?', [id]);
+    
+    // Get the instructor's resit exams (both created by them and assigned to them)
+    const resitExamRows = await this.db.all(`
+      SELECT DISTINCT 
+        re.id as resit_exam_id 
+      FROM resit_exams re
+      LEFT JOIN resit_exam_instructors rei ON re.id = rei.resit_exam_id
+      WHERE re.created_by = ? OR rei.instructor_id = ?
+    `, [id, id]);
+    
     const resitExams = resitExamRows.map((row: any) => row.resit_exam_id);
+    
     return {
       ...instructor,
       courses: courses || [],
@@ -345,13 +438,47 @@ export class SqlDatastore implements Datastore {
     }));
   }
   
-  async deleteInstructor(id: string, secretaryID: string): Promise<void> {
-    await this.db.run(`DELETE FROM instructors WHERE id = ?`, [id]);
+  async deleteInstructor(id: string): Promise<void> {
+    try {
+      // First, check if instructor exists
+      const instructor = await this.db.get('SELECT * FROM instructors WHERE id = ?', [id]);
+      if (!instructor) {
+        throw new Error('Instructor not found');
+      }
+
+      // Delete from all tables that reference instructors
+      await this.db.run('DELETE FROM course_students WHERE course_id IN (SELECT id FROM courses WHERE instructor_id = ?)', [id]);
+      await this.db.run('DELETE FROM student_course_grades WHERE course_id IN (SELECT id FROM courses WHERE instructor_id = ?)', [id]);
+      await this.db.run('DELETE FROM resit_exam_students WHERE resit_exam_id IN (SELECT id FROM resit_exams WHERE created_by = ?)', [id]);
+      await this.db.run('DELETE FROM resit_exam_application WHERE resit_exam_id IN (SELECT id FROM resit_exams WHERE created_by = ?)', [id]);
+      await this.db.run('DELETE FROM resit_exam_letters_allowed WHERE resit_exam_id IN (SELECT id FROM resit_exams WHERE created_by = ?)', [id]);
+      await this.db.run('DELETE FROM resit_exam_instructors WHERE instructor_id = ?', [id]);
+      
+      // Delete courses created by this instructor
+      await this.db.run('DELETE FROM courses WHERE instructor_id = ?', [id]);
+      
+      // Delete resit exams created by this instructor
+      await this.db.run('DELETE FROM resit_exams WHERE created_by = ?', [id]);
+      
+      // Delete from users table (this will also delete from instructors table due to ON DELETE CASCADE)
+      await this.db.run('DELETE FROM users WHERE id = ?', [id]);
+
+    } catch (error) {
+      console.error('Error deleting instructor:', error);
+      throw error;
+    }
   }
-  async updateInstructor(id: string, name: string, email: string, password: string, secretaryID: string): Promise<void> {
+  async updateInstructor(id: string, name: string, email: string, password: string): Promise<void> {
+    // Update the users table with the new user data
     await this.db.run(
-      `UPDATE instructors SET name = ?, email = ?, password = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+      `UPDATE users SET name = ?, email = ?, password = ? WHERE id = ?`,
       [name, email, password, id]
+    );
+
+    // Update the instructors table with the updated_at timestamp and secretary ID
+    await this.db.run(
+      `UPDATE instructors SET updated_at = datetime('now', 'localtime', '+3 hours') WHERE id = ?`,
+      [id]
     );
   }
   async listInstructors(): Promise<Instructor[] | undefined> {
@@ -390,7 +517,7 @@ export class SqlDatastore implements Datastore {
     }
     await this.db.run(
       `INSERT INTO resit_exams (id, course_id, name, department, created_at, created_by)
-       VALUES (?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, datetime(?, 'localtime', '+3 hours'), ?)`,
       [resitExamId, courseId, name, department, createdAt, createdBy]
     );
 
@@ -407,8 +534,72 @@ export class SqlDatastore implements Datastore {
 
 
   async getResitExam(id: string): Promise<ResitExam> {
-    const exam = await this.db.get('SELECT * FROM resit_exams WHERE id = ?', [id]);
-    return exam;
+    try {
+      // Get the base resit exam details
+      const exam = await this.db.get(`
+        SELECT 
+          id, 
+          course_id, 
+          name, 
+          department, 
+          exam_date as examDate, 
+          deadline, 
+          location, 
+          created_at as createdAt, 
+          created_by as createdBy, 
+          updated_at as updatedAt 
+        FROM resit_exams 
+        WHERE id = ?`, 
+        [id]
+      );
+      
+      if (!exam) {
+        throw new Error('Resit exam not found');
+      }
+      
+      // Get the letters allowed for this exam
+      const lettersRows = await this.db.all(
+        'SELECT letter FROM resit_exam_letters_allowed WHERE resit_exam_id = ?',
+        [id]
+      );
+      const lettersAllowed = lettersRows.map(row => row.letter);
+      
+      // Get students enrolled in this exam
+      const studentsRows = await this.db.all(
+        'SELECT student_id FROM resit_exam_students WHERE resit_exam_id = ?',
+        [id]
+      );
+      const students = studentsRows.map(row => row.student_id);
+      
+      // Get instructors associated with this exam (both creator and assigned)
+      const instructorsRows = await this.db.all(`
+        SELECT DISTINCT 
+          CASE 
+            WHEN re.created_by IS NOT NULL THEN re.created_by
+            WHEN rei.instructor_id IS NOT NULL THEN rei.instructor_id
+          END as instructor_id
+        FROM resit_exams re
+        LEFT JOIN resit_exam_instructors rei ON re.id = rei.resit_exam_id
+        WHERE re.id = ? AND instructor_id IS NOT NULL
+        UNION
+        SELECT created_by as instructor_id
+        FROM resit_exams
+        WHERE id = ?`,
+        [id, id]
+      );
+      const instructors = instructorsRows.map(row => row.instructor_id);
+      
+      // Return a complete ResitExam object
+      return {
+        ...exam,
+        lettersAllowed,
+        students,
+        instructors
+      };
+    } catch (error) {
+      console.error('Error fetching resit exam details:', error);
+      throw error;
+    }
   }
   async getResitExamsByInstructorId(instructorID: string): Promise<ResitExam[]> {
     const rows = await this.db.all(
@@ -416,7 +607,7 @@ export class SqlDatastore implements Datastore {
       [instructorID]
     );
     return rows;
-  }
+  } 
   async getStudentResitExams(id: string): Promise<ResitExamResponse[]> {
     const rows = await this.db.all(
       `SELECT re.* FROM resit_exams re
@@ -488,41 +679,71 @@ export class SqlDatastore implements Datastore {
   }
 
   async deleteResitExam(resitExamId: string): Promise<void> {
-    // First, get the course ID to update it later
-    const resitExam = await this.db.get('SELECT course_id FROM resit_exams WHERE id = ?', [resitExamId]);
-    if (!resitExam) {
-      throw new Error('Resit exam not found');
+    const client = await this.db;
+    
+    try {
+      await client.run('BEGIN TRANSACTION');
+
+      // 1. Get the resit exam with course_id for validation
+      const resitExam = await client.get(
+        'SELECT id, course_id, created_by FROM resit_exams WHERE id = ?',
+        [resitExamId]
+      );
+
+      if (!resitExam) {
+        throw new Error('Resit exam not found');
+      }
+
+      // 2. Delete from resit_exam_students
+      await client.run(
+        'DELETE FROM resit_exam_students WHERE resit_exam_id = ?',
+        [resitExamId]
+      );
+      
+      // 3. Delete from resit_exam_letters_allowed
+      await client.run(
+        'DELETE FROM resit_exam_letters_allowed WHERE resit_exam_id = ?',
+        [resitExamId]
+      );
+
+      // 4. Delete from resit_exam_application
+      await client.run(
+        'DELETE FROM resit_exam_application WHERE resit_exam_id = ?',
+        [resitExamId]
+      );
+
+      // 5. Update the course to remove the resit exam reference if it matches
+      await client.run(
+        `UPDATE courses 
+         SET resit_exam_id = NULL 
+         WHERE id = ? AND resit_exam_id = ?`,
+        [resitExam.course_id, resitExamId]
+      );
+      
+      // 6. Finally, delete the resit exam itself
+      await client.run('DELETE FROM resit_exams WHERE id = ?', [resitExamId]);
+      
+      await client.run('COMMIT');
+    } catch (error) {
+      await client.run('ROLLBACK');
+      console.error('Error in deleteResitExam transaction:', error);
+      throw error;
     }
-
-    // Delete in order of dependencies
-    // 1. Delete from resit_exam_applications (if exists)
-    // await this.db.run('DELETE FROM resit_exam_applications WHERE resit_exam_id = ?', [resitExamId]);
-    
-    // 2. Delete from resit_exam_enroll (if exists)
-    // await this.db.run('DELETE FROM resit_exam_enroll WHERE resit_exam_id = ?', [resitExamId]);
-    
-    // 3. Delete from resit_exam_students
-    await this.db.run('DELETE FROM resit_exam_students WHERE resit_exam_id = ?', [resitExamId]);
-    
-    // 4. Delete from resit_exam_letters_allowed
-    await this.db.run('DELETE FROM resit_exam_letters_allowed WHERE resit_exam_id = ?', [resitExamId]);
-    
-    // 5. Update the course to remove the resit exam reference
-    await this.db.run('UPDATE courses SET resit_exam_id = NULL WHERE id = ?', [resitExam.course_id]);
-    
-    // 6. Finally, delete the resit exam itself
-    await this.db.run('DELETE FROM resit_exams WHERE id = ?', [resitExamId]);
   }
-
   async updateResitExamBySecretary(resitExamId: string, examDate: Date, deadline: Date, location: string, secretaryId: string): Promise<void> {
     await this.db.run(
-      `UPDATE resit_exams SET exam_date = ?, deadline = ?, location = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
-      [examDate, deadline, location, resitExamId]
+      `UPDATE resit_exams 
+       SET exam_date = datetime(?, 'localtime', '+3 hours'), 
+           deadline = datetime(?, 'localtime', '+3 hours'), 
+           location = ?, 
+           updated_at = datetime('now', 'localtime', '+3 hours') 
+       WHERE id = ?`,
+      [examDate.toISOString(), deadline.toISOString(), location, resitExamId]
     );
   }
   async updateResitExamByInstructor(id: string, name: string, instructorID: string, department: string, letters: string[], courseId: string): Promise<void> {
     await this.db.run(
-      `UPDATE resit_exams SET name = ?, department = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+      `UPDATE resit_exams SET name = ?, department = ?, updated_at = datetime('now', 'localtime', '+3 hours') WHERE id = ?`,
       [name, department, id]
     );
     // Optionally update lettersAllowed table
@@ -569,7 +790,7 @@ export class SqlDatastore implements Datastore {
 
     // Assign instructor to course
     const updateResult = await this.db.run(
-      'UPDATE courses SET instructor_id = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+      'UPDATE courses SET instructor_id = ?, updated_at = datetime(\'now\', \'localtime\', \'+3 hours\') WHERE id = ?',
       [instructorId, courseId]
     );
 
@@ -590,11 +811,28 @@ export class SqlDatastore implements Datastore {
     return true;
   }
   async unassignInstructorFromCourse(instructorId: string, courseId: string): Promise<boolean> {
-    const result = await this.db.run(
-      `DELETE FROM resit_exam_instructors WHERE resit_exam_id = ? AND instructor_id = ?`,
-      [courseId, instructorId]
-    );
-    return (result.changes ?? 0) > 0;
+    try {
+      // First, verify the course exists and is assigned to this instructor
+      const course = await this.db.get(
+        'SELECT * FROM courses WHERE id = ? AND instructor_id = ?',
+        [courseId, instructorId]
+      );
+
+      if (!course) {
+        return false; // No matching course found with this instructor
+      }
+
+      // Remove the instructor from the course
+      const result = await this.db.run(
+        'UPDATE courses SET instructor_id = NULL, updated_at = datetime(\'now\', \'localtime\', \'+3 hours\') WHERE id = ?',
+        [courseId]
+      );
+
+      return (result.changes ?? 0) > 0;
+    } catch (error) {
+      console.error('Error unassigning instructor from course:', error);
+      throw error;
+    }
   }
 
   // --- Utility/List Methods ---
@@ -604,12 +842,75 @@ export class SqlDatastore implements Datastore {
   }
 
   async deleteUser(id: string): Promise<void> {
-    await this.db.run('DELETE FROM users WHERE id = ?', [id]);
+    try {
+      await this.db.run('DELETE FROM users WHERE id = ?', [id]);
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      throw error;
+    }
   }
 
   async getResitExamByCourseId(courseId: string): Promise<ResitExam | undefined> {
-    return await this.db.get('SELECT * FROM resit_exams WHERE course_id = ?', [courseId]);
+    // Get the base resit exam details
+    const exam = await this.db.get(
+      `SELECT 
+        id, 
+        course_id as course_id, 
+        name, 
+        department, 
+        exam_date as examDate, 
+        deadline, 
+        location, 
+        created_at as createdAt, 
+        created_by as createdBy, 
+        updated_at as updatedAt 
+      FROM resit_exams 
+      WHERE course_id = ?`, 
+      [courseId]
+    );
+    
+    if (!exam) {
+      return undefined;
+    }
+    
+    // Get the letters allowed for this exam
+    const lettersRows = await this.db.all(
+      'SELECT letter FROM resit_exam_letters_allowed WHERE resit_exam_id = ?',
+      [exam.id]
+    );
+    const lettersAllowed = lettersRows.map(row => row.letter);
+    
+    // Get students enrolled in this exam
+    const studentsRows = await this.db.all(
+      'SELECT student_id FROM resit_exam_students WHERE resit_exam_id = ?',
+      [exam.id]
+    );
+    const students = studentsRows.map(row => row.student_id);
+    
+    // Get instructors associated with this exam
+    const instructorsRows = await this.db.all(
+      `SELECT DISTINCT 
+        CASE 
+          WHEN re.created_by IS NOT NULL THEN re.created_by
+          WHEN rei.instructor_id IS NOT NULL THEN rei.instructor_id
+        END as instructor_id
+      FROM resit_exams re
+      LEFT JOIN resit_exam_instructors rei ON re.id = rei.resit_exam_id
+      WHERE re.id = ? AND instructor_id IS NOT NULL
+      UNION
+      SELECT created_by as instructor_id
+      FROM resit_exams
+      WHERE id = ?`,
+      [exam.id, exam.id]
+    );
+    const instructors = instructorsRows.map(row => row.instructor_id);
+    
+    // Return a complete ResitExam object
+    return {
+      ...exam,
+      lettersAllowed,
+      students,
+      instructors
+    };
   }
-
 } 
-
