@@ -124,6 +124,22 @@ export interface ResitExamDao {
    * @param department - Department offering the exam.
    * @param instructorId - Identifier for the instructor.
    * @param lettersAllowed - Array of allowed letters (likely for grading).
+   * @param announcement - Optional announcement text for the resit exam.
    */
-  createResitExamByInstuctor(resitExamId: string, courseId: string, name: string, department: string, instructorId: string | undefined, lettersAllowed: string[]): Promise<void>;
+  createResitExamByInstuctor(
+    resitExamId: string, 
+    courseId: string, 
+    name: string, 
+    department: string, 
+    instructorId: string, 
+    lettersAllowed: string[],
+    announcement?: string
+  ): Promise<void>;
+
+  /** Updates the announcement for a resit exam.
+   * 
+   * @param resitExamId - The ID of the resit exam.
+   * @param announcement - The new announcement text.
+   */
+  updateResitExamAnnouncement(resitExamId: string, announcement: string): Promise<void>;
 }

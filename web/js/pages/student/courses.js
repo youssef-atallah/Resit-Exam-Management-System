@@ -5,23 +5,58 @@ checkStudentAuth();
 
 // Function to format date
 function formatDate(timestamp) {
-    if (!timestamp) return 'N/A';
+    if (!timestamp) return 'not announced';
+    
+    // Check if the timestamp is in the format "YYYY-MM-DD HH:mm:ss"
+    if (typeof timestamp === 'string' && timestamp.includes(' ')) {
+        // Convert the string to a Date object
+        const [datePart, timePart] = timestamp.split(' ');
+        const [year, month, day] = datePart.split('-');
+        const [hours, minutes, seconds] = timePart.split(':');
+        const date = new Date(year, month - 1, day, hours, minutes, seconds);
+        return date.toLocaleString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+    
+    // Handle numeric timestamp (milliseconds since epoch)
     const date = new Date(parseInt(timestamp));
-    return date.toISOString().replace('T', ' ').replace('.000Z', 'Z');
+    return date.toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
 }
 
 // Function to get current time with timezone adjustment
 function getCurrentTime() {
     const now = new Date();
-    // Add 3 hours to match the backend timezone
-    now.setHours(now.getHours() + 3);
-    return now;
+    // Convert to Istanbul time (UTC+3)
+    const istanbulTime = new Date(now.getTime() + (3 * 60 * 60 * 1000));
+    return istanbulTime;
 }
 
 // Function to format remaining time
 function formatRemainingTime(deadline) {
-    if (!deadline) return 'TBA';
-    const deadlineDate = new Date(parseInt(deadline));
+    if (!deadline) return 'no timer';
+    
+    // Convert deadline string to Date object if it's in the format "YYYY-MM-DD HH:mm:ss"
+    let deadlineDate;
+    if (typeof deadline === 'string' && deadline.includes(' ')) {
+        const [datePart, timePart] = deadline.split(' ');
+        const [year, month, day] = datePart.split('-');
+        const [hours, minutes, seconds] = timePart.split(':');
+        deadlineDate = new Date(year, month - 1, day, hours, minutes, seconds);
+    } else {
+        deadlineDate = new Date(parseInt(deadline));
+    }
+    
     const now = getCurrentTime();
     const diff = deadlineDate - now;
 
@@ -46,7 +81,7 @@ function updateRemainingTimes() {
     const remainingTimeElements = document.querySelectorAll('.remaining-time');
     remainingTimeElements.forEach(element => {
         const deadline = element.getAttribute('data-deadline');
-        if (deadline) {
+        if (deadline && deadline !== 'null' && deadline !== 'undefined') {
             const remainingTime = formatRemainingTime(deadline);
             element.textContent = `(${remainingTime})`;
             
@@ -61,6 +96,8 @@ function updateRemainingTimes() {
                     resitBtn.innerHTML = '<i class="fas fa-redo"></i> Deadline Passed';
                 }
             }
+        } else {
+            element.textContent = '';
         }
     });
 }
@@ -72,6 +109,26 @@ async function fetchStudentCourses() {
         const coursesGrid = document.querySelector('.courses-grid');
         coursesGrid.innerHTML = '<div class="loading">Loading courses...</div>';
 
+        // Fetch student details including resit exams
+        const studentResponse = await fetch(`http://localhost:3000/student/${studentData.id}`);
+        if (!studentResponse.ok) {
+            throw new Error('Failed to fetch student details');
+        }
+        const studentDetails = await studentResponse.json();
+        const studentResitExams = studentDetails.resitExams || [];
+
+        // First, fetch student course details to get grades and resit exam info
+        const studentDetailsResponse = await fetch(`http://localhost:3000/student/c-details/${studentData.id}`);
+        if (!studentDetailsResponse.ok) {
+            throw new Error('Failed to fetch student course details');
+        }
+        const studentCourseDetails = await studentDetailsResponse.json();
+
+        // Create a map of course details for easy lookup
+        const courseDetailsMap = new Map(
+            studentCourseDetails.map(detail => [detail.courseId, detail])
+        );
+
         // Fetch course details for each course ID
         const coursePromises = studentData.courses.map(async (courseId) => {
             try {
@@ -79,7 +136,61 @@ async function fetchStudentCourses() {
                 if (!response.ok) {
                     throw new Error(`Failed to fetch course ${courseId}`);
                 }
-                return await response.json();
+                const responseData = await response.json();
+                const courseData = responseData.course;
+                const studentDetail = courseDetailsMap.get(courseId);
+                
+                // Check if this course has a resit exam
+                const hasResitExam = studentResitExams.some(resitId => resitId.startsWith(courseId));
+
+                // Fetch instructor details
+                let instructorName = 'Instructor ';
+                if (courseData.instructor_id) {
+                    try {
+                        const instructorResponse = await fetch(`http://localhost:3000/instructor/${courseData.instructor_id}`);
+                        if (instructorResponse.ok) {
+                            const instructorData = await instructorResponse.json();
+                            instructorName = instructorData.name;
+                        }
+                    } catch (error) {
+                        console.error(`Error fetching instructor details for ${courseData.instructor_id}:`, error);
+                    }
+                }
+
+                // Fetch resit exam details if available
+                let resitExamDetails = null;
+                if (studentDetail?.resit_exam) {
+                    try {
+                        const resitResponse = await fetch(`http://localhost:3000/r-exam/${courseId}-rId`);
+                        if (resitResponse.ok) {
+                            const resitData = await resitResponse.json();
+                            if (resitData.success && resitData.resitExam) {
+                                resitExamDetails = {
+                                    ...studentDetail.resit_exam,
+                                    allowedLetters: resitData.resitExam.lettersAllowed || []
+                                };
+                                console.log(`Resit exam details for ${courseId}:`, resitData.resitExam);
+                            }
+                        }
+                    } catch (error) {
+                        console.error(`Error fetching resit exam details for ${courseId}:`, error);
+                    }
+                }
+                
+                return {
+                    courseId: courseData.id,
+                    name: courseData.name,
+                    code: courseId,
+                    department: courseData.department,
+                    instructor: instructorName,
+                    schedule: studentDetail?.schedule || 'Schedule ',
+                    location: studentDetail?.location || 'Location ',
+                    grade: studentDetail?.grade,
+                    gradeLetter: studentDetail?.gradeLetter,
+                    progress: studentDetail?.progress || 85,
+                    resit_exam: resitExamDetails,
+                    hasAppliedForResit: hasResitExam
+                };
             } catch (error) {
                 console.error(`Error fetching course ${courseId}:`, error);
                 return null;
@@ -136,38 +247,64 @@ function createCourseCard(course) {
     ` : '';
 
     // Determine resit button state
-    const isEligibleForResit = course.grade && course.grade < 60;
+    console.log('Course:', course.code);
+    console.log('Grade Letter:', course.gradeLetter);
+    console.log('Resit Exam Details:', course.resit_exam);
+    
+    const studentGradeLetter = course.gradeLetter?.toUpperCase() || '';
+    const allowedLetters = course.resit_exam?.allowedLetters || [];
+    const isGradeLetterAllowed = allowedLetters.includes(studentGradeLetter);
+    
+    console.log('Student Grade Letter (uppercase):', studentGradeLetter);
+    console.log('Allowed Letters:', allowedLetters);
+    console.log('Is Grade Letter Allowed:', isGradeLetterAllowed);
+    console.log('Has Applied for Resit:', course.hasAppliedForResit);
+    
     let resitButton;
     
-    if (!isEligibleForResit) {
+    if (course.hasAppliedForResit) {
+        // If student has already applied for resit, show View Resit Details regardless of deadline
         resitButton = `
-            <button class="btn btn-resit not-eligible" disabled>
-                <i class="fas fa-redo"></i>
-                Not Eligible for Resit
-            </button>
-        `;
-    } else if (course.hasAppliedForResit) {
-        resitButton = `
-            <a href="http://localhost:3000/pages/student/resit.html" class="btn btn-resit applied">
+            <a href="resit.html" class="btn btn-resit applied">
                 <i class="fas fa-check"></i>
                 View Resit Details
             </a>
         `;
     } else {
         // Check if deadline has passed with timezone adjustment
-        const deadlineDate = course.resit_exam?.deadline ? new Date(parseInt(course.resit_exam.deadline)) : null;
-        const currentTime = getCurrentTime();
-        const isDeadlinePassed = deadlineDate && deadlineDate <= currentTime;
+        let isDeadlinePassed = false;
+        if (course.resit_exam?.deadline) {
+            let deadlineDate;
+            if (typeof course.resit_exam.deadline === 'string' && course.resit_exam.deadline.includes(' ')) {
+                const [datePart, timePart] = course.resit_exam.deadline.split(' ');
+                const [year, month, day] = datePart.split('-');
+                const [hours, minutes, seconds] = timePart.split(':');
+                deadlineDate = new Date(year, month - 1, day, hours, minutes, seconds);
+            } else {
+                deadlineDate = new Date(parseInt(course.resit_exam.deadline));
+            }
+            const currentTime = getCurrentTime();
+            isDeadlinePassed = deadlineDate <= currentTime;
+        }
 
-        resitButton = `
-            <button class="btn btn-resit ${isDeadlinePassed ? 'not-eligible' : 'eligible'}" 
-                    data-course-id="${course.courseId}" 
-                    data-apply-deadline="${course.resit_exam?.deadline || ''}"
-                    ${isDeadlinePassed ? 'disabled' : ''}>
-                <i class="fas fa-redo"></i>
-                ${isDeadlinePassed ? 'Deadline Passed' : 'Apply for Resit Exam'}
-            </button>
-        `;
+        if (!isGradeLetterAllowed) {
+            resitButton = `
+                <button class="btn btn-resit not-eligible" disabled>
+                    <i class="fas fa-redo"></i>
+                    Not Eligible for Resit Exam
+                </button>
+            `;
+        } else {
+            resitButton = `
+                <button class="btn btn-resit ${isDeadlinePassed ? 'not-eligible' : 'eligible'}" 
+                        data-course-id="${course.courseId}" 
+                        data-apply-deadline="${course.resit_exam?.deadline || ''}"
+                        ${isDeadlinePassed ? 'disabled' : ''}>
+                    <i class="fas fa-redo"></i>
+                    ${isDeadlinePassed ? 'Deadline Passed' : 'Apply for Resit Exam'}
+                </button>
+            `;
+        }
     }
 
     // Add styles for the remaining time
@@ -189,6 +326,30 @@ function createCourseCard(course) {
             min-width: 120px;
             display: inline-block;
         }
+        .btn-resit {
+            transition: all 0.2s ease;
+        }
+        .btn-resit.eligible {
+            background: #2563eb;
+            color: white;
+        }
+        .btn-resit.eligible:hover {
+            background: #1d4ed8;
+            transform: translateY(-2px);
+        }
+        .btn-resit.not-eligible {
+            background: #d1d5db;
+            color: #6b7280;
+            cursor: not-allowed;
+        }
+        .btn-resit.applied {
+            background: #059669;
+            color: white;
+        }
+        .btn-resit.applied:hover {
+            background: #047857;
+            transform: translateY(-2px);
+        }
     `;
     document.head.appendChild(style);
 
@@ -203,15 +364,15 @@ function createCourseCard(course) {
         <div class="course-info">
             <div class="info-item">
                 <i class="fas fa-user"></i>
-                <span>${course.instructor || 'Instructor TBA'}</span>
+                <span>${course.instructor || 'Instructor '}</span>
             </div>
             <div class="info-item">
                 <i class="fas fa-clock"></i>
-                <span>${course.schedule || 'Schedule TBA'}</span>
+                <span>${course.schedule || 'Schedule '}</span>
             </div>
             <div class="info-item">
                 <i class="fas fa-map-marker-alt"></i>
-                <span>${course.location || 'Location TBA'}</span>
+                <span>${course.location || 'Location '}</span>
             </div>
         </div>
         <div class="course-progress">
@@ -250,9 +411,18 @@ function createCourseCard(course) {
             const courseId = resitBtn.dataset.courseId;
             const deadline = resitBtn.dataset.applyDeadline;
             
-            // Check if deadline has passed with timezone adjustment
+            // Check if deadline has passed
             if (deadline) {
-                const deadlineDate = new Date(parseInt(deadline));
+                let deadlineDate;
+                if (typeof deadline === 'string' && deadline.includes(' ')) {
+                    const [datePart, timePart] = deadline.split(' ');
+                    const [year, month, day] = datePart.split('-');
+                    const [hours, minutes, seconds] = timePart.split(':');
+                    deadlineDate = new Date(year, month - 1, day, hours, minutes, seconds);
+                } else {
+                    deadlineDate = new Date(parseInt(deadline));
+                }
+                
                 const currentTime = getCurrentTime();
                 if (deadlineDate <= currentTime) {
                     alert('The deadline for applying to the resit exam has passed.');
@@ -261,7 +431,8 @@ function createCourseCard(course) {
             }
 
             try {
-                const response = await fetch(`http://localhost:3000/student/resit-exam/20209958`, {
+                const studentData = await getLoggedInStudentData();
+                const response = await fetch(`http://localhost:3000/student/resit-exam/${studentData.id}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -280,11 +451,11 @@ function createCourseCard(course) {
                     resitBtn.innerHTML = '<i class="fas fa-check"></i> Applied for Resit';
                 } else {
                     const errorData = await response.text();
-                    showSuccessModal(`Failed to apply for resit exam: ${errorData}`);
+                    showSuccessModal(`Failed to apply for resit exam: ${errorData}`, true);
                 }
             } catch (error) {
                 console.error('Error applying for resit exam:', error);
-                alert('An error occurred while applying for the resit exam. Please try again later.');
+                showSuccessModal('An error occurred while applying for the resit exam. Please try again later.', true);
             }
         });
     }
@@ -406,19 +577,19 @@ document.querySelectorAll('.close-modal').forEach(btn => {
 });
 
 // Add this at the beginning of the file, after the existing functions
-function showSuccessModal(message) {
+function showSuccessModal(message, isError = false) {
     // Create modal container
     const modal = document.createElement('div');
-    modal.className = 'custom-modal success-modal';
+    modal.className = `custom-modal ${isError ? 'error-modal' : 'success-modal'}`;
     
     // Create modal content
     modal.innerHTML = `
         <div class="modal-content">
             <div class="modal-icon">
-                <i class="fas fa-check-circle"></i>
+                <i class="fas ${isError ? 'fa-times-circle' : 'fa-check-circle'}"></i>
             </div>
             <div class="modal-message">${message}</div>
-            <button class="modal-close-btn">OK</button>
+            <button class="modal-close-btn ${isError ? 'error-btn' : ''}">OK</button>
         </div>
     `;
     
@@ -492,7 +663,6 @@ style.textContent = `
 
     .modal-icon {
         font-size: 3rem;
-        color: #4CAF50;
         margin-bottom: 1rem;
     }
 
@@ -520,6 +690,18 @@ style.textContent = `
 
     .success-modal .modal-icon {
         color: #4CAF50;
+    }
+
+    .error-modal .modal-icon {
+        color: #dc3545;
+    }
+
+    .error-modal .modal-close-btn {
+        background: #dc3545;
+    }
+
+    .error-modal .modal-close-btn:hover {
+        background: #c82333;
     }
 `;
 document.head.appendChild(style); 

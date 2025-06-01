@@ -342,7 +342,6 @@ export const createResitExam: RequestHandler<{ id: string }> = async (req, res):
   }
 
   try {
-
     // Validate instructor and course
     const instructor = await db.getInstructorById(id);
     if (!instructor) return res.status(404).json({ success: false, error: 'Instructor not found' });
@@ -391,6 +390,52 @@ export const createResitExam: RequestHandler<{ id: string }> = async (req, res):
     return res.status(500).json({
       success: false,
       error: 'Error creating resit exam',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+};
+
+// Set announcement for a resit exam
+export const setResitExamAnnouncement: RequestHandler<{ id: string }> = async (req, res): Promise<any> => {
+  const { id } = req.params; // instructor id
+  const { courseId, announcement } = req.body;
+
+  if (!courseId || !announcement) {
+    return res.status(400).json({
+      success: false,
+      error: 'Missing required fields',
+      missingFields: { courseId: !courseId, announcement: !announcement }
+    });
+  }
+
+  try {
+    // Validate instructor
+    const instructor = await db.getInstructorById(id);
+    if (!instructor) return res.status(404).json({ success: false, error: 'Instructor not found' });
+
+    // Get resit exam by courseId
+    const resitExam = await db.getResitExamByCourseId(courseId);
+    if (!resitExam) {
+      return res.status(404).json({ success: false, error: 'Resit exam not found for this course' });
+    }
+
+    // Verify instructor is assigned to the course
+    if (!instructor.courses.includes(courseId)) {
+      return res.status(403).json({ success: false, error: 'Instructor not authorized for this resit exam' });
+    }
+
+    // Update the announcement
+    await db.updateResitExamAnnouncement(resitExam.id, announcement);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Announcement updated successfully'
+    });
+  } catch (error) {
+    console.error('Error setting resit exam announcement:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Error setting announcement',
       details: error instanceof Error ? error.message : 'Unknown error'
     });
   }

@@ -46,15 +46,13 @@ CREATE TABLE courses (
 CREATE TABLE resit_exams (
     id VARCHAR(255) PRIMARY KEY,
     course_id VARCHAR(255) NOT NULL,
-    name VARCHAR(255),
-    department VARCHAR(255),
-    exam_date TIMESTAMP,
-    deadline TIMESTAMP,
-    location VARCHAR(255),
-    created_at TIMESTAMP NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    department VARCHAR(255) NOT NULL,
+    created_at DATETIME NOT NULL,
     created_by VARCHAR(255) NOT NULL,
-    updated_at TIMESTAMP,
-    FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE
+    announcement TEXT,
+    FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
+    FOREIGN KEY (created_by) REFERENCES users(id)
 );
 
 -- StudentCourseGrade table

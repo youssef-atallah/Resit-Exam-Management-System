@@ -16,7 +16,8 @@ import {
   updateAStudentResitExamResults,
   getResitExamAllResults,
   updateAllStudentsResitExamResults,
-  getResitExam
+  getResitExam,
+  setResitExamAnnouncement
 } from '../hundlers/instructorHandler';
 
 const router = express.Router();
@@ -49,7 +50,6 @@ router.delete('/instructor/r-exam/:id', deleteResitExam);
 router.get('/instructor/r-exams/:id', getInstructorResitExams);
 router.get('/r-exam/:id', getResitExam);
 
-// router.put('/instructor/course/:id', updateStudentResitExamGrades); // still not expermenting
 
 // Resit exam results management
 //! single student resit exam results
@@ -62,5 +62,10 @@ router.put('/instructor/resit-results/all/:resitExamId', updateAllStudentsResitE
 
 
 router.get('/instructor/resit-results/exam/:resitExamId', getResitExamAllResults); // still not expermenting
+
+router.post('/r-exam/:id', createResitExam);
+
+// update resit exam announcement
+router.put('/instructor/r-announcement/:id', setResitExamAnnouncement);
 
 export default router;

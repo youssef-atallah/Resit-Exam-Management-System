@@ -5,7 +5,7 @@ checkStudentAuth();
 
 // Function to format date
 function formatDate(timestamp) {
-    if (!timestamp) return 'N/A';
+    if (!timestamp) return 'not announced';
     const date = new Date(parseInt(timestamp));
     return date.toISOString().replace('T', ' ').replace('.000Z', 'Z');
 }
@@ -69,27 +69,53 @@ async function fetchStudentResitExams() {
         const courseList = document.querySelector('.course-list');
         courseList.innerHTML = '<div class="loading">Loading resit exams...</div>';
 
-        if (!studentData.resitExams || studentData.resitExams.length === 0) {
+        // First fetch student details to get resit exams
+        const studentResponse = await fetch(`http://localhost:3000/student/${studentData.id}`);
+        if (!studentResponse.ok) {
+            throw new Error('Failed to fetch student details');
+        }
+        const studentDetails = await studentResponse.json();
+        console.log('Student Details:', studentDetails); // Debug log
+
+        if (!studentDetails.resitExams || studentDetails.resitExams.length === 0) {
             courseList.innerHTML = '<div class="no-exams">No resit exams available</div>';
             return;
         }
 
         // Fetch details for each resit exam
-        const resitPromises = studentData.resitExams.map(async (resitId) => {
+        const resitPromises = studentDetails.resitExams.map(async (resitId) => {
             try {
-                const response = await fetch(`http://localhost:3000/resit/${resitId}`);
+                const response = await fetch(`http://localhost:3000/r-exam/${resitId}`);
                 if (!response.ok) {
                     throw new Error(`Failed to fetch resit exam ${resitId}`);
                 }
-                return await response.json();
+                const data = await response.json();
+                
+                if (!data.success || !data.resitExam) {
+                    throw new Error(`Invalid resit exam data for ${resitId}`);
+                }
+
+                const exam = data.resitExam;
+                return {
+                    id: exam.id,
+                    courseId: exam.course_id,
+                    courseName: exam.name,
+                    courseCode: exam.course_id,
+                    deadline: exam.deadline,
+                    examDate: exam.examDate,
+                    location: exam.location,
+                    department: exam.department,
+                    announcement: exam.announcement,
+                    instructor: exam.instructors?.[0] || 'Instructor TBA'
+                };
             } catch (error) {
                 console.error(`Error fetching resit exam ${resitId}:`, error);
                 return null;
             }
         });
 
-        const resitExams = await Promise.all(resitPromises);
-        const validResitExams = resitExams.filter(exam => exam !== null);
+        const resitExamDetails = await Promise.all(resitPromises);
+        const validResitExams = resitExamDetails.filter(exam => exam !== null);
 
         // Clear loading message
         courseList.innerHTML = '';
@@ -282,20 +308,32 @@ function createResitExamCard(exam) {
             <span class="course-code">${exam.courseCode}</span>
         </div>
         <div class="course-info">
-            <p><i class="fas fa-calendar"></i> Deadline: ${formatDate(exam.deadline)}</p>
-            <p><i class="fas fa-clock"></i> ${formatTimeRemaining(exam.deadline)}</p>
+            <p><i class="fas fa-calendar"></i> Exam Date: ${formatDate(exam.examDate)}</p>
+            <p><i class="fas fa-clock"></i> Deadline: ${formatDate(exam.deadline)}</p>
             <p><i class="fas fa-map-marker-alt"></i> ${exam.location || 'Location TBA'}</p>
             <p><i class="fas fa-user"></i> ${exam.instructor || 'Instructor TBA'}</p>
+            ${exam.announcement ? `<p><i class="fas fa-bullhorn"></i> ${exam.announcement}</p>` : ''}
         </div>
         <div class="course-actions">
             ${isDeadlinePassed ? 
                 '<button class="btn btn-danger btn-disabled" disabled>Deadline Passed</button>' :
-                `<button class="btn btn-danger" onclick="cancelResitExam('${exam.id}')">
+                `<button class="btn btn-danger cancel-resit-btn" data-resit-id="${exam.id}">
                     <i class="fas fa-times"></i> Cancel Registration
                 </button>`
             }
         </div>
     `;
+
+    // Add event listener for cancel button
+    const cancelBtn = card.querySelector('.cancel-resit-btn');
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', () => {
+            showConfirmationModal(
+                `Are you sure you want to cancel your registration for ${exam.courseName}?`,
+                () => cancelResitExam(exam.id)
+            );
+        });
+    }
 
     // Add styles for the card
     const style = document.createElement('style');
@@ -367,6 +405,16 @@ function createResitExamCard(exam) {
             gap: 1em;
         }
 
+        .cancel-resit-btn {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .cancel-resit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+        }
+
         @media (max-width: 768px) {
             .improved-resit-card {
                 max-width: 100%;
@@ -424,13 +472,14 @@ function formatTimeRemaining(deadline) {
 // Function to cancel resit exam registration
 async function cancelResitExam(resitId) {
     try {
-        const response = await fetch(`http://localhost:3000/resit/${resitId}/cancel`, {
-            method: 'POST',
+        const studentData = await getLoggedInStudentData();
+        const response = await fetch(`http://localhost:3000/student/resit-exam/${studentData.id}`, {
+            method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                studentId: localStorage.getItem('studentId')
+                resitExamId: resitId
             })
         });
 
@@ -438,11 +487,14 @@ async function cancelResitExam(resitId) {
             throw new Error('Failed to cancel resit exam registration');
         }
 
+        // Show success message
+        showSuccessModal('Successfully cancelled resit exam registration');
+
         // Refresh the resit exams list
         fetchStudentResitExams();
     } catch (error) {
         console.error('Error canceling resit exam:', error);
-        alert('Failed to cancel resit exam registration. Please try again later.');
+        showSuccessModal('Failed to cancel resit exam registration. Please try again later.', true);
     }
 }
 

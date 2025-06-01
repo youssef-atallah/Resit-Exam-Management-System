@@ -51,7 +51,7 @@ export class SqlDatastore implements Datastore {
   async getCourseInstructor(id: string): Promise<string | undefined> {
     const row = await this.db.get('SELECT instructor_id FROM courses WHERE id = ?', [id]);
     return row?.instructor_id;
-  }
+  } 
   async listCourseStudents(id: string): Promise<string[] | undefined> {
     const rows = await this.db.all('SELECT student_id FROM course_students WHERE course_id = ?', [id]);
     return rows.map((row: any) => row.student_id);
@@ -509,19 +509,26 @@ export class SqlDatastore implements Datastore {
 
 
   // --- ResitExam Methods ---
-  async createResitExamByInstuctor(resitExamId: string, courseId: string, name: string, department: string, instructorId: string , lettersAllowed: string[]): Promise<void> {
+  async createResitExamByInstuctor(
+    resitExamId: string, 
+    courseId: string, 
+    name: string, 
+    department: string, 
+    instructorId: string, 
+    lettersAllowed: string[],
+    announcement?: string
+  ): Promise<void> {
     const createdAt = new Date().toISOString(); // Get the current timestamp
     const createdBy = instructorId; //  instructor
     if (!createdBy) {
         throw new Error("Instructor ID is required to set the created_by field");
     }
     await this.db.run(
-      `INSERT INTO resit_exams (id, course_id, name, department, created_at, created_by)
-       VALUES (?, ?, ?, ?, datetime(?, 'localtime', '+3 hours'), ?)`,
-      [resitExamId, courseId, name, department, createdAt, createdBy]
+      `INSERT INTO resit_exams (id, course_id, name, department, created_at, created_by, announcement)
+       VALUES (?, ?, ?, ?, datetime(?, 'localtime', '+3 hours'), ?, ?)`,
+      [resitExamId, courseId, name, department, createdAt, createdBy, announcement || null]
     );
 
-    
     // delete the letters allowed table for the resit exam if it exists before inserting the new ones
     await this.db.run('DELETE FROM resit_exam_letters_allowed WHERE resit_exam_id = ?', [resitExamId]);
     for (const letter of lettersAllowed) {
@@ -529,7 +536,6 @@ export class SqlDatastore implements Datastore {
     }
     // update the course to link it with the resit exam
     await this.db.run('UPDATE courses SET resit_exam_id = ? WHERE id = ?', [resitExamId, courseId]);
-
   }
 
 
@@ -547,7 +553,8 @@ export class SqlDatastore implements Datastore {
           location, 
           created_at as createdAt, 
           created_by as createdBy, 
-          updated_at as updatedAt 
+          updated_at as updatedAt,
+          announcement
         FROM resit_exams 
         WHERE id = ?`, 
         [id]
@@ -663,17 +670,73 @@ export class SqlDatastore implements Datastore {
   async updateAllStudentsResitExamResults(resitExamId: string, results: { studentId: string; grade: number; gradeLetter: string; }[]): Promise<boolean> {
     let allSuccess = true;
     for (const result of results) {
-      const res = await this.db.run(
-        `UPDATE resit_exam_enroll 
-         SET ResitExamEnrollGrade = ?, ResitExamEnrollLetterGrade = ?
-         WHERE ResitExamApplicationId IN (
-           SELECT ResitExamApplicationId 
-           FROM resit_exam_application 
-           WHERE StudentId = ? AND ResitExamId = ?
-         )`,
-        [result.grade, result.gradeLetter, result.studentId, resitExamId]
+      try {
+        // First, check if student is enrolled in the resit exam
+        const enrolled = await this.db.get(
+          `SELECT * FROM resit_exam_students 
+           WHERE student_id = ? AND resit_exam_id = ?`,
+          [result.studentId, resitExamId]
+        );
+
+        if (!enrolled) {
+          console.error(`Student ${result.studentId} is not enrolled in resit exam ${resitExamId}`);
+          allSuccess = false;
+          continue;
+        }
+
+        // Get the course_id for this resit exam
+        const resitExam = await this.db.get(
+          `SELECT course_id FROM resit_exams WHERE id = ?`,
+          [resitExamId]
+        );
+
+        if (!resitExam) {
+          console.error(`Resit exam ${resitExamId} not found`);
+          allSuccess = false;
+          continue;
+        }
+
+        // Get or create application
+        let application = await this.db.get(
+          `SELECT id FROM resit_exam_application 
+           WHERE student_id = ? AND resit_exam_id = ?`,
+          [result.studentId, resitExamId]
+        );
+
+        if (!application) {
+          // Create new application
+          const applicationId = `${result.studentId}-${resitExamId}`;
+          await this.db.run(
+            `INSERT INTO resit_exam_application 
+             (id, resit_exam_id, student_id, course_id, status, created_at) 
+             VALUES (?, ?, ?, ?, 'Approved', datetime('now', 'localtime', '+3 hours'))`,
+            [applicationId, resitExamId, result.studentId, resitExam.course_id]
+          );
+          application = { id: applicationId };
+        }
+
+        // Update or insert the grade in resit_exam_enroll
+        const enrollId = `${application.id}-enroll`;
+        const enrollRes = await this.db.run(
+          `INSERT OR REPLACE INTO resit_exam_enroll 
+           (id, resit_exam_application_id, grade, grade_letter, status, created_at) 
+           VALUES (?, ?, ?, ?, 'Attended', datetime('now', 'localtime', '+3 hours'))`,
+          [enrollId, application.id, result.grade, result.gradeLetter]
+        );
+
+        // Update the student's course grade in student_course_grades
+        const gradeRes = await this.db.run(
+          `INSERT OR REPLACE INTO student_course_grades 
+           (student_id, course_id, grade, grade_letter) 
+           VALUES (?, ?, ?, ?)`,
+          [result.studentId, resitExam.course_id, result.grade, result.gradeLetter]
       );
-      if (res.changes === 0) allSuccess = false;
+
+        if (enrollRes.changes === 0 || gradeRes.changes === 0) allSuccess = false;
+      } catch (error) {
+        console.error('Error updating grade:', error);
+        allSuccess = false;
+      }
     }
     return allSuccess;
   }
@@ -912,5 +975,12 @@ export class SqlDatastore implements Datastore {
       students,
       instructors
     };
+  }
+
+  async updateResitExamAnnouncement(resitExamId: string, announcement: string): Promise<void> {
+    await this.db.run(
+      'UPDATE resit_exams SET announcement = ? WHERE id = ?',
+      [announcement, resitExamId]
+    );
   }
 } 
