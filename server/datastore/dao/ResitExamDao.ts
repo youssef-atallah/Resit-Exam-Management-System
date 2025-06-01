@@ -50,6 +50,22 @@ export interface ResitExamDao {
    * @param location - The updated location of the exam.
    * @param secretaryId - The ID of the secretary making the update.
    */
+
+  /** Updates the announcement for a resit exam.
+   * 
+   * @param resitExamId - The ID of the resit exam to update.
+   * @param announcement - The new announcement text.
+   */
+  updateResitExamAnnouncement(resitExamId: string, announcement: string): Promise<void>;
+
+  /** Updates the details of a resit exam by a secretary.
+   * 
+   * @param resitExamId - The resit exam ID.
+   * @param examDate - The updated date for the exam.
+   * @param deadline - The updated deadline for submission.
+   * @param location - The updated location of the exam.
+   * @param secretaryId - The ID of the secretary making the update.
+   */
   updateResitExamBySecretary(resitExamId: string, examDate: Date, deadline: Date, location: string, secretaryId: string): Promise<void>;
 
   /** Updates the details of a resit exam by an instructor.

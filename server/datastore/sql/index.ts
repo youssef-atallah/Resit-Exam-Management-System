@@ -217,7 +217,7 @@ export class SqlDatastore implements Datastore {
       throw error;
     }
   }
-  async addCourseToStudent(studentId: string, courseId: string, grade: number | null, gradeLetter: string | null): Promise<boolean> {
+  async enrollStudentInCourse(studentId: string, courseId: string, grade?: number, gradeLetter?: string): Promise<boolean> {
     try {
       // First check if the course is already assigned
       const existingCourse = await this.db.get(
@@ -226,44 +226,104 @@ export class SqlDatastore implements Datastore {
         [studentId, courseId]
       );
 
-      if (existingCourse) {
-        return false;
+      if (!existingCourse) {
+        // Start a transaction
+        await this.db.run('BEGIN TRANSACTION');
+
+        try {
+          // Insert into course_students table
+          const courseResult = await this.db.run(
+            `INSERT INTO course_students (student_id, course_id)
+             VALUES (?, ?)`,
+            [studentId, courseId]
+          );
+
+          // Commit the transaction
+          await this.db.run('COMMIT');
+          return (courseResult.changes ?? 0) > 0;
+        } catch (error) {
+          // Rollback in case of error
+          await this.db.run('ROLLBACK');
+          throw error;
+        }
       }
 
+      // If grade is provided, update the grade in student_course_grades table
+      if (grade !== undefined && gradeLetter !== undefined) {
+        // Start a transaction
+        await this.db.run('BEGIN TRANSACTION');
+
+        try {
+          // Insert or update grade in student_course_grades table
+          await this.db.run(
+            `INSERT INTO student_course_grades (student_id, course_id, grade, grade_letter)
+             VALUES (?, ?, ?, ?)
+             ON CONFLICT(student_id, course_id)
+             DO UPDATE SET grade = excluded.grade, grade_letter = excluded.grade_letter`,
+            [studentId, courseId, grade, gradeLetter]
+          );
+
+          // Commit the transaction
+          await this.db.run('COMMIT');
+          return true;
+        } catch (error) {
+          // Rollback in case of error
+          await this.db.run('ROLLBACK');
+          throw error;
+        }
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error in addCourseToStudent:', error);
+      throw error;
+    }
+  }
+
+  async setStudentCourseGrades(courseId: string, grades: { studentId: string; grade: number; gradeLetter: string }[]): Promise<boolean> {
+    try {
       // Start a transaction
       await this.db.run('BEGIN TRANSACTION');
 
       try {
-        // Insert into course_students table
-        const courseResult = await this.db.run(
-          `INSERT INTO course_students (student_id, course_id)
-           VALUES (?, ?)`,
-          [studentId, courseId]
-        );
+        // Verify each student is enrolled and set their grade
+        for (const gradeData of grades) {
+          // Check if student is enrolled in the course
+          const enrollment = await this.db.get(
+            `SELECT * FROM course_students 
+             WHERE student_id = ? AND course_id = ?`,
+            [gradeData.studentId, courseId]
+          );
 
-        // If grade is provided, insert into student_course_grades table
-        if (grade !== null || gradeLetter !== null) {
+          if (!enrollment) {
+            throw new Error(`Student ${gradeData.studentId} is not enrolled in course ${courseId}`);
+          }
+
+          // Insert or update grade in student_course_grades table
           await this.db.run(
             `INSERT INTO student_course_grades (student_id, course_id, grade, grade_letter)
-             VALUES (?, ?, ?, ?)`,
-            [studentId, courseId, grade, gradeLetter]
+             VALUES (?, ?, ?, ?)
+             ON CONFLICT(student_id, course_id)
+             DO UPDATE SET grade = excluded.grade, grade_letter = excluded.grade_letter`,
+            [gradeData.studentId, courseId, gradeData.grade, gradeData.gradeLetter]
           );
         }
 
         // Commit the transaction
         await this.db.run('COMMIT');
-        return (courseResult.changes ?? 0) > 0;
+        return true;
       } catch (error) {
         // Rollback in case of error
         await this.db.run('ROLLBACK');
         throw error;
       }
     } catch (error) {
-      console.error('Error in addCourseToStudent:', error);
+      console.error('Error in setStudentCourseGrades:', error);
       throw error;
     }
   }
-  async removeStudentFromCourse(studentId: string, courseId: string): Promise<void> {
+
+  async unenrollStudentFromCourse(studentId: string, courseId: string): Promise<void> {
     try {
       // First get any resit exams associated with this course
       const resitExam = await this.db.get(
@@ -289,7 +349,7 @@ export class SqlDatastore implements Datastore {
       throw error;
     }
   }
-  async addRistExamToStudent(studentId: string, resitExamId: string): Promise<boolean> {
+  async enrollStudentInResitExam(studentId: string, resitExamId: string): Promise<boolean> {
     const result = await this.db.run(
       `INSERT INTO resit_exam_students (student_id, resit_exam_id)
        VALUES (?, ?)`,
@@ -297,7 +357,7 @@ export class SqlDatastore implements Datastore {
     );
     return (result.changes ?? 0) > 0;
   }
-  async removeStudentFromResitExam(studentId: string, resitExamId: string): Promise<void> {
+  async unenrollStudentFromResitExam(studentId: string, resitExamId: string): Promise<void> {
     try {
       await this.db.run(`DELETE FROM resit_exam_students WHERE student_id = ? AND resit_exam_id = ?`, [studentId, resitExamId]);
     } catch (error) {
@@ -793,6 +853,8 @@ export class SqlDatastore implements Datastore {
       throw error;
     }
   }
+
+
   async updateResitExamBySecretary(resitExamId: string, examDate: Date, deadline: Date, location: string, secretaryId: string): Promise<void> {
     await this.db.run(
       `UPDATE resit_exams 

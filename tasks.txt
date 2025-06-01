@@ -1,0 +1,27 @@
+1. make the instructor can set the student's courses grades and letters grades
+  - update the instructor dashboard(front end)
+  - update the instructor dashboard(back end) #Done
+
+2. implement the secretary dashboard(front end)
+  - update the secretary dashboard(front end)
+  - update the secretary dashboard(back end)
+
+
+
+
+
+
+
+
+
+1. http://localhost:3000/instructor/course/grades/MATH302
+ - {
+	"id":"12345611",
+  "grades": [
+    {
+      "studentId": "20209958",
+      "grade": 75,
+      "gradeLetter": "BB"
+    }
+	]
+}

@@ -17,7 +17,8 @@ import {
   getResitExamAllResults,
   updateAllStudentsResitExamResults,
   getResitExam,
-  setResitExamAnnouncement
+  setResitExamAnnouncement,
+  setStudentCourseGrades
 } from '../hundlers/instructorHandler';
 
 const router = express.Router();
@@ -67,5 +68,8 @@ router.post('/r-exam/:id', createResitExam);
 
 // update resit exam announcement
 router.put('/instructor/r-announcement/:id', setResitExamAnnouncement);
+
+// Set student course grades
+router.post('/instructor/course/grades/:courseId', setStudentCourseGrades);
 
 export default router;

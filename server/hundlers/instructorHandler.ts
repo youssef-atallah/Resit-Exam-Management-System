@@ -2,6 +2,56 @@ import { Request, Response, RequestHandler } from 'express';
 import { db } from '../datastore';
 import { Instructor } from '../types';
 
+// Set student course grades
+export const setStudentCourseGrades: RequestHandler = async (req, res): Promise<any> => {
+  const { courseId } = req.params;
+  const { id, grades } = req.body;
+
+  if (!id || !courseId || !grades || !Array.isArray(grades)) {
+    return res.status(400).send('Missing required fields: id, courseId, grades');
+  }
+
+  try {
+    // Verify instructor exists
+    const instructor = await db.getInstructorById(id);
+    if (!instructor) {
+      return res.status(404).send('Instructor not found');
+    }
+
+    // Verify instructor is assigned to the course
+    const course = await db.getCourseById(courseId);
+    if (!course || course.instructor_id !== id) {
+      return res.status(403).send('Instructor is not assigned to this course');
+    }
+
+    // Verify all students exist and are enrolled
+    for (const gradeData of grades) {
+      // Verify student exists
+      const student = await db.getAstudent(gradeData.studentId);
+      if (!student) {
+        return res.status(404).send(`Student ${gradeData.studentId} not found`);
+      }
+
+      // Verify student is enrolled in the course
+      const enrollment = await db.listCourseStudents(courseId);
+      if (!enrollment || !enrollment.includes(gradeData.studentId)) {
+        return res.status(400).send(`Student ${gradeData.studentId} is not enrolled in this course`);
+      }
+    }
+
+    // Set the grades
+    const status = await db.setStudentCourseGrades(courseId, grades);
+    if (status) {
+      return res.status(200).send('Grades set successfully');
+    } else {
+      return res.status(500).send('Failed to set grades');
+    }
+  } catch (error) {
+    console.error('Error in setStudentCourseGrades:', error);
+    return res.status(500).send('Server error while setting grades');
+  }
+};
+
 
 
 // create an instructor

@@ -205,10 +205,10 @@ export const updateStudentInfo: RequestHandler<{ id: string }> = async (req, res
 // add a course to a student
 export const addCourseToStudent: RequestHandler = async (req, res): Promise<any> => {
   const { id } = req.params;
-  const {courseId , secretaryId , grade , gradeLetter} = req.body;
+  const { courseId, secretaryId } = req.body;
   
   if (!id || !courseId || !secretaryId) {
-    res.status(400).send('Missing required fields: id, secretaryId, courseId, grade, gradeLetter');
+    res.status(400).send('Missing required fields: id, secretaryId, courseId');
     return;
   }
   
@@ -244,7 +244,7 @@ export const addCourseToStudent: RequestHandler = async (req, res): Promise<any>
       return;
     }
     
-    const status = await db.addCourseToStudent(id, courseId, grade, gradeLetter);
+    const status = await db.enrollStudentInCourse(id, courseId);
     if (status) {
       return res.status(200).send('Course added to student successfully');
     } else {
@@ -309,7 +309,7 @@ export const addRistExamToStudent: RequestHandler<{ id: string}> = async (req, r
     // }
 
     // Add resit exam to student
-    const status = await db.addRistExamToStudent(id, resitExam.id);
+    const status = await db.enrollStudentInResitExam(id, resitExam.id);
     if (status === true) {
       return res.status(200).send('Resit exam added to student successfully');
     } else if (status === false) {
@@ -358,7 +358,7 @@ export const removeStudentFromCourse: RequestHandler<{ id: string }> = async (re
   }
 
   try {
-    await db.removeStudentFromCourse(id, courseId);
+    await db.unenrollStudentFromCourse(id, courseId);
     res.status(200).send('Student removed from course successfully');
   } catch (error) {
     if (error instanceof Error) {
@@ -395,7 +395,7 @@ export const removeStudentFromResitExam: RequestHandler<{ id: string}> = async (
   }
 
   try {
-    await db.removeStudentFromResitExam(id, resitExamId);
+    await db.unenrollStudentFromResitExam(id, resitExamId);
     res.status(200).send('Student removed from resit exam successfully');
   } catch (error) {
     if (error instanceof Error) {
