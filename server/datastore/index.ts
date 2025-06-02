@@ -8,6 +8,8 @@ import { SqlDatastore } from './sql';
 import { ResitExam } from '../types';
 // import { inMemoryDatastore } from './memorydb';
 
+import { UserDao } from './dao/userDao';
+
 export interface Datastore extends CourseDao, InstructorDao, ResitExamDao, StudentDao, SecretaryDao {
   getResitExamByCourseId(courseId: string): Promise<ResitExam | undefined>;
 }

@@ -1,5 +1,5 @@
 import { Course, Instructor, ResitExam, ResitExamResponse, Student, StudentCourseDetails, Secretary } from '../../types';
-import { InstructorCourseDetails } from '../../types/instructor';
+import { InstructorCourseDetails } from '../../types';
 import { Datastore } from '../index';
 
 // sqlite3 is a module for sqlite3 database
