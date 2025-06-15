@@ -13,16 +13,3 @@
   - implemet userDao signInHandler
   
 
-
-
-1. http://localhost:3000/instructor/course/grades/MATH302
- - {
-	"id":"12345611",
-  "grades": [
-    {
-      "studentId": "20209958",
-      "grade": 75,
-      "gradeLetter": "BB"
-    }
-	]
-}

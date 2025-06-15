@@ -36,6 +36,8 @@ import { initializeDb } from './datastore';
   const port =  3000;
   app.listen(port, () => {
     console.log(`Server is running on port ${port}`); 
+    console.log(`go to : http://localhost:3000/index.html`); 
+    
   }); 
 
 })();

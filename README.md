@@ -1,5 +1,7 @@
-
 # Resit Exam Management System
+
+> ⚠ **Note:** This is an academic project developed for coursework purposes and not intended for production use.
+
 
 > 📚 **This project is an academic submission for the Software Project Management course (SE302/1) at Üsküdar University.**
 
@@ -44,3 +46,62 @@ Faculty Secretaries can:
 * PDF/Excel export for student application lists.
 * Integrated announcements from instructors to students.
 * Full admin control over users and course assignments.
+-------------------------------------------
+# ⚠ Disclaimer
+This project was developed solely for academic purposes as part of the Software Project Management (SE302/1) course at Üsküdar University.
+Important notes:
+
+The system was not designed, tested, or reviewed for production-level security, performance, or compliance requirements.
+
+It should not be used in any real-world or production environment without significant further development and security hardening.
+
+The primary goal was to demonstrate project planning, team collaboration, and backend functionality for educational evaluation.
+-------------------
+# 🚀 Getting Started
+
+This guide will help you set up and run the Resit Exam Management System locally.
+
+## 📋 Prerequisites
+
+Before you begin, ensure you have the following installed:
+
+- **Node.js** 
+- **npm** (usually comes with Node.js)
+- **PostgreSQL** 
+
+
+
+## 🚀 Running the Application
+
+1. **Start the Backend Server**
+```bash
+cd server
+npm start
+```
+
+
+
+## 📝 Default Accounts
+
+The system comes with default test accounts:
+
+- **Admin/Faculty Secretary**:
+  - secretary id: ---
+  - Password: ----
+
+- **Instructor**:
+  - instructor id: 12345611
+  - Password: pass123ff
+
+- **Student**:
+  - student id: 20209958
+  - Password: pass123Y2Uskudar!#@123
+
+## 📚 Additional Resources
+
+- [API Documentation](docs/api.md) | notion link: https://imaginary-methane-624.notion.site/API-Documentation-2137cfc12eeb80a7bce6dc7b96f0b3a9
+
+
+- [Database Schema](docs/ERD.md)
+
+
