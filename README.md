@@ -7,6 +7,8 @@
 
 The **Resit Exam Management System** is a web-based platform designed to streamline and digitize the resit exam process at **Üsküdar University**. Built with a focus on **usability**, **scalability**, and **role-based access control**, the system supports three user types: **Students**, **Instructors**, and **Faculty Secretaries**, each with tailored features to manage their responsibilities effectively.
 
+## Team Collaboration and Backend Development
+This project was developed by a dedicated team. I contributed primarily to the backend, implementing the server-side logic using Node.js with TypeScript and the Express.js framework to ensure a scalable and maintainable API.
 ## 👥 User Roles & Functionalities
 
 ### 🎓 Students
