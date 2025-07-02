@@ -69,7 +69,6 @@ Before you begin, ensure you have the following installed:
 
 - **Node.js** 
 - **npm** (usually comes with Node.js)
-- **PostgreSQL** 
 
 
 
