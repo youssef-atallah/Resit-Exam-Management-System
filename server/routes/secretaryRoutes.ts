@@ -6,70 +6,49 @@ import {
   getStudents,
   updateResitExamBySecr
 } from '../hundlers/secretaryHandler';
+import { authMiddleware, requireRole } from '../Auth/authHandler';
 
 const router = express.Router();
 
-/* 
+/**
  * ============================================================================
  * SECRETARY ROUTES
  * ============================================================================
  * 
  * Route Organization:
- * - Secretary Dashboard: Administrative operations and system-wide queries
+ *   1. System-Wide Queries - View all entities in the system
+ *   2. Resit Exam Management - Confirm and update resit exam details
  * 
- * These routes provide secretaries with access to view and manage all
- * entities in the system (courses, students, instructors, resit exams).
+ * These routes provide secretaries with administrative access to manage
+ * courses, students, instructors, and resit exams.
  * ============================================================================
  */
 
-// ============================================================================
-// SECRETARY DASHBOARD - System-Wide Queries
-// ============================================================================
-
-/**
- * Get all courses
- * @route GET /secretary/courses
- * @access Secretary
- * @description Get a list of all courses in the system
- */
-router.get('/secretary/courses', getCourses);
-
-/**
- * Get all students
- * @route GET /secretary/students
- * @access Secretary
- * @description Get a list of all students in the system
- */
-router.get('/secretary/students', getStudents);
-
-/**
- * Get all instructors
- * @route GET /secretary/instructors
- * @access Secretary
- * @description Get a list of all instructors in the system
- */
-router.get('/secretary/instructors', getInstructors);
-
-/**
- * Get all resit exams
- * @route GET /secretary/resit-exams
- * @access Secretary
- * @description Get a list of all resit exams in the system
- */
-router.get('/secretary/resit-exams', getResitExams);
 
 // ============================================================================
-// SECRETARY DASHBOARD - Resit Exam Management
+// SECRETARY ROUTES - System-Wide Queries
 // ============================================================================
 
-/**
- * Confirm/Update resit exam details
- * @route PUT /secretary/confirm/resit-exam/:id
- * @access Secretary
- * @description Update resit exam information (location, date, deadline)
- * @description This allows secretary to confirm or modify resit exam details set by instructor
- * @param {string} id - Resit Exam ID
- */
-router.put('/secretary/confirm/resit-exam/:id', updateResitExamBySecr);
+// GET /secretary/courses - Get all courses
+router.get('/secretary/courses', authMiddleware, requireRole('secretary'), getCourses);
+
+// GET /secretary/students - Get all students
+router.get('/secretary/students', authMiddleware, requireRole('secretary'), getStudents);
+
+// GET /secretary/instructors - Get all instructors
+router.get('/secretary/instructors', authMiddleware, requireRole('secretary'), getInstructors);
+
+// GET /secretary/resit-exams - Get all resit exams
+router.get('/secretary/resit-exams', authMiddleware, requireRole('secretary'), getResitExams);
+
+
+
+
+// ============================================================================
+// SECRETARY ROUTES - Resit Exam Management
+// ============================================================================
+
+// PUT /secretary/confirm/resit-exam/:id - Confirm/update resit exam details
+router.put('/secretary/confirm/resit-exam/:id', authMiddleware, requireRole('secretary'), updateResitExamBySecr);
 
 export default router;

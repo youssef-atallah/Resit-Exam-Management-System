@@ -1,22 +1,45 @@
-# Existing Courses in Database
+# 📘 Course Management API
 
-The following courses were created during database seeding and already exist:
+<div align="center">
 
-## Course IDs Already in Use
+![Endpoints](https://img.shields.io/badge/endpoints-7-blue?style=flat-square)
+![Access](https://img.shields.io/badge/access-Secretary%20%7C%20Instructor-green?style=flat-square)
 
-| Course ID | Course Name | Department | Instructor |
-|-----------|-------------|------------|------------|
-| `SE302` | Software Project Management | Software Engineering | Dr. Youssef Atallah (inst-001) |
-| `CS101` | Introduction to Computer Science | Computer Science | Prof. Emily Watson (inst-002) |
-| `MATH201` | Calculus II | Mathematics | Dr. Ahmed Hassan (inst-003) |
-| `DS205` | Data Structures and Algorithms | Computer Science | Prof. Emily Watson (inst-002) |
-| `DB301` | Database Management Systems | Software Engineering | Dr. Maria Garcia (inst-004) |
+**Complete API documentation for course-related operations**
 
-## Creating New Courses
+[← Back to Main](./README.md) | [Quick Reference](./QUICK_REFERENCE.md) | [Routes by Dashboard](./ROUTES_BY_DASHBOARD.md)
 
-To create a new course, use a **different course ID** that doesn't exist yet. For example:
+</div>
 
-### ✅ Valid Course IDs (not in use):
+---
+
+## 📑 Table of Contents
+
+- [📊 Existing Courses](#-existing-courses)
+- [➕ Create Course](#-create-course)
+- [🔍 Get Course](#-get-course)
+- [✏️ Update Course](#️-update-course)
+- [🗑️ Delete Course](#️-delete-course)
+- [👥 View Course Students](#-view-course-students)
+- [👨‍🏫 View Course Instructor](#-view-course-instructor)
+- [📊 View Course Statistics](#-view-course-statistics)
+- [❌ Common Errors](#-common-errors)
+
+---
+
+## 📊 Existing Courses
+
+The following courses were created during database seeding:
+
+| Course ID | Course Name | Department | Instructor | Students |
+|-----------|-------------|------------|------------|----------|
+| `SE302` | Software Project Management | Software Engineering | Dr. Youssef Atallah | 4 |
+| `CS101` | Introduction to Computer Science | Computer Science | Prof. Emily Watson | 4 |
+| `MATH201` | Calculus II | Mathematics | Dr. Ahmed Hassan | 3 |
+| `DS205` | Data Structures and Algorithms | Computer Science | Prof. Emily Watson | 3 |
+| `DB301` | Database Management Systems | Software Engineering | Dr. Maria Garcia | 3 |
+
+### ✅ Available Course IDs (not in use)
 - `MATH101` - Calculus I
 - `MATH301` - Calculus III
 - `CS201` - Object-Oriented Programming
@@ -24,19 +47,25 @@ To create a new course, use a **different course ID** that doesn't exist yet. Fo
 - `DB401` - Advanced Databases
 - `AI301` - Artificial Intelligence
 - `WEB201` - Web Development
-- etc.
 
-### ❌ Invalid Course IDs (already exist):
-- `SE302` ❌
-- `CS101` ❌
-- `MATH201` ❌
-- `DS205` ❌
-- `DB301` ❌
+### ❌ Taken Course IDs (already exist)
+- `SE302`, `CS101`, `MATH201`, `DS205`, `DB301`
 
-## Example: Create a New Course
+---
 
+## ➕ Create Course
+
+<details open>
+<summary><b>POST</b> <code>/course</code></summary>
+
+### Description
+Create a new course in the system.
+
+### Access
+🔐 **Secretary Only**
+
+### Request Body
 ```json
-POST /course
 {
   "courseId": "MATH101",
   "name": "Calculus I",
@@ -45,283 +74,328 @@ POST /course
 }
 ```
 
-## Error Response
+### Parameters
 
-If you try to create a course with an existing ID, you'll now get:
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `courseId` | string | ✅ Yes | Unique course identifier |
+| `name` | string | ✅ Yes | Course name |
+| `department` | string | ✅ Yes | Department offering the course |
+| `secretaryId` | string | ✅ Yes | ID of secretary creating the course |
 
-```json
-{
-  "success": false,
-  "error": "Course already exists",
-  "details": "A course with ID 'MATH201' already exists"
-}
-```
-
-**HTTP Status Code**: `409 Conflict`
-
-## Updating Existing Courses
-
-To modify an existing course, use the `PUT /course/:id` endpoint instead:
-
-```json
-PUT /course/MATH201
-{
-  "name": "Calculus II - Advanced",
-  "instructor": "inst-003",
-  "department": "Mathematics",
-  "secretaryId": "sec-001"
-}
-```
-
----
-
-## Student Management
-
-### Existing Students
-
-The following students were created during seeding:
-
-| Student ID | Name | Email |
-|------------|------|-------|
-| `stu-001` | Ali Yilmaz | ali.yilmaz@student.uskudar.edu.tr |
-| `stu-002` | Ayşe Demir | ayse.demir@student.uskudar.edu.tr |
-| `stu-003` | Mehmet Kaya | mehmet.kaya@student.uskudar.edu.tr |
-| `stu-004` | Fatma Özdemir | fatma.ozdemir@student.uskudar.edu.tr |
-| `stu-005` | Can Arslan | can.arslan@student.uskudar.edu.tr |
-| `stu-006` | Zeynep Şahin | zeynep.sahin@student.uskudar.edu.tr |
-
-All student passwords are: `password123`
-
-### Create a New Student
-
-```json
-POST /student/
-{
-  "studentId": "stu-007",
-  "name": "Ahmet Yılmaz",
-  "email": "ahmet.yilmaz@student.uskudar.edu.tr",
-  "password": "password123",
-  "secretaryId": "sec-001"
-}
-```
-
-**Response:**
+### Success Response (201 Created)
 ```json
 {
   "success": true,
-  "message": "Student created successfully",
-  "student": {
-    "id": "stu-007",
-    "name": "Ahmet Yılmaz",
-    "email": "ahmet.yilmaz@student.uskudar.edu.tr",
-    "courses": [],
-    "resitExams": []
+  "message": "Course created successfully",
+  "course": {
+    "id": "MATH101",
+    "name": "Calculus I",
+    "department": "Mathematics",
+    "instructor_id": null,
+    "students": [],
+    "createdBy": "sec-001"
   }
 }
 ```
 
-### Get Student Information
+### Error Responses
 
-```json
-GET /student/stu-001
+| Status | Error | Description |
+|--------|-------|-------------|
+| 400 | Missing required fields | One or more required fields are missing |
+| 409 | Course already exists | A course with this ID already exists |
+| 404 | Secretary not found | Invalid secretary ID |
+
+</details>
+
+---
+
+## 🔍 Get Course
+
+<details>
+<summary><b>GET</b> <code>/course/:id</code></summary>
+
+### Description
+Retrieve detailed course information.
+
+### Access
+👨‍🎓 **Student** | 👨‍🏫 **Instructor** | 🔐 **Secretary**
+
+### URL Parameters
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | string | Course ID |
+
+### Example Request
+```bash
+GET /course/CS101
 ```
 
-**Response:**
+### Success Response (200 OK)
 ```json
 {
   "success": true,
-  "student": {
-    "id": "stu-001",
-    "name": "Ali Yilmaz",
-    "email": "ali.yilmaz@student.uskudar.edu.tr",
-    "courses": ["SE302", "CS101", "DS205"],
-    "resitExams": ["resit-SE302"],
+  "course": {
+    "id": "CS101",
+    "name": "Introduction to Computer Science",
+    "department": "Computer Science",
+    "instructor_id": "inst-002",
+    "students": ["stu-001", "stu-002", "stu-005", "stu-006"],
+    "resit_exam_id": "resit-CS101",
     "created_at": "2025-12-27T00:51:23.000Z",
     "created_by": "sec-001"
   }
 }
 ```
 
-### Delete a Student
+### Error Response
+- **404 Not Found** - Course does not exist
 
+</details>
+
+---
+
+## ✏️ Update Course
+
+<details>
+<summary><b>PUT</b> <code>/course/:id</code></summary>
+
+### Description
+Update course details including name, department, or assign instructor.
+
+### Access
+🔐 **Secretary Only**
+
+### URL Parameters
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | string | Course ID |
+
+### Request Body
 ```json
-DELETE /student/stu-007
 {
+  "name": "Introduction to Computer Science - Advanced",
+  "instructor": "inst-002",
+  "department": "Computer Science",
   "secretaryId": "sec-001"
 }
 ```
 
-**Response:**
+### Parameters
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | string | ❌ No | Updated course name |
+| `instructor` | string | ❌ No | Instructor ID to assign |
+| `department` | string | ❌ No | Updated department |
+| `secretaryId` | string | ✅ Yes | ID of secretary making the update |
+
+### Success Response (200 OK)
 ```json
 {
   "success": true,
-  "message": "Student deleted successfully"
-}
-```
-
-**Note:** Deleting a student will also remove:
-- All course enrollments
-- All grades
-- All resit exam enrollments
-- The user account
-
-### Enroll Student in a Course
-
-```json
-POST /student/stu-007
-{
-  "courseId": "CS101",
-  "secretaryId": "sec-001"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Course added to student successfully"
-}
-```
-
-### Remove Student from a Course
-
-```json
-DELETE /student-course/stu-007
-{
-  "courseId": "CS101",
-  "secretaryId": "sec-001"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Student removed from course successfully"
-}
-```
-
-**Note:** Removing a student from a course will also:
-- Remove their grade for that course
-- Remove them from any associated resit exams
-
-### Update Student Information
-
-```json
-PUT /student/stu-007
-{
-  "name": "Ahmet Yılmaz Updated",
-  "email": "ahmet.updated@student.uskudar.edu.tr",
-  "password": "newpassword123",
-  "secretaryId": "sec-001"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Student updated successfully",
-  "student": {
-    "id": "stu-007",
-    "name": "Ahmet Yılmaz Updated",
-    "email": "ahmet.updated@student.uskudar.edu.tr"
+  "message": "Course updated successfully",
+  "course": {
+    "id": "CS101",
+    "name": "Introduction to Computer Science - Advanced",
+    "department": "Computer Science",
+    "instructor_id": "inst-002"
   }
 }
 ```
 
-### Get Student's Courses
+### Error Responses
+- **404 Not Found** - Course or instructor not found
+- **400 Bad Request** - Invalid parameters
 
-```json
-GET /student/courses/stu-001
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "courses": ["SE302", "CS101", "DS205"]
-}
-```
-
-### Get Student's Course Details (with grades)
-
-```json
-GET /student/c-details/stu-001
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "courses": [
-    {
-      "courseId": "SE302",
-      "courseName": "Software Project Management",
-      "department": "Software Engineering",
-      "instructor_id": "inst-001",
-      "grade": 45,
-      "gradeLetter": "F",
-      "resit_exam": {
-        "id": "resit-SE302",
-        "deadline": "2025-06-15",
-        "status": "pending"
-      }
-    },
-    {
-      "courseId": "CS101",
-      "courseName": "Introduction to Computer Science",
-      "department": "Computer Science",
-      "instructor_id": "inst-002",
-      "grade": 68,
-      "gradeLetter": "C"
-    }
-  ]
-}
-```
-
-### Enroll Student in Resit Exam
-
-```json
-POST /student/resit-exam/stu-001
-{
-  "resitExamId": "resit-SE302",
-  "secretaryId": "sec-001"
-}
-```
-
-### Remove Student from Resit Exam
-
-```json
-DELETE /student/resit-exam/stu-001
-{
-  "resitExamId": "resit-SE302",
-  "secretaryId": "sec-001"
-}
-```
+</details>
 
 ---
 
-## Common Error Responses
+## 🗑️ Delete Course
 
-### Student Not Found
+<details>
+<summary><b>DELETE</b> <code>/course/:id</code></summary>
+
+### Description
+Delete a course and all associated data.
+
+### Access
+🔐 **Secretary Only**
+
+### URL Parameters
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | string | Course ID |
+
+### Request Body
+```json
+{
+  "secretaryId": "sec-001"
+}
+```
+
+### Success Response (200 OK)
+```json
+{
+  "success": true,
+  "message": "Course deleted successfully"
+}
+```
+
+### ⚠️ Warning
+Deleting a course will also remove:
+- ✖️ All student enrollments
+- ✖️ All grades
+- ✖️ All resit exams for this course
+- ✖️ All resit exam applications and results
+
+</details>
+
+---
+
+## 👥 View Course Students
+
+<details>
+<summary><b>GET</b> <code>/course/students/:id</code></summary>
+
+### Description
+Get list of all students enrolled in a course.
+
+### Access
+👨‍🏫 **Instructor** | 🔐 **Secretary**
+
+### URL Parameters
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | string | Course ID |
+
+### Success Response (200 OK)
+```json
+{
+  "success": true,
+  "students": [
+    {
+      "id": "stu-001",
+      "name": "Ali Yilmaz",
+      "email": "ali.yilmaz@student.uskudar.edu.tr",
+      "grade": 68,
+      "gradeLetter": "C"
+    },
+    {
+      "id": "stu-002",
+      "name": "Ayşe Demir",
+      "email": "ayse.demir@student.uskudar.edu.tr",
+      "grade": 42,
+      "gradeLetter": "F"
+    }
+  ],
+  "total": 2
+}
+```
+
+</details>
+
+---
+
+## 👨‍🏫 View Course Instructor
+
+<details>
+<summary><b>GET</b> <code>/course/instructor/:id</code></summary>
+
+### Description
+Get information about the instructor teaching the course.
+
+### Access
+👨‍🎓 **Student** | 👨‍🏫 **Instructor** | 🔐 **Secretary**
+
+### URL Parameters
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | string | Course ID |
+
+### Success Response (200 OK)
+```json
+{
+  "success": true,
+  "instructor": {
+    "id": "inst-002",
+    "name": "Prof. Emily Watson",
+    "email": "emily.watson@uskudar.edu.tr"
+  }
+}
+```
+
+### Error Response
+- **404 Not Found** - Course has no assigned instructor
+
+</details>
+
+---
+
+## 📊 View Course Statistics
+
+<details>
+<summary><b>GET</b> <code>/course/statistics/:id</code></summary>
+
+### Description
+Get course statistics including enrollment count and grade distribution.
+
+### Access
+👨‍🏫 **Instructor** | 🔐 **Secretary**
+
+### URL Parameters
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | string | Course ID |
+
+### Success Response (200 OK)
+```json
+{
+  "success": true,
+  "statistics": {
+    "courseId": "CS101",
+    "courseName": "Introduction to Computer Science",
+    "totalStudents": 4,
+    "gradeDistribution": {
+      "A": 1,
+      "B": 1,
+      "C": 1,
+      "F": 1
+    },
+    "averageGrade": 67.5,
+    "passingRate": 75,
+    "failingStudents": 1,
+    "resitExamEnrolled": 1
+  }
+}
+```
+
+</details>
+
+---
+
+## ❌ Common Errors
+
+### Course Not Found
 ```json
 {
   "success": false,
-  "error": "Student not found"
+  "error": "Course not found"
 }
 ```
-**HTTP Status**: `404 Not Found`
+**HTTP Status:** `404 Not Found`
 
-### Student Already Exists
+### Course Already Exists
 ```json
 {
   "success": false,
-  "error": "Student already exists",
-  "details": "A student with ID 'stu-007' already exists"
+  "error": "Course already exists",
+  "details": "A course with ID 'MATH101' already exists"
 }
 ```
-**HTTP Status**: `409 Conflict`
+**HTTP Status:** `409 Conflict`
 
 ### Missing Required Fields
 ```json
@@ -329,13 +403,35 @@ DELETE /student/resit-exam/stu-001
   "success": false,
   "error": "Missing required fields",
   "missingFields": {
-    "studentId": false,
+    "courseId": false,
     "name": true,
-    "email": false,
-    "password": true,
+    "department": false,
     "secretaryId": false
   }
 }
 ```
-**HTTP Status**: `400 Bad Request`
+**HTTP Status:** `400 Bad Request`
 
+### Instructor Not Found
+```json
+{
+  "success": false,
+  "error": "Instructor not found",
+  "details": "Instructor with ID 'inst-005' does not exist"
+}
+```
+**HTTP Status:** `404 Not Found`
+
+---
+
+<div align="center">
+
+**[⬆ Back to Top](#-course-management-api)**
+
+[← Main Documentation](./README.md) | [Students →](./STUDENTS.md) | [Instructors →](./INSTRUCTORS.md) | [Resit Exams →](./RESIT_EXAMS.md)
+
+---
+
+*Last Updated: December 27, 2025*
+
+</div>

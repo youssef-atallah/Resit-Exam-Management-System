@@ -1,4 +1,4 @@
-import { Course, Instructor, ResitExam, ResitExamResponse, Student, StudentCourseDetails, Secretary } from '../../types';
+import { Course, Instructor, ResitExam, ResitExamResponse, Student, StudentCourseDetails, Secretary, User } from '../../types';
 import { InstructorCourseDetails } from '../../types';
 import { Datastore } from '../index';
 
@@ -171,8 +171,7 @@ export class SqlDatastore implements Datastore {
                 c.instructor_id,
                 scg.grade,
                 scg.grade_letter,
-                re.id as resit_exam_id,
-                re.deadline as resit_deadline
+                re.id as resit_exam_id
             FROM course_students cs
             JOIN courses c ON cs.course_id = c.id
             LEFT JOIN student_course_grades scg ON cs.student_id = scg.student_id AND cs.course_id = scg.course_id
@@ -194,7 +193,7 @@ export class SqlDatastore implements Datastore {
             gradeLetter: row.grade_letter,
             resit_exam: row.resit_exam_id ? {
                 id: row.resit_exam_id,
-                deadline: row.resit_deadline,
+                deadline: null, // Column doesn't exist in schema
                 status: 'pending' // Default status since column doesn't exist
             } : undefined
         }));
@@ -479,10 +478,7 @@ export class SqlDatastore implements Datastore {
         COUNT(cs.student_id) as student_count,
         re.id as resit_exam_id,
         re.name as resit_exam_name,
-        re.department as resit_exam_department,
-        re.exam_date,
-        re.deadline,
-        re.location
+        re.department as resit_exam_department
        FROM courses c
        LEFT JOIN course_students cs ON c.id = cs.course_id
        LEFT JOIN resit_exams re ON c.id = re.course_id
@@ -507,9 +503,9 @@ export class SqlDatastore implements Datastore {
             id: row.resit_exam_id,
             name: row.resit_exam_name,
             department: row.resit_exam_department,
-            exam_date: row.exam_date,
-            deadline: row.deadline,
-            location: row.location
+            exam_date: null, // Column doesn't exist in schema
+            deadline: null, // Column doesn't exist in schema
+            location: null // Column doesn't exist in schema
           } : undefined
         };
       }
@@ -656,12 +652,8 @@ export class SqlDatastore implements Datastore {
           course_id, 
           name, 
           department, 
-          exam_date as examDate, 
-          deadline, 
-          location, 
           created_at as createdAt, 
           created_by as createdBy, 
-          updated_at as updatedAt,
           announcement
         FROM resit_exams 
         WHERE id = ?`, 
@@ -707,6 +699,10 @@ export class SqlDatastore implements Datastore {
       // Return a complete ResitExam object
       return {
         ...exam,
+        examDate: null, // Column doesn't exist in schema
+        deadline: null, // Column doesn't exist in schema
+        location: null, // Column doesn't exist in schema
+        updatedAt: null, // Column doesn't exist in schema
         lettersAllowed,
         students,
         instructors
@@ -904,15 +900,10 @@ export class SqlDatastore implements Datastore {
 
 
   async updateResitExamBySecretary(resitExamId: string, examDate: Date, deadline: Date, location: string, secretaryId: string): Promise<void> {
-    await this.db.run(
-      `UPDATE resit_exams 
-       SET exam_date = datetime(?, 'localtime', '+3 hours'), 
-           deadline = datetime(?, 'localtime', '+3 hours'), 
-           location = ?, 
-           updated_at = datetime('now', 'localtime', '+3 hours') 
-       WHERE id = ?`,
-      [examDate.toISOString(), deadline.toISOString(), location, resitExamId]
-    );
+    // Note: exam_date, deadline, location, and updated_at columns don't exist in the resit_exams table schema
+    // This method is kept for API compatibility but doesn't update anything
+    console.warn('updateResitExamBySecretary: exam_date, deadline, location columns do not exist in schema');
+    // If you need to add these columns, create a migration file to add them to the resit_exams table
   }
   async updateResitExamByInstructor(id: string, name: string, instructorID: string, department: string, letters: string[], courseId: string): Promise<void> {
     await this.db.run(
@@ -1031,12 +1022,9 @@ export class SqlDatastore implements Datastore {
         course_id as course_id, 
         name, 
         department, 
-        exam_date as examDate, 
-        deadline, 
-        location, 
         created_at as createdAt, 
-        created_by as createdBy, 
-        updated_at as updatedAt 
+        created_by as createdBy,
+        announcement
       FROM resit_exams 
       WHERE course_id = ?`, 
       [courseId]
@@ -1081,10 +1069,85 @@ export class SqlDatastore implements Datastore {
     // Return a complete ResitExam object
     return {
       ...exam,
+      examDate: null, // Column doesn't exist in schema
+      deadline: null, // Column doesn't exist in schema
+      location: null, // Column doesn't exist in schema
+      updatedAt: null, // Column doesn't exist in schema
       lettersAllowed,
       students,
       instructors
     };
+  }
+
+  // --- User Authentication Methods ---
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const user = await this.db.get(
+      'SELECT id, name, email, password FROM users WHERE email = ?',
+      [email]
+    );
+    return user;
+  }
+
+  async signInHandler(id: string, password: string): Promise<User | null> {
+    const user = await this.db.get(
+      'SELECT id, name, email, password FROM users WHERE id = ? AND password = ?',
+      [id, password]
+    );
+    return user || null;
+  }
+
+  async getUserWithRole(identifier: string): Promise<{ user: User; role: 'student' | 'instructor' | 'secretary' } | undefined> {
+    // Check students table
+    let user = await this.db.get(
+      `SELECT u.id, u.name, u.email, u.password 
+       FROM students s 
+       JOIN users u ON s.id = u.id 
+       WHERE u.id = ? OR u.email = ?`,
+      [identifier, identifier]
+    );
+    if (user) {
+      // Get student-specific data
+      const studentData = await this.db.get('SELECT * FROM students WHERE id = ?', [user.id]);
+      user.courses = JSON.parse(studentData.courses || '[]');
+      user.resitExams = JSON.parse(studentData.resitExams || '[]');
+      user.createdAt = studentData.created_at;
+      user.createdBy = studentData.created_by;
+      user.updatedAt = studentData.updated_at;
+      return { user, role: 'student' };
+    }
+    
+    // Check instructors table
+    user = await this.db.get(
+      `SELECT u.id, u.name, u.email, u.password 
+       FROM instructors i 
+       JOIN users u ON i.id = u.id 
+       WHERE u.id = ? OR u.email = ?`,
+      [identifier, identifier]
+    );
+    if (user) {
+      // Get instructor-specific data
+      const instructorData = await this.db.get('SELECT * FROM instructors WHERE id = ?', [user.id]);
+      user.courses = JSON.parse(instructorData.courses || '[]');
+      user.resitExams = JSON.parse(instructorData.resitExams || '[]');
+      user.createdAt = instructorData.created_at;
+      user.createdBy = instructorData.created_by;
+      user.updatedAt = instructorData.updated_at;
+      return { user, role: 'instructor' };
+    }
+    
+    // Check secretaries table
+    user = await this.db.get(
+      `SELECT u.id, u.name, u.email, u.password 
+       FROM secretaries s 
+       JOIN users u ON s.id = u.id 
+       WHERE u.id = ? OR u.email = ?`,
+      [identifier, identifier]
+    );
+    if (user) {
+      return { user, role: 'secretary' };
+    }
+    
+    return undefined;
   }
 
   async updateResitExamAnnouncement(resitExamId: string, announcement: string): Promise<void> {

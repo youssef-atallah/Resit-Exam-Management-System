@@ -12,165 +12,114 @@ import {
   getStudentCourses,
   getStudentCourseDetails, 
   getStudentAllResitExamResults,
-  getStudentResitExamResults
+  getStudentResitExamResults,
+  getMyProfile,
+  getMyCourses,
+  getMyCourseDetails,
+  getMyResitExams,
+  updateMyProfile
 } from '../hundlers/studentHandler';
+import { authMiddleware, requireRole, requireOwnerOrRole } from '../Auth/authHandler';
 
 const router = Router();
 
-/* 
+/**
  * ============================================================================
  * STUDENT ROUTES
  * ============================================================================
  * 
- * IMPORTANT: DO NOT change the order of these routes.
- * Express matches routes from top to bottom. More specific routes must come
- * before general ones to avoid incorrect handler calls.
- * 
  * Route Organization:
- * - Secretary Dashboard: Student CRUD operations, enrollment management
- * - Student Dashboard: View own information, courses, grades, resit exams
- * - Instructor Dashboard: View student results and grades
+ *   1. JWT-Based Routes - Students access their own data (requires JWT auth)
+ *   2. Secretary Routes - Student CRUD and enrollment management
+ *   3. Student Routes - View information via ID parameter
+ *   4. Instructor Routes - View student results and grades
+ * 
+ * IMPORTANT: Route order matters! Express matches top-to-bottom.
+ *            More specific routes must come before general ones.
  * ============================================================================
  */
 
-// ============================================================================
-// SECRETARY DASHBOARD - Student Management
-// ============================================================================
-
-/**
- * Create a new student
- * @route POST /student/
- * @access Secretary
- * @description Create a new student account in the system
- */
-router.post('/student/', createAstudent);
-
-/**
- * Delete a student
- * @route DELETE /student/:id
- * @access Secretary
- * @description Delete a student and all associated data (enrollments, grades, etc.)
- * @param {string} id - Student ID
- */
-router.delete('/student/:id', deleteStudent);
-
-/**
- * Update student information
- * @route PUT /student/:id
- * @access Secretary
- * @description Update student's name, email, or password
- * @param {string} id - Student ID
- */
-router.put('/student/:id', updateStudentInfo);
-
-/**
- * Enroll student in a course
- * @route POST /student/:id
- * @access Secretary
- * @description Add a student to a course
- * @param {string} id - Student ID
- */
-router.post('/student/:id', addCourseToStudent);
-
-/**
- * Remove student from a course
- * @route DELETE /student-course/:id
- * @access Secretary
- * @description Remove a student from a course and delete their grade
- * @param {string} id - Student ID
- */
-router.delete('/student-course/:id', removeStudentFromCourse);
-
-/**
- * Enroll student in a resit exam
- * @route POST /student/resit-exam/:id
- * @access Secretary
- * @description Enroll a student in a resit exam
- * @param {string} id - Student ID
- */
-router.post('/student/resit-exam/:id', addRistExamToStudent);
-
-/**
- * Remove student from a resit exam
- * @route DELETE /student/resit-exam/:id
- * @access Secretary
- * @description Remove a student from a resit exam
- * @param {string} id - Student ID
- */
-router.delete('/student/resit-exam/:id', removeStudentFromResitExam);
 
 // ============================================================================
-// STUDENT DASHBOARD - View Own Information
+// JWT-BASED ROUTES - Authenticated Student Access
 // ============================================================================
 
-/**
- * Get student information
- * @route GET /student/:id
- * @access Student, Secretary
- * @description Get detailed student information including courses and resit exams
- * @param {string} id - Student ID
- */
-router.get('/student/:id', getAstudent);
+// GET /my/profile - Get authenticated student's profile
+router.get('/my/profile', authMiddleware, requireRole('student'), getMyProfile);
 
-/**
- * Get student's courses
- * @route GET /student/courses/:id
- * @access Student, Secretary
- * @description Get list of course IDs the student is enrolled in
- * @param {string} id - Student ID
- */
-router.get('/student/courses/:id', getStudentCourses);
+// PUT /my/profile - Update authenticated student's profile
+router.put('/my/profile', authMiddleware, requireRole('student'), updateMyProfile);
 
-/**
- * Get student's course details with grades
- * @route GET /student/c-details/:id
- * @access Student, Secretary
- * @description Get detailed course information including grades and resit exam status
- * @param {string} id - Student ID
- */
-router.get('/student/c-details/:id', getStudentCourseDetails);
+// GET /my/courses - Get authenticated student's enrolled courses
+router.get('/my/courses', authMiddleware, requireRole('student'), getMyCourses);
 
-/**
- * Get student's resit exams
- * @route GET /student/resitexams/:id
- * @access Student, Secretary
- * @description Get list of resit exams the student is enrolled in
- * @param {string} id - Student ID
- */
-router.get('/student/resitexams/:id', getStudentResitExams);
+// GET /my/course-details - Get authenticated student's courses details with grades
+router.get('/my/course-details', authMiddleware, requireRole('student'), getMyCourseDetails);
 
-/**
- * Get student's resit exams (alternative endpoint)
- * @route GET /student/r-exams/:id
- * @access Student, Secretary
- * @description Alternative endpoint to get student's resit exams
- * @param {string} id - Student ID
- */
-router.get('/student/r-exams/:id', getStudentResitExams);
+// GET /my/resit-exams - Get authenticated student's resit exams
+router.get('/my/resit-exams', authMiddleware, requireRole('student'), getMyResitExams);
+
+
+
 
 // ============================================================================
-// INSTRUCTOR DASHBOARD - View Student Results
+// SECRETARY ROUTES - Student Management
 // ============================================================================
 
-/**
- * Get all resit exam results for a student
- * @route GET /instructor/resit-results/student/:studentId
- * @access Instructor
- * @description Get all resit exam results across all courses for a student
- * @param {string} studentId - Student ID
- * @status Not fully tested
- */
-router.get('/instructor/resit-results/student/:studentId', getStudentAllResitExamResults);
+// POST /student - Create new student account
+router.post('/student/', authMiddleware, requireRole('secretary'), createAstudent);
 
-/**
- * Get specific resit exam result for a student
- * @route GET /instructor/resit-results/:studentId/:resitExamId
- * @access Instructor
- * @description Get a student's result for a specific resit exam
- * @param {string} studentId - Student ID
- * @param {string} resitExamId - Resit Exam ID
- * @status Not fully tested
- */
-router.get('/instructor/resit-results/:studentId/:resitExamId', getStudentResitExamResults);
+// DELETE /student/:id - Delete student and all associated data
+router.delete('/student/:id', authMiddleware, requireRole('secretary'), deleteStudent);
+
+// PUT /student/:id - Update student information (name, email, password)
+router.put('/student/:id', authMiddleware, requireRole('secretary'), updateStudentInfo);
+
+// POST /student/:id - Enroll student in a course
+router.post('/student/:id', authMiddleware, requireRole('secretary'), addCourseToStudent);
+
+// DELETE /student-course/:id - Remove student from course
+router.delete('/student-course/:id', authMiddleware, requireRole('secretary'), removeStudentFromCourse);
+
+// POST /student/resit-exam/:id - Enroll student in resit exam
+router.post('/student/resit-exam/:id', authMiddleware, requireRole('secretary'), addRistExamToStudent);
+
+// DELETE /student/resit-exam/:id - Remove student from resit exam
+router.delete('/student/resit-exam/:id', authMiddleware, requireRole('secretary'), removeStudentFromResitExam);
+
+
+
+
+// ============================================================================
+// STUDENT ROUTES - View Information by ID
+// ============================================================================
+
+// GET /student/:id - Get student information (own data, or secretary/instructor access)
+router.get('/student/:id', authMiddleware, requireOwnerOrRole('secretary', 'instructor'), getAstudent);
+
+// GET /student/courses/:id - Get student's enrolled course IDs (own data, or secretary/instructor access)
+router.get('/student/courses/:id', authMiddleware, requireOwnerOrRole('secretary', 'instructor'), getStudentCourses);
+
+// GET /student/c-details/:id - Get student's course details with grades (own data, or secretary/instructor access)
+router.get('/student/c-details/:id', authMiddleware, requireOwnerOrRole('secretary', 'instructor'), getStudentCourseDetails);
+
+// GET /student/resitexams/:id - Get student's resit exams (own data, or secretary/instructor access)
+router.get('/student/resitexams/:id', authMiddleware, requireOwnerOrRole('secretary', 'instructor'), getStudentResitExams);
+
+// GET /student/r-exams/:id - Get student's resit exams (alternative) (own data, or secretary/instructor access)
+router.get('/student/r-exams/:id', authMiddleware, requireOwnerOrRole('secretary', 'instructor'), getStudentResitExams);
+
+
+
+
+// ============================================================================
+// INSTRUCTOR ROUTES - View Student Results
+// ============================================================================
+
+// GET /instructor/resit-results/student/:studentId - Get all resit exam results for student
+router.get('/instructor/resit-results/student/:studentId', authMiddleware, requireRole('instructor'), getStudentAllResitExamResults);
+
+// GET /instructor/resit-results/:studentId/:resitExamId - Get specific resit exam result
+router.get('/instructor/resit-results/:studentId/:resitExamId', authMiddleware, requireRole('instructor'), getStudentResitExamResults);
 
 export default router;

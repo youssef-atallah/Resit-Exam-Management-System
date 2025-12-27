@@ -24,7 +24,7 @@ import { Student, StudentCourseDetails } from '../types';
   }
 
   // // Email format validation
-  // const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  // const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;
   // if (!emailRegex.test(email)) {
   //   return res.status(400).json({
   //     success: false,
@@ -112,9 +112,18 @@ import { Student, StudentCourseDetails } from '../types';
 export const getAstudent: RequestHandler<{ id: string }> = async (req, res) => {
   const id = req.params.id;
   const student = await db.getAstudent(id);
-
+  
+  
   if (student) {
-    res.status(200).json(student);
+    // return only the student id, name, email, courses and resitExams
+    const studentInfo = {
+      id: student.id,
+      name: student.name,
+      email: student.email,
+      courses: student.courses,
+      resitExams: student.resitExams
+    }
+    res.status(200).json(studentInfo);
   } else {
      res.status(404).send('Student not found');
   }
@@ -506,5 +515,218 @@ export const getStudentAllResitExamResults = async (req: Request, res: Response)
   } catch (error) {
     console.error('Error in getStudentAllResitExamResults:', error);
     return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// ============================================================================
+// JWT-BASED USER-SPECIFIC HANDLERS (uses req.userId from authMiddleware)
+// ============================================================================
+
+/**
+ * Get authenticated student's profile
+ * Uses JWT token to identify user
+ */
+export const getMyProfile: RequestHandler = async (req, res): Promise<any> => {
+  try {
+    const userId = (req as any).userId; // Set by authMiddleware
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Unauthorized - No user ID in token'
+      });
+    }
+
+    const student = await db.getAstudent(userId);
+    
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        error: 'Student not found'
+      });
+    }
+
+    // Remove password from response
+    const { password, ...studentWithoutPassword } = student;
+
+    return res.status(200).json({
+      success: true,
+      student: studentWithoutPassword
+    });
+  } catch (error) {
+    console.error('Error getting student profile:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Server error while getting profile',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+};
+
+/**
+ * Get authenticated student's courses
+ * Uses JWT token to identify user
+ */
+export const getMyCourses: RequestHandler = async (req, res): Promise<any> => {
+  try {
+    const userId = (req as any).userId; // Set by authMiddleware
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Unauthorized - No user ID in token'
+      });
+    }
+
+    const student = await db.getAstudent(userId);
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        error: 'Student not found'
+      });
+    }
+
+    const courses = await db.getStudentCourses(userId);
+    
+    return res.status(200).json({
+      success: true,
+      courses: courses || []
+    });
+  } catch (error) {
+    console.error('Error getting student courses:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Server error while getting courses',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+};
+
+/**
+ * Get authenticated student's course details
+ * Uses JWT token to identify user
+ */
+export const getMyCourseDetails: RequestHandler = async (req, res): Promise<any> => {
+  try {
+    const userId = (req as any).userId; // Set by authMiddleware
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Unauthorized - No user ID in token'
+      });
+    }
+
+    const courseDetails = await db.getStudentCourseDetails(userId);
+    
+    if (!courseDetails) {
+      return res.status(404).json({
+        success: false,
+        message: 'Student not found or has no courses'
+      });
+    }
+    
+    return res.status(200).json({
+      success: true,
+      courseDetails
+    });
+  } catch (error) {
+    console.error('Error getting student course details:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Server error while getting course details',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+};
+
+/**
+ * Get authenticated student's resit exams
+ * Uses JWT token to identify user
+ */
+export const getMyResitExams: RequestHandler = async (req, res): Promise<any> => {
+  try {
+    const userId = (req as any).userId; // Set by authMiddleware
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Unauthorized - No user ID in token'
+      });
+    }
+
+    const student = await db.getAstudent(userId);
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        error: 'Student not found'
+      });
+    }
+
+    const resitExams = await db.getStudentResitExams(userId);
+    
+    return res.status(200).json({
+      success: true,
+      resitExams: resitExams || []
+    });
+  } catch (error) {
+    console.error('Error getting student resit exams:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Server error while getting resit exams',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+};
+
+/**
+ * Update authenticated student's profile
+ * Uses JWT token to identify user
+ */
+export const updateMyProfile: RequestHandler = async (req, res): Promise<any> => {
+  try {
+    const userId = (req as any).userId; // Set by authMiddleware
+    const { name, email, password } = req.body;
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Unauthorized - No user ID in token'
+      });
+    }
+
+    if (!name || !email || !password) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields',
+        missingFields: {
+          name: !name,
+          email: !email,
+          password: !password
+        }
+      });
+    }
+
+    const studentExists = await db.getAstudent(userId);
+    if (!studentExists) {
+      return res.status(404).json({
+        success: false,
+        error: 'Student not found'
+      });
+    }
+
+    await db.updateStudentInfo(userId, name, email, password);
+    
+    return res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully'
+    });
+  } catch (error) {
+    console.error('Error updating student profile:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Server error while updating profile',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 };

@@ -8,94 +8,60 @@ import {
   deleteCourse,
   getCourse
 } from '../hundlers/courseHandler';
+import { authMiddleware, requireRole } from '../Auth/authHandler';
 
 const router = express.Router();
 
-/* 
+/**
  * ============================================================================
  * COURSE ROUTES
  * ============================================================================
  * 
  * Route Organization:
- * - Secretary Dashboard: Course CRUD operations, instructor assignments
- * - Instructor Dashboard: View course details, students, and statistics
- * - Student Dashboard: View course information
- * - Public/Shared: View course details
+ *   1. Secretary Routes - Course CRUD operations
+ *   2. Instructor Routes - View course details, students, and statistics
+ *   3. Public Routes - View course information
  * ============================================================================
  */
 
-// ============================================================================
-// SECRETARY DASHBOARD - Course Management
-// ============================================================================
-
-/**
- * Create a new course
- * @route POST /course
- * @access Secretary
- * @description Create a new course in the system
- */
-router.post('/course', createCourse);
-
-/**
- * Update course details
- * @route PUT /course/:id
- * @access Secretary
- * @description Update course name, department, or assign instructor
- * @param {string} id - Course ID
- */
-router.put('/course/:id', updateCourse);
-
-/**
- * Delete a course
- * @route DELETE /course/:id
- * @access Secretary
- * @description Delete a course and all associated data (enrollments, grades, resit exams)
- * @param {string} id - Course ID
- */
-router.delete('/course/:id', deleteCourse);
 
 // ============================================================================
-// INSTRUCTOR DASHBOARD - Course Information
+// SECRETARY ROUTES - Course Management
 // ============================================================================
 
-/**
- * Get course students
- * @route GET /course/students/:id
- * @access Instructor, Secretary
- * @description Get list of all students enrolled in a course
- * @param {string} id - Course ID
- */
-router.get('/course/students/:id', getCourseStudents);
+// POST /course - Create new course
+router.post('/course', authMiddleware, requireRole('secretary'), createCourse);
 
-/**
- * Get course statistics
- * @route GET /course/statistics/:id
- * @access Instructor, Secretary
- * @description Get course statistics including enrollment count and grade distribution
- * @param {string} id - Course ID
- */
-router.get('/course/statistics/:id', getCourseStatistics);
+// PUT /course/:id - Update course details (name, department, instructor)
+router.put('/course/:id', authMiddleware, requireRole('secretary'), updateCourse);
 
-/**
- * Get course instructor
- * @route GET /course/instructor/:id
- * @access Instructor, Secretary, Student
- * @description Get information about the instructor teaching the course
- * @param {string} id - Course ID
- */
-router.get('/course/instructor/:id', getCourseInstructor);
+// DELETE /course/:id - Delete course and all associated data
+router.delete('/course/:id', authMiddleware, requireRole('secretary'), deleteCourse);
+
+
+
 
 // ============================================================================
-// PUBLIC/SHARED - Course Details
+// INSTRUCTOR ROUTES - Course Information
 // ============================================================================
 
-/**
- * Get course details
- * @route GET /course/:id
- * @access Student, Instructor, Secretary
- * @description Get detailed information about a course
- * @param {string} id - Course ID
- */
-router.get('/course/:id', getCourse);
+// GET /course/students/:id - Get all students enrolled in course
+router.get('/course/students/:id', authMiddleware, requireRole('instructor', 'secretary'), getCourseStudents);
+
+// GET /course/statistics/:id - Get course statistics (enrollment, grade distribution)
+router.get('/course/statistics/:id', authMiddleware, requireRole('instructor', 'secretary'), getCourseStatistics);
+
+// GET /course/instructor/:id - Get course instructor information
+router.get('/course/instructor/:id', authMiddleware, getCourseInstructor);
+
+
+
+
+// ============================================================================
+// PUBLIC ROUTES - Course Details
+// ============================================================================
+
+// GET /course/:id - Get course details (all authenticated users)
+router.get('/course/:id', authMiddleware, getCourse);
 
 export default router;

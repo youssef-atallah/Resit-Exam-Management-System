@@ -1,101 +1,62 @@
-# Existing Courses in Database
+# 👨‍🎓 Student Management API
 
-The following courses were created during database seeding and already exist:
+<div align="center">
 
-## Course IDs Already in Use
+![Endpoints](https://img.shields.io/badge/endpoints-10-blue?style=flat-square)
+![Access](https://img.shields.io/badge/access-Secretary%20%7C%20Student-green?style=flat-square)
 
-| Course ID | Course Name | Department | Instructor |
-|-----------|-------------|------------|------------|
-| `SE302` | Software Project Management | Software Engineering | Dr. Youssef Atallah (inst-001) |
-| `CS101` | Introduction to Computer Science | Computer Science | Prof. Emily Watson (inst-002) |
-| `MATH201` | Calculus II | Mathematics | Dr. Ahmed Hassan (inst-003) |
-| `DS205` | Data Structures and Algorithms | Computer Science | Prof. Emily Watson (inst-002) |
-| `DB301` | Database Management Systems | Software Engineering | Dr. Maria Garcia (inst-004) |
+**Complete API documentation for student-related operations**
 
-## Creating New Courses
+[← Back to Main](./README.md) | [Quick Reference](./QUICK_REFERENCE.md) | [Routes by Dashboard](./ROUTES_BY_DASHBOARD.md)
 
-To create a new course, use a **different course ID** that doesn't exist yet. For example:
-
-### ✅ Valid Course IDs (not in use):
-- `MATH101` - Calculus I
-- `MATH301` - Calculus III
-- `CS201` - Object-Oriented Programming
-- `SE401` - Software Testing
-- `DB401` - Advanced Databases
-- `AI301` - Artificial Intelligence
-- `WEB201` - Web Development
-- etc.
-
-### ❌ Invalid Course IDs (already exist):
-- `SE302` ❌
-- `CS101` ❌
-- `MATH201` ❌
-- `DS205` ❌
-- `DB301` ❌
-
-## Example: Create a New Course
-
-```json
-POST /course
-{
-  "courseId": "MATH101",
-  "name": "Calculus I",
-  "department": "Mathematics",
-  "secretaryId": "sec-001"
-}
-```
-
-## Error Response
-
-If you try to create a course with an existing ID, you'll now get:
-
-```json
-{
-  "success": false,
-  "error": "Course already exists",
-  "details": "A course with ID 'MATH201' already exists"
-}
-```
-
-**HTTP Status Code**: `409 Conflict`
-
-## Updating Existing Courses
-
-To modify an existing course, use the `PUT /course/:id` endpoint instead:
-
-```json
-PUT /course/MATH201
-{
-  "name": "Calculus II - Advanced",
-  "instructor": "inst-003",
-  "department": "Mathematics",
-  "secretaryId": "sec-001"
-}
-```
+</div>
 
 ---
 
-## Student Management
+## 📑 Table of Contents
 
-### Existing Students
+- [📊 Existing Students](#-existing-students)
+- [➕ Create Student](#-create-student)
+- [🔍 Get Student](#-get-student)
+- [✏️ Update Student](#️-update-student)
+- [🗑️ Delete Student](#️-delete-student)
+- [📚 Course Enrollment](#-course-enrollment)
+- [📝 Resit Exam Enrollment](#-resit-exam-enrollment)
+- [📈 View Student Data](#-view-student-data)
+- [❌ Common Errors](#-common-errors)
 
-The following students were created during seeding:
+---
 
-| Student ID | Name | Email |
-|------------|------|-------|
-| `stu-001` | Ali Yilmaz | ali.yilmaz@student.uskudar.edu.tr |
-| `stu-002` | Ayşe Demir | ayse.demir@student.uskudar.edu.tr |
-| `stu-003` | Mehmet Kaya | mehmet.kaya@student.uskudar.edu.tr |
-| `stu-004` | Fatma Özdemir | fatma.ozdemir@student.uskudar.edu.tr |
-| `stu-005` | Can Arslan | can.arslan@student.uskudar.edu.tr |
-| `stu-006` | Zeynep Şahin | zeynep.sahin@student.uskudar.edu.tr |
+## 📊 Existing Students
 
-All student passwords are: `password123`
+The following students were created during database seeding:
 
-### Create a New Student
+| Student ID | Name | Email | Enrolled Courses |
+|------------|------|-------|------------------|
+| `stu-001` | Ali Yilmaz | ali.yilmaz@student.uskudar.edu.tr | SE302, CS101, DS205 |
+| `stu-002` | Ayşe Demir | ayse.demir@student.uskudar.edu.tr | CS101, DB301 |
+| `stu-003` | Mehmet Kaya | mehmet.kaya@student.uskudar.edu.tr | SE302, MATH201, DS205 |
+| `stu-004` | Fatma Özdemir | fatma.ozdemir@student.uskudar.edu.tr | SE302, MATH201, DB301 |
+| `stu-005` | Can Arslan | can.arslan@student.uskudar.edu.tr | CS101, MATH201, DB301 |
+| `stu-006` | Zeynep Şahin | zeynep.sahin@student.uskudar.edu.tr | CS101, DS205 |
 
+> 🔑 **Default Password:** All students have the password `password123`
+
+---
+
+## ➕ Create Student
+
+<details open>
+<summary><b>POST</b> <code>/student/</code></summary>
+
+### Description
+Create a new student account in the system.
+
+### Access
+🔐 **Secretary Only**
+
+### Request Body
 ```json
-POST /student/
 {
   "studentId": "stu-007",
   "name": "Ahmet Yılmaz",
@@ -105,7 +66,17 @@ POST /student/
 }
 ```
 
-**Response:**
+### Parameters
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `studentId` | string | ✅ Yes | Unique student identifier |
+| `name` | string | ✅ Yes | Student's full name |
+| `email` | string | ✅ Yes | Student's email address |
+| `password` | string | ✅ Yes | Student's password (min 8 characters) |
+| `secretaryId` | string | ✅ Yes | ID of secretary creating the student |
+
+### Success Response (201 Created)
 ```json
 {
   "success": true,
@@ -120,13 +91,40 @@ POST /student/
 }
 ```
 
-### Get Student Information
+### Error Responses
 
-```json
+| Status | Error | Description |
+|--------|-------|-------------|
+| 400 | Missing required fields | One or more required fields are missing |
+| 409 | Student already exists | A student with this ID already exists |
+| 404 | Secretary not found | Invalid secretary ID |
+
+</details>
+
+---
+
+## 🔍 Get Student
+
+<details>
+<summary><b>GET</b> <code>/student/:id</code></summary>
+
+### Description
+Retrieve detailed student information including courses and resit exams.
+
+### Access
+👨‍🎓 **Student** (own data) | 🔐 **Secretary** (any student)
+
+### URL Parameters
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | string | Student ID |
+
+### Example Request
+```bash
 GET /student/stu-001
 ```
 
-**Response:**
+### Success Response (200 OK)
 ```json
 {
   "success": true,
@@ -142,73 +140,31 @@ GET /student/stu-001
 }
 ```
 
-### Delete a Student
+### Error Response
+- **404 Not Found** - Student does not exist
 
+</details>
+
+---
+
+## ✏️ Update Student
+
+<details>
+<summary><b>PUT</b> <code>/student/:id</code></summary>
+
+### Description
+Update student's name, email, or password.
+
+### Access
+🔐 **Secretary Only**
+
+### URL Parameters
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | string | Student ID |
+
+### Request Body
 ```json
-DELETE /student/stu-007
-{
-  "secretaryId": "sec-001"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Student deleted successfully"
-}
-```
-
-**Note:** Deleting a student will also remove:
-- All course enrollments
-- All grades
-- All resit exam enrollments
-- The user account
-
-### Enroll Student in a Course
-
-```json
-POST /student/stu-007
-{
-  "courseId": "CS101",
-  "secretaryId": "sec-001"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Course added to student successfully"
-}
-```
-
-### Remove Student from a Course
-
-```json
-DELETE /student-course/stu-007
-{
-  "courseId": "CS101",
-  "secretaryId": "sec-001"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Student removed from course successfully"
-}
-```
-
-**Note:** Removing a student from a course will also:
-- Remove their grade for that course
-- Remove them from any associated resit exams
-
-### Update Student Information
-
-```json
-PUT /student/stu-007
 {
   "name": "Ahmet Yılmaz Updated",
   "email": "ahmet.updated@student.uskudar.edu.tr",
@@ -217,7 +173,7 @@ PUT /student/stu-007
 }
 ```
 
-**Response:**
+### Success Response (200 OK)
 ```json
 {
   "success": true,
@@ -230,13 +186,179 @@ PUT /student/stu-007
 }
 ```
 
-### Get Student's Courses
+</details>
 
+---
+
+## 🗑️ Delete Student
+
+<details>
+<summary><b>DELETE</b> <code>/student/:id</code></summary>
+
+### Description
+Delete a student and all associated data.
+
+### Access
+🔐 **Secretary Only**
+
+### URL Parameters
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | string | Student ID |
+
+### Request Body
 ```json
-GET /student/courses/stu-001
+{
+  "secretaryId": "sec-001"
+}
 ```
 
-**Response:**
+### Success Response (200 OK)
+```json
+{
+  "success": true,
+  "message": "Student deleted successfully"
+}
+```
+
+### ⚠️ Warning
+Deleting a student will also remove:
+- ✖️ All course enrollments
+- ✖️ All grades
+- ✖️ All resit exam enrollments
+- ✖️ The user account
+
+</details>
+
+---
+
+## 📚 Course Enrollment
+
+### Enroll Student in Course
+
+<details>
+<summary><b>POST</b> <code>/student/:id</code></summary>
+
+### Description
+Enroll a student in a course.
+
+### Access
+🔐 **Secretary Only**
+
+### Request Body
+```json
+{
+  "courseId": "CS101",
+  "secretaryId": "sec-001"
+}
+```
+
+### Success Response (200 OK)
+```json
+{
+  "success": true,
+  "message": "Course added to student successfully"
+}
+```
+
+</details>
+
+### Remove Student from Course
+
+<details>
+<summary><b>DELETE</b> <code>/student-course/:id</code></summary>
+
+### Description
+Remove a student from a course and delete their grade.
+
+### Access
+🔐 **Secretary Only**
+
+### Request Body
+```json
+{
+  "courseId": "CS101",
+  "secretaryId": "sec-001"
+}
+```
+
+### Success Response (200 OK)
+```json
+{
+  "success": true,
+  "message": "Student removed from course successfully"
+}
+```
+
+### ⚠️ Note
+This will also:
+- Remove their grade for that course
+- Remove them from any associated resit exams
+
+</details>
+
+---
+
+## 📝 Resit Exam Enrollment
+
+### Enroll in Resit Exam
+
+<details>
+<summary><b>POST</b> <code>/student/resit-exam/:id</code></summary>
+
+### Description
+Enroll a student in a resit exam.
+
+### Access
+🔐 **Secretary Only**
+
+### Request Body
+```json
+{
+  "resitExamId": "resit-SE302",
+  "secretaryId": "sec-001"
+}
+```
+
+</details>
+
+### Remove from Resit Exam
+
+<details>
+<summary><b>DELETE</b> <code>/student/resit-exam/:id</code></summary>
+
+### Description
+Remove a student from a resit exam.
+
+### Access
+🔐 **Secretary Only**
+
+### Request Body
+```json
+{
+  "resitExamId": "resit-SE302",
+  "secretaryId": "sec-001"
+}
+```
+
+</details>
+
+---
+
+## 📈 View Student Data
+
+### Get Student's Courses
+
+<details>
+<summary><b>GET</b> <code>/student/courses/:id</code></summary>
+
+### Description
+Get list of course IDs the student is enrolled in.
+
+### Access
+👨‍🎓 **Student** | 🔐 **Secretary**
+
+### Success Response (200 OK)
 ```json
 {
   "success": true,
@@ -244,13 +366,20 @@ GET /student/courses/stu-001
 }
 ```
 
-### Get Student's Course Details (with grades)
+</details>
 
-```json
-GET /student/c-details/stu-001
-```
+### Get Course Details with Grades
 
-**Response:**
+<details>
+<summary><b>GET</b> <code>/student/c-details/:id</code></summary>
+
+### Description
+Get detailed course information including grades and resit exam status.
+
+### Access
+👨‍🎓 **Student** | 🔐 **Secretary**
+
+### Success Response (200 OK)
 ```json
 {
   "success": true,
@@ -280,29 +409,32 @@ GET /student/c-details/stu-001
 }
 ```
 
-### Enroll Student in Resit Exam
+</details>
 
+### Get Student's Resit Exams
+
+<details>
+<summary><b>GET</b> <code>/student/resitexams/:id</code></summary>
+
+### Description
+Get list of resit exams the student is enrolled in.
+
+### Access
+👨‍🎓 **Student** | 🔐 **Secretary**
+
+### Success Response (200 OK)
 ```json
-POST /student/resit-exam/stu-001
 {
-  "resitExamId": "resit-SE302",
-  "secretaryId": "sec-001"
+  "success": true,
+  "resitExams": ["resit-SE302"]
 }
 ```
 
-### Remove Student from Resit Exam
-
-```json
-DELETE /student/resit-exam/stu-001
-{
-  "resitExamId": "resit-SE302",
-  "secretaryId": "sec-001"
-}
-```
+</details>
 
 ---
 
-## Common Error Responses
+## ❌ Common Errors
 
 ### Student Not Found
 ```json
@@ -311,7 +443,7 @@ DELETE /student/resit-exam/stu-001
   "error": "Student not found"
 }
 ```
-**HTTP Status**: `404 Not Found`
+**HTTP Status:** `404 Not Found`
 
 ### Student Already Exists
 ```json
@@ -321,7 +453,7 @@ DELETE /student/resit-exam/stu-001
   "details": "A student with ID 'stu-007' already exists"
 }
 ```
-**HTTP Status**: `409 Conflict`
+**HTTP Status:** `409 Conflict`
 
 ### Missing Required Fields
 ```json
@@ -337,5 +469,18 @@ DELETE /student/resit-exam/stu-001
   }
 }
 ```
-**HTTP Status**: `400 Bad Request`
+**HTTP Status:** `400 Bad Request`
 
+---
+
+<div align="center">
+
+**[⬆ Back to Top](#-student-management-api)**
+
+[← Main Documentation](./README.md) | [Courses →](./COURSES.md) | [Instructors →](./INSTRUCTORS.md) | [Resit Exams →](./RESIT_EXAMS.md)
+
+---
+
+*Last Updated: December 27, 2025*
+
+</div>

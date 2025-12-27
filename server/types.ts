@@ -60,9 +60,9 @@ export interface ResitExamInfo {
   id: string;
   name: string;
   department: string;
-  exam_date: string;
-  deadline: string;
-  location: string;
+  exam_date: string | null;
+  deadline: string | null;
+  location: string | null;
 }
 
 export interface InstructorCourseDetails {
@@ -134,10 +134,14 @@ export interface StudentCourseDetails {
   gradeLetter?: string;
   resit_exam?: {
     id: string;
-    deadline: string;
+    deadline: string | null;
     status: string;
   };
 }
 
 export type MyExpressHandler<Req, Res> = RequestHandler<string, Partial<Res>, Partial<Req>, any>;
 
+export interface JWTObject {
+  id: string;
+  role: 'student' | 'instructor' | 'secretary';
+}

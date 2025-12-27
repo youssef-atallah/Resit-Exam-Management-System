@@ -10,7 +10,7 @@ import { ResitExam } from '../types';
 
 import { UserDao } from './dao/userDao';
 
-export interface Datastore extends CourseDao, InstructorDao, ResitExamDao, StudentDao, SecretaryDao {
+export interface Datastore extends CourseDao, InstructorDao, ResitExamDao, StudentDao, SecretaryDao, UserDao {
   getResitExamByCourseId(courseId: string): Promise<ResitExam | undefined>;
 }
 

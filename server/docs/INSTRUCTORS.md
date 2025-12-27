@@ -1,43 +1,59 @@
-# Instructor Management API
+# 👨‍🏫 Instructor Management API
 
-Complete API documentation for instructor-related operations.
+<div align="center">
 
-## Table of Contents
-- [Existing Instructors](#existing-instructors)
-- [Create Instructor](#create-instructor)
-- [Get Instructor](#get-instructor)
-- [Update Instructor](#update-instructor)
-- [Delete Instructor](#delete-instructor)
-- [Assign Instructor to Course](#assign-instructor-to-course)
-- [Unassign Instructor from Course](#unassign-instructor-from-course)
-- [Get Instructor Courses](#get-instructor-courses)
-- [Get Instructor Course Details](#get-instructor-course-details)
-- [Set Student Course Grades](#set-student-course-grades)
+![Endpoints](https://img.shields.io/badge/endpoints-8-blue?style=flat-square)
+![Access](https://img.shields.io/badge/access-Secretary%20%7C%20Instructor-green?style=flat-square)
+
+**Complete API documentation for instructor-related operations**
+
+[← Back to Main](./README.md) | [Quick Reference](./QUICK_REFERENCE.md) | [Routes by Dashboard](./ROUTES_BY_DASHBOARD.md)
+
+</div>
 
 ---
 
-## Existing Instructors
+## 📑 Table of Contents
 
-The following instructors were created during seeding:
-
-| Instructor ID | Name | Email | Department |
-|---------------|------|-------|------------|
-| `inst-001` | Dr. Youssef Atallah | youssef.atallah@uskudar.edu.tr | Software Engineering |
-| `inst-002` | Prof. Emily Watson | emily.watson@uskudar.edu.tr | Computer Science |
-| `inst-003` | Dr. Ahmed Hassan | ahmed.hassan@uskudar.edu.tr | Mathematics |
-| `inst-004` | Dr. Maria Garcia | maria.garcia@uskudar.edu.tr | Software Engineering |
-
-All instructor passwords are: `password123`
+- [📊 Existing Instructors](#-existing-instructors)
+- [➕ Create Instructor](#-create-instructor)
+- [🔍 Get Instructor](#-get-instructor)
+- [✏️ Update Instructor](#️-update-instructor)
+- [🗑️ Delete Instructor](#️-delete-instructor)
+- [📚 Course Assignment](#-course-assignment)
+- [📖 View Instructor Data](#-view-instructor-data)
+- [📝 Grade Management](#-grade-management)
+- [❌ Common Errors](#-common-errors)
 
 ---
 
-## Create Instructor
+## 📊 Existing Instructors
 
-Create a new instructor in the system.
+The following instructors were created during database seeding:
 
-**Endpoint:** `POST /instructor`
+| Instructor ID | Name | Email | Department | Courses |
+|---------------|------|-------|------------|---------|
+| `inst-001` | Dr. Youssef Atallah | youssef.atallah@uskudar.edu.tr | Software Engineering | SE302 |
+| `inst-002` | Prof. Emily Watson | emily.watson@uskudar.edu.tr | Computer Science | CS101, DS205 |
+| `inst-003` | Dr. Ahmed Hassan | ahmed.hassan@uskudar.edu.tr | Mathematics | MATH201 |
+| `inst-004` | Dr. Maria Garcia | maria.garcia@uskudar.edu.tr | Software Engineering | DB301 |
 
-**Request Body:**
+> 🔑 **Default Password:** All instructors have the password `password123`
+
+---
+
+## ➕ Create Instructor
+
+<details open>
+<summary><b>POST</b> <code>/instructor</code></summary>
+
+### Description
+Create a new instructor account in the system.
+
+### Access
+🔐 **Secretary Only**
+
+### Request Body
 ```json
 {
   "instructorId": "inst-005",
@@ -48,7 +64,17 @@ Create a new instructor in the system.
 }
 ```
 
-**Success Response (201):**
+### Parameters
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `instructorId` | string | ✅ Yes | Unique instructor identifier |
+| `name` | string | ✅ Yes | Instructor's full name |
+| `email` | string | ✅ Yes | Instructor's email address |
+| `password` | string | ✅ Yes | Instructor's password (min 8 characters) |
+| `secretaryId` | string | ✅ Yes | ID of secretary creating the instructor |
+
+### Success Response (201 Created)
 ```json
 {
   "success": true,
@@ -63,21 +89,40 @@ Create a new instructor in the system.
 }
 ```
 
-**Error Responses:**
-- `400` - Missing required fields
-- `409` - Instructor already exists
+### Error Responses
+
+| Status | Error | Description |
+|--------|-------|-------------|
+| 400 | Missing required fields | One or more required fields are missing |
+| 409 | Instructor already exists | An instructor with this ID already exists |
+| 404 | Secretary not found | Invalid secretary ID |
+
+</details>
 
 ---
 
-## Get Instructor
+## 🔍 Get Instructor
 
-Retrieve instructor information by ID.
+<details>
+<summary><b>GET</b> <code>/instructor/:id</code></summary>
 
-**Endpoint:** `GET /instructor/:id`
+### Description
+Retrieve detailed instructor information including courses and resit exams.
 
-**Example:** `GET /instructor/inst-001`
+### Access
+👨‍🏫 **Instructor** (own data) | 🔐 **Secretary** (any instructor)
 
-**Success Response (200):**
+### URL Parameters
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | string | Instructor ID |
+
+### Example Request
+```bash
+GET /instructor/inst-001
+```
+
+### Success Response (200 OK)
 ```json
 {
   "success": true,
@@ -93,18 +138,30 @@ Retrieve instructor information by ID.
 }
 ```
 
-**Error Response:**
-- `404` - Instructor not found
+### Error Response
+- **404 Not Found** - Instructor does not exist
+
+</details>
 
 ---
 
-## Update Instructor
+## ✏️ Update Instructor
 
-Update instructor information.
+<details>
+<summary><b>PUT</b> <code>/instructor/:id</code></summary>
 
-**Endpoint:** `PUT /instructor/:id`
+### Description
+Update instructor's name, email, or password.
 
-**Request Body:**
+### Access
+🔐 **Secretary Only**
+
+### URL Parameters
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | string | Instructor ID |
+
+### Request Body
 ```json
 {
   "name": "Dr. Youssef Atallah Updated",
@@ -114,7 +171,7 @@ Update instructor information.
 }
 ```
 
-**Success Response (200):**
+### Success Response (200 OK)
 ```json
 {
   "success": true,
@@ -127,22 +184,34 @@ Update instructor information.
 }
 ```
 
+</details>
+
 ---
 
-## Delete Instructor
+## 🗑️ Delete Instructor
 
-Delete an instructor from the system.
+<details>
+<summary><b>DELETE</b> <code>/instructor/:id</code></summary>
 
-**Endpoint:** `DELETE /instructor/:id`
+### Description
+Delete an instructor and all associated data.
 
-**Request Body:**
+### Access
+🔐 **Secretary Only**
+
+### URL Parameters
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | string | Instructor ID |
+
+### Request Body
 ```json
 {
   "secretaryId": "sec-001"
 }
 ```
 
-**Success Response (200):**
+### Success Response (200 OK)
 ```json
 {
   "success": true,
@@ -150,23 +219,36 @@ Delete an instructor from the system.
 }
 ```
 
-**Note:** Deleting an instructor will:
-- Remove all course assignments
-- Delete all resit exams created by them
-- Remove all associated data
-- Delete the user account
+### ⚠️ Warning
+Deleting an instructor will:
+- ✖️ Remove all course assignments
+- ✖️ Delete all resit exams created by them
+- ✖️ Remove all associated data
+- ✖️ Delete the user account
+
+</details>
 
 ---
 
-## Assign Instructor to Course
+## 📚 Course Assignment
 
+### Assign Instructor to Course
+
+<details>
+<summary><b>POST</b> <code>/instructor/course/:id</code></summary>
+
+### Description
 Assign an instructor to teach a course.
 
-**Endpoint:** `POST /instructor/course/:id`
+### Access
+🔐 **Secretary Only**
 
-**URL Parameter:** `:id` - Instructor ID
+### URL Parameters
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | string | Instructor ID |
 
-**Request Body:**
+### Request Body
 ```json
 {
   "courseId": "CS101",
@@ -174,7 +256,7 @@ Assign an instructor to teach a course.
 }
 ```
 
-**Success Response (200):**
+### Success Response (200 OK)
 ```json
 {
   "success": true,
@@ -182,21 +264,29 @@ Assign an instructor to teach a course.
 }
 ```
 
-**Error Responses:**
-- `404` - Instructor or course not found
-- `400` - Course already has an instructor
+### Error Responses
+- **404 Not Found** - Instructor or course not found
+- **400 Bad Request** - Course already has an instructor
 
----
+</details>
 
-## Unassign Instructor from Course
+### Unassign Instructor from Course
 
+<details>
+<summary><b>DELETE</b> <code>/instructor/course/:id</code></summary>
+
+### Description
 Remove an instructor from a course.
 
-**Endpoint:** `DELETE /instructor/course/:id`
+### Access
+🔐 **Secretary Only**
 
-**URL Parameter:** `:id` - Instructor ID
+### URL Parameters
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | string | Instructor ID |
 
-**Request Body:**
+### Request Body
 ```json
 {
   "courseId": "CS101",
@@ -204,7 +294,7 @@ Remove an instructor from a course.
 }
 ```
 
-**Success Response (200):**
+### Success Response (200 OK)
 ```json
 {
   "success": true,
@@ -212,17 +302,29 @@ Remove an instructor from a course.
 }
 ```
 
+</details>
+
 ---
 
-## Get Instructor Courses
+## 📖 View Instructor Data
 
+### Get Instructor Courses
+
+<details>
+<summary><b>GET</b> <code>/instructor/courses/:id</code></summary>
+
+### Description
 Get all courses taught by an instructor.
 
-**Endpoint:** `GET /instructor/courses/:id`
+### Access
+👨‍🏫 **Instructor**
 
-**Example:** `GET /instructor/courses/inst-001`
+### URL Parameters
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | string | Instructor ID |
 
-**Success Response (200):**
+### Success Response (200 OK)
 ```json
 {
   "success": true,
@@ -230,17 +332,25 @@ Get all courses taught by an instructor.
 }
 ```
 
----
+</details>
 
-## Get Instructor Course Details
+### Get Instructor Course Details
 
+<details>
+<summary><b>GET</b> <code>/instructor/cdetails/:id</code></summary>
+
+### Description
 Get detailed information about all courses taught by an instructor, including student counts and resit exams.
 
-**Endpoint:** `GET /instructor/cdetails/:id`
+### Access
+👨‍🏫 **Instructor**
 
-**Example:** `GET /instructor/cdetails/inst-001`
+### URL Parameters
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | string | Instructor ID |
 
-**Success Response (200):**
+### Success Response (200 OK)
 ```json
 {
   "success": true,
@@ -265,17 +375,29 @@ Get detailed information about all courses taught by an instructor, including st
 }
 ```
 
+</details>
+
 ---
 
-## Set Student Course Grades
+## 📝 Grade Management
 
+### Set Student Course Grades
+
+<details>
+<summary><b>POST</b> <code>/instructor/course/grades/:courseId</code></summary>
+
+### Description
 Set grades for multiple students in a course.
 
-**Endpoint:** `POST /instructor/course/grades/:courseId`
+### Access
+👨‍🏫 **Instructor**
 
-**URL Parameter:** `:courseId` - Course ID
+### URL Parameters
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `courseId` | string | Course ID |
 
-**Request Body:**
+### Request Body
 ```json
 {
   "instructorId": "inst-001",
@@ -299,7 +421,17 @@ Set grades for multiple students in a course.
 }
 ```
 
-**Success Response (200):**
+### Parameters
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `instructorId` | string | ✅ Yes | ID of instructor setting grades |
+| `grades` | array | ✅ Yes | Array of student grades |
+| `grades[].studentId` | string | ✅ Yes | Student ID |
+| `grades[].grade` | number | ✅ Yes | Numeric grade (0-100) |
+| `grades[].gradeLetter` | string | ✅ Yes | Letter grade (A, B, C, D, E, F) |
+
+### Success Response (200 OK)
 ```json
 {
   "success": true,
@@ -307,14 +439,16 @@ Set grades for multiple students in a course.
 }
 ```
 
-**Error Responses:**
-- `400` - Missing required fields or invalid data
-- `403` - Instructor not authorized for this course
-- `404` - Course or student not found
+### Error Responses
+- **400 Bad Request** - Missing required fields or invalid data
+- **403 Forbidden** - Instructor not authorized for this course
+- **404 Not Found** - Course or student not found
+
+</details>
 
 ---
 
-## Common Error Responses
+## ❌ Common Errors
 
 ### Instructor Not Found
 ```json
@@ -323,7 +457,7 @@ Set grades for multiple students in a course.
   "error": "Instructor not found"
 }
 ```
-**HTTP Status:** `404`
+**HTTP Status:** `404 Not Found`
 
 ### Instructor Already Exists
 ```json
@@ -333,7 +467,7 @@ Set grades for multiple students in a course.
   "details": "An instructor with ID 'inst-005' already exists"
 }
 ```
-**HTTP Status:** `409`
+**HTTP Status:** `409 Conflict`
 
 ### Unauthorized Operation
 ```json
@@ -343,8 +477,35 @@ Set grades for multiple students in a course.
   "details": "Only secretaries can perform this operation"
 }
 ```
-**HTTP Status:** `403`
+**HTTP Status:** `403 Forbidden`
+
+### Missing Required Fields
+```json
+{
+  "success": false,
+  "error": "Missing required fields",
+  "missingFields": {
+    "instructorId": false,
+    "name": true,
+    "email": false,
+    "password": true,
+    "secretaryId": false
+  }
+}
+```
+**HTTP Status:** `400 Bad Request`
 
 ---
 
-[← Back to Main Documentation](./README.md) | [Next: Resit Exams →](./RESIT_EXAMS.md)
+<div align="center">
+
+**[⬆ Back to Top](#-instructor-management-api)**
+
+[← Main Documentation](./README.md) | [Courses →](./COURSES.md) | [Students →](./STUDENTS.md) | [Resit Exams →](./RESIT_EXAMS.md)
+
+---
+
+*Last Updated: December 27, 2025*
+
+</div>
+

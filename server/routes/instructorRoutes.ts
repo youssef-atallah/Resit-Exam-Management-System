@@ -17,218 +17,143 @@ import {
   updateAllStudentsResitExamResults,
   getResitExam,
   setResitExamAnnouncement,
-  setStudentCourseGrades
+  setStudentCourseGrades,
+  getMyInstructorProfile,
+  getMyInstructorCourses,
+  getMyInstructorCourseDetails,
+  getMyInstructorResitExams,
+  updateMyInstructorProfile
 } from '../hundlers/instructorHandler';
+import { authMiddleware, requireRole, requireOwnerOrRole } from '../Auth/authHandler';
 
 const router = express.Router();
 
-/* 
+/**
  * ============================================================================
  * INSTRUCTOR ROUTES
  * ============================================================================
  * 
- * IMPORTANT: DO NOT change the order of these routes.
- * Express matches routes in the order they are defined.
- * More specific routes must come BEFORE general ones to avoid incorrect
- * handler calls.
- * 
  * Route Organization:
- * - Secretary Dashboard: Instructor CRUD operations, course assignments
- * - Instructor Dashboard: View courses, manage resit exams, set grades
- * - Public/Shared: View resit exam information
+ *   1. JWT-Based Routes - Instructors access their own data (requires JWT auth)
+ *   2. Secretary Routes - Instructor CRUD and course assignments
+ *   3. Instructor Routes - View courses, manage resit exams, set grades
+ *   4. Public Routes - View resit exam information
+ * 
+ * IMPORTANT: Route order matters! Express matches top-to-bottom.
+ *            More specific routes must come before general ones.
  * ============================================================================
  */
 
-// ============================================================================
-// SECRETARY DASHBOARD - Instructor Management
-// ============================================================================
-
-/**
- * Create a new instructor
- * @route POST /instructor
- * @access Secretary
- * @description Create a new instructor account in the system
- */
-router.post('/instructor', createInstructor);
-
-/**
- * Get instructor information
- * @route GET /instructor/:id
- * @access Secretary, Instructor
- * @description Get detailed instructor information including courses and resit exams
- * @param {string} id - Instructor ID
- */
-router.get('/instructor/:id', getInstructor);
-
-/**
- * Delete an instructor
- * @route DELETE /instructor/:id
- * @access Secretary
- * @description Delete an instructor and all associated data
- * @param {string} id - Instructor ID
- */
-router.delete('/instructor/:id', deleteInstructor);
-
-/**
- * Update instructor information
- * @route PUT /instructor/:id
- * @access Secretary
- * @description Update instructor's name, email, or password
- * @param {string} id - Instructor ID
- */
-router.put('/instructor/:id', updateInstructorInfo);
-
-/**
- * Assign instructor to a course
- * @route POST /instructor/course/:id
- * @access Secretary
- * @description Assign an instructor to teach a course
- * @param {string} id - Instructor ID
- */
-router.post('/instructor/course/:id', assignInstructorToCourse);
-
-/**
- * Unassign instructor from a course
- * @route DELETE /instructor/course/:id
- * @access Secretary
- * @description Remove an instructor from a course
- * @param {string} id - Instructor ID
- */
-router.delete('/instructor/course/:id', unassignInstructorFromCourse);
 
 // ============================================================================
-// INSTRUCTOR DASHBOARD - View Courses and Students
+// JWT-BASED ROUTES - Authenticated Instructor Access
 // ============================================================================
 
-/**
- * Get instructor's courses
- * @route GET /instructor/courses/:id
- * @access Instructor
- * @description Get list of course IDs taught by the instructor
- * @param {string} id - Instructor ID
- */
-router.get('/instructor/courses/:id', getInstructorCourses);
+// GET /my/instructor/profile - Get authenticated instructor's profile
+router.get('/my/instructor/profile', authMiddleware, requireRole('instructor'), getMyInstructorProfile);
 
-/**
- * Get instructor's course details
- * @route GET /instructor/cdetails/:id
- * @access Instructor
- * @description Get detailed information about courses including student counts and resit exams
- * @param {string} id - Instructor ID
- */
-router.get('/instructor/cdetails/:id', getInstructorCourseDetails);
+// PUT /my/instructor/profile - Update authenticated instructor's profile
+router.put('/my/instructor/profile', authMiddleware, requireRole('instructor'), updateMyInstructorProfile);
 
-/**
- * Set student course grades
- * @route POST /instructor/course/grades/:courseId
- * @access Instructor
- * @description Set grades for multiple students in a course
- * @param {string} courseId - Course ID
- */
-router.post('/instructor/course/grades/:courseId', setStudentCourseGrades);
+// GET /my/instructor/courses - Get authenticated instructor's courses
+router.get('/my/instructor/courses', authMiddleware, requireRole('instructor'), getMyInstructorCourses);
+
+// GET /my/instructor/course-details - Get authenticated instructor's course details
+router.get('/my/instructor/course-details', authMiddleware, requireRole('instructor'), getMyInstructorCourseDetails);
+
+// GET /my/instructor/resit-exams - Get authenticated instructor's resit exams
+router.get('/my/instructor/resit-exams', authMiddleware, requireRole('instructor'), getMyInstructorResitExams);
+
+
+
 
 // ============================================================================
-// INSTRUCTOR DASHBOARD - Resit Exam Management
+// SECRETARY ROUTES - Instructor Management
 // ============================================================================
 
-/**
- * Create a resit exam
- * @route POST /instructor/r-exam/:id
- * @access Instructor
- * @description Create a new resit exam for a course
- * @param {string} id - Instructor ID
- */
-router.post('/instructor/r-exam/:id', createResitExam);
+// POST /instructor - Create new instructor account
+router.post('/instructor', authMiddleware, requireRole('secretary'), createInstructor);
 
-/**
- * Create a resit exam (alternative endpoint)
- * @route POST /r-exam/:id
- * @access Instructor
- * @description Alternative endpoint to create a resit exam
- * @param {string} id - Instructor ID
- */
-router.post('/r-exam/:id', createResitExam);
+// GET /instructor/:id - Get instructor information (own data or secretary access)
+router.get('/instructor/:id', authMiddleware, requireOwnerOrRole('secretary'), getInstructor);
 
-/**
- * Update resit exam details
- * @route PUT /instructor/r-exam/:id
- * @access Instructor
- * @description Update resit exam date, location, or deadline
- * @param {string} id - Resit Exam ID
- */
-router.put('/instructor/r-exam/:id', updateResitExam);
+// DELETE /instructor/:id - Delete instructor and all associated data
+router.delete('/instructor/:id', authMiddleware, requireRole('secretary'), deleteInstructor);
 
-/**
- * Delete a resit exam
- * @route DELETE /instructor/r-exam/:id
- * @access Instructor
- * @description Delete a resit exam and all associated data
- * @param {string} id - Resit Exam ID
- */
-router.delete('/instructor/r-exam/:id', deleteResitExam);
+// PUT /instructor/:id - Update instructor information (name, email, password)
+router.put('/instructor/:id', authMiddleware, requireRole('secretary'), updateInstructorInfo);
 
-/**
- * Get instructor's resit exams
- * @route GET /instructor/r-exams/:id
- * @access Instructor
- * @description Get all resit exams created by or assigned to the instructor
- * @param {string} id - Instructor ID
- */
-router.get('/instructor/r-exams/:id', getInstructorResitExams);
+// POST /instructor/course/:id - Assign instructor to course
+router.post('/instructor/course/:id', authMiddleware, requireRole('secretary'), assignInstructorToCourse);
 
-/**
- * Set resit exam announcement
- * @route PUT /instructor/r-announcement/:id
- * @access Instructor
- * @description Update the announcement message for a resit exam
- * @param {string} id - Resit Exam ID
- */
-router.put('/instructor/r-announcement/:id', setResitExamAnnouncement);
+// DELETE /instructor/course/:id - Unassign instructor from course
+router.delete('/instructor/course/:id', authMiddleware, requireRole('secretary'), unassignInstructorFromCourse);
+
+
+
 
 // ============================================================================
-// INSTRUCTOR DASHBOARD - Resit Exam Grading
+// INSTRUCTOR ROUTES - View Courses and Students
 // ============================================================================
 
-/**
- * Update single student's resit exam grade
- * @route PUT /instructor/course/:courseId/student/:studentId
- * @access Instructor
- * @description Update the grade for a single student in a resit exam
- * @param {string} courseId - Course ID
- * @param {string} studentId - Student ID
- */
-router.put('/instructor/course/:courseId/student/:studentId', updateAStudentResitExamResults);
+// GET /instructor/courses/:id - Get instructor's course IDs (own data or secretary access)
+router.get('/instructor/courses/:id', authMiddleware, requireOwnerOrRole('secretary'), getInstructorCourses);
 
-/**
- * Update all students' resit exam grades
- * @route PUT /instructor/resit-results/all/:resitExamId
- * @access Instructor
- * @description Update grades for all students in a resit exam at once
- * @param {string} resitExamId - Resit Exam ID
- */
-router.put('/instructor/resit-results/all/:resitExamId', updateAllStudentsResitExamResults);
+// GET /instructor/cdetails/:id - Get instructor's course details with student counts (own data or secretary access)
+router.get('/instructor/cdetails/:id', authMiddleware, requireOwnerOrRole('secretary'), getInstructorCourseDetails);
 
-/**
- * Get all results for a resit exam
- * @route GET /instructor/resit-results/exam/:resitExamId
- * @access Instructor
- * @description Get all student results for a specific resit exam
- * @param {string} resitExamId - Resit Exam ID
- * @status Experimental - not fully tested
- */
-router.get('/instructor/resit-results/exam/:resitExamId', getResitExamAllResults);
+// POST /instructor/course/grades/:courseId - Set grades for multiple students
+router.post('/instructor/course/grades/:courseId', authMiddleware, requireRole('instructor'), setStudentCourseGrades);
+
+
+
 
 // ============================================================================
-// PUBLIC/SHARED - Resit Exam Information
+// INSTRUCTOR ROUTES - Resit Exam Management
 // ============================================================================
 
-/**
- * Get resit exam details
- * @route GET /r-exam/:id
- * @access Student, Instructor, Secretary
- * @description Get detailed information about a resit exam
- * @param {string} id - Resit Exam ID
- */
-router.get('/r-exam/:id', getResitExam);
+// POST /instructor/r-exam/:id - Create resit exam
+router.post('/instructor/r-exam/:id', authMiddleware, requireRole('instructor'), createResitExam);
+
+// POST /r-exam/:id - Create resit exam (alternative)
+router.post('/r-exam/:id', authMiddleware, requireRole('instructor'), createResitExam);
+
+// PUT /instructor/r-exam/:id - Update resit exam details
+router.put('/instructor/r-exam/:id', authMiddleware, requireRole('instructor'), updateResitExam);
+
+// DELETE /instructor/r-exam/:id - Delete resit exam
+router.delete('/instructor/r-exam/:id', authMiddleware, requireRole('instructor'), deleteResitExam);
+
+// GET /instructor/r-exams/:id - Get instructor's resit exams (own data or secretary access)
+router.get('/instructor/r-exams/:id', authMiddleware, requireOwnerOrRole('secretary'), getInstructorResitExams);
+
+// PUT /instructor/r-announcement/:id - Set resit exam announcement
+router.put('/instructor/r-announcement/:id', authMiddleware, requireRole('instructor'), setResitExamAnnouncement);
+
+
+
+
+// ============================================================================
+// INSTRUCTOR ROUTES - Resit Exam Grading
+// ============================================================================
+
+// PUT /instructor/course/:courseId/student/:studentId - Update single student's resit exam grade
+router.put('/instructor/course/:courseId/student/:studentId', authMiddleware, requireRole('instructor'), updateAStudentResitExamResults);
+
+// PUT /instructor/resit-results/all/:resitExamId - Update all students' resit exam grades
+router.put('/instructor/resit-results/all/:resitExamId', authMiddleware, requireRole('instructor'), updateAllStudentsResitExamResults);
+
+// GET /instructor/resit-results/exam/:resitExamId - Get all results for resit exam
+router.get('/instructor/resit-results/exam/:resitExamId', authMiddleware, requireRole('instructor'), getResitExamAllResults);
+
+
+
+
+// ============================================================================
+// PUBLIC ROUTES - Resit Exam Information
+// ============================================================================
+
+// GET /r-exam/:id - Get resit exam details (all authenticated users)
+router.get('/r-exam/:id', authMiddleware, getResitExam);
 
 export default router;
