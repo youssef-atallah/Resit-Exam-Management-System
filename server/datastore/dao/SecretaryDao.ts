@@ -1,5 +1,6 @@
 import { Course, Instructor, ResitExam, Secretary, Student } from '../../types';
 export interface SecretaryDao {
+  createSecretary(secretary: Secretary): Promise<void>;
   getSecretaryById(id: string): Promise<Secretary | undefined>;
   getSecretaryByEmail(email: string): Promise<Secretary | undefined>;
   

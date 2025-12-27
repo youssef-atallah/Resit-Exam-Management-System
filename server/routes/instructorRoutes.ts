@@ -42,7 +42,7 @@ router.post('/instructor/course/:id', assignInstructorToCourse);
 router.delete('/instructor/course/:id', unassignInstructorFromCourse);
 // Instructor course management - Instructor
 router.get('/instructor/courses/:id', getInstructorCourses);
-router.get('/instructor/c-details/:id', getInstructorCourseDetails);
+router.get('/instructor/cdetails/:id', getInstructorCourseDetails);
 
 // Instructor resit exam management - Instructor
 router.post('/instructor/r-exam/:id', createResitExam);

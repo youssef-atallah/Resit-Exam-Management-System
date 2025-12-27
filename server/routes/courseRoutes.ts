@@ -13,7 +13,7 @@ const router = express.Router();
 
 // Course CRUD operations
 router.post('/course', createCourse);
-router.get('/course/:id', getCourse);
+router.get('/course/:id', getCourse);        //! works
 router.put('/course/:id', updateCourse);
 router.delete('/course/:id', deleteCourse);
 

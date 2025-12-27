@@ -58,7 +58,54 @@ export class SqlDatastore implements Datastore {
   }
   async deleteCourse(id: string, secretaryId: string): Promise<void> {
     try {
-      await this.db.run(`DELETE FROM courses WHERE id = ?`, [id]);
+      // Start a transaction to ensure all deletions happen atomically
+      await this.db.run('BEGIN TRANSACTION');
+
+      try {
+        // Get the resit exam ID associated with this course (if any)
+        const course = await this.db.get('SELECT resit_exam_id FROM courses WHERE id = ?', [id]);
+        const resitExamId = course?.resit_exam_id;
+
+        // If there's a resit exam, we need to delete it and all its related records first
+        if (resitExamId) {
+          // Delete resit exam enrollments (grades)
+          await this.db.run(
+            `DELETE FROM resit_exam_enroll 
+             WHERE resit_exam_application_id IN (
+               SELECT id FROM resit_exam_application WHERE resit_exam_id = ?
+             )`,
+            [resitExamId]
+          );
+
+          // Delete resit exam applications
+          await this.db.run('DELETE FROM resit_exam_application WHERE resit_exam_id = ?', [resitExamId]);
+
+          // Delete student enrollments in resit exam
+          await this.db.run('DELETE FROM resit_exam_students WHERE resit_exam_id = ?', [resitExamId]);
+
+          // Delete letters allowed for resit exam
+          await this.db.run('DELETE FROM resit_exam_letters_allowed WHERE resit_exam_id = ?', [resitExamId]);
+
+          // Delete the resit exam itself
+          await this.db.run('DELETE FROM resit_exams WHERE id = ?', [resitExamId]);
+        }
+
+        // Delete student course grades
+        await this.db.run('DELETE FROM student_course_grades WHERE course_id = ?', [id]);
+
+        // Delete student enrollments in course
+        await this.db.run('DELETE FROM course_students WHERE course_id = ?', [id]);
+
+        // Finally, delete the course itself
+        await this.db.run('DELETE FROM courses WHERE id = ?', [id]);
+
+        // Commit the transaction
+        await this.db.run('COMMIT');
+      } catch (error) {
+        // Rollback on error
+        await this.db.run('ROLLBACK');
+        throw error;
+      }
     } catch (error) {
       console.error('Error deleting course:', error);
       throw error;
@@ -558,6 +605,7 @@ export class SqlDatastore implements Datastore {
       [secretary.id]
     );
   }
+  // get secretary by id
   async getSecretaryById(id: string): Promise<Secretary | undefined> {
     const secretary = await this.db.get('SELECT * FROM secretaries WHERE id = ?', [id]);
     return secretary;

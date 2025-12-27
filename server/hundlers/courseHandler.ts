@@ -102,6 +102,18 @@ export const updateCourse: RequestHandler = async (req, res): Promise<any> => {
       });
     }
 
+    // Validate instructor exists (if provided)
+    if (instructor) {
+      const instructorExists = await db.getInstructorById(instructor);
+      if (!instructorExists) {
+        return res.status(404).json({
+          success: false,
+          error: 'Instructor not found',
+          details: `Instructor with ID '${instructor}' does not exist`
+        });
+      }
+    }
+
     // Update the course
     await db.updateCourse(
       id,
@@ -210,6 +222,16 @@ export const createCourse: RequestHandler = async (req, res): Promise<any> => {
       });
     }
 
+    // Check if course already exists
+    const existingCourse = await db.getCourseById(courseId);
+    if (existingCourse) {
+      return res.status(409).json({
+        success: false,
+        error: 'Course already exists',
+        details: `A course with ID '${courseId}' already exists`
+      });
+    }
+
     // Create the course object
     const newCourse: Course = {
       id: courseId,
@@ -243,6 +265,14 @@ export const createCourse: RequestHandler = async (req, res): Promise<any> => {
         return res.status(403).json({
           success: false,
           error: error.message
+        });
+      }
+      // Handle UNIQUE constraint violations
+      if (error.message.includes('UNIQUE constraint failed')) {
+        return res.status(409).json({
+          success: false,
+          error: 'Course already exists',
+          details: `A course with ID '${courseId}' already exists`
         });
       }
     }

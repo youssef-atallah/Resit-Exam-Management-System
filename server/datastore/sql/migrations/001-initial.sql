@@ -33,12 +33,12 @@ CREATE TABLE courses (
     id VARCHAR(255) PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     department VARCHAR(255) NOT NULL,
-    instructor VARCHAR(255),
+    instructor_id VARCHAR(255),
     created_at TIMESTAMP NOT NULL,
     created_by VARCHAR(255) NOT NULL,
     updated_at TIMESTAMP,
     resit_exam_id VARCHAR(255),
-    FOREIGN KEY (instructor) REFERENCES instructors(id),
+    FOREIGN KEY (instructor_id) REFERENCES instructors(id),
     FOREIGN KEY (resit_exam_id) REFERENCES resit_exams(id) ON DELETE CASCADE
 );
 
@@ -84,14 +84,14 @@ CREATE TABLE resit_exam_students (
     FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
 );
 
--- Join table: resit_exams_instructors (many-to-many)
--- CREATE TABLE resit_exams_instructors (
---     resit_exam_id VARCHAR(255) NOT NULL,
---     instructor_id VARCHAR(255) NOT NULL,
---     PRIMARY KEY (resit_exam_id, instructor_id),
---     FOREIGN KEY (resit_exam_id) REFERENCES resit_exams(id) ON DELETE CASCADE,
---     FOREIGN KEY (instructor_id) REFERENCES instructors(id) ON DELETE CASCADE
--- );
+-- Join table: resit_exam_instructors (many-to-many)
+CREATE TABLE resit_exam_instructors (
+    resit_exam_id VARCHAR(255) NOT NULL,
+    instructor_id VARCHAR(255) NOT NULL,
+    PRIMARY KEY (resit_exam_id, instructor_id),
+    FOREIGN KEY (resit_exam_id) REFERENCES resit_exams(id) ON DELETE CASCADE,
+    FOREIGN KEY (instructor_id) REFERENCES instructors(id) ON DELETE CASCADE
+);
 
 -- ResitExam lettersAllowed (as a separate table)
 CREATE TABLE resit_exam_letters_allowed (

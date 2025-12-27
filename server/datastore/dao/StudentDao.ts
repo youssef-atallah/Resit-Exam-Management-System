@@ -8,7 +8,7 @@ export interface StudentDao {
   updateStudentInfo(id: string, name: string, email: string, password: string): Promise<void>;
   
   // enrollments
-  enrollStudentInCourse(studentId: string, courseId: string): Promise<boolean>;
+  enrollStudentInCourse(studentId: string, courseId: string, grade?: number, gradeLetter?: string): Promise<boolean>;
   enrollStudentInResitExam(studentId: string, resitExamId: string): Promise<boolean>;
   unenrollStudentFromCourse(studentId: string, courseId: string): Promise<void>;
   unenrollStudentFromResitExam(studentId: string, resitExamId: string): Promise<void>;

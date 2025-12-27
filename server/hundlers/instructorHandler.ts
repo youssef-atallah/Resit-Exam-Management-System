@@ -77,7 +77,7 @@ export const createInstructor: RequestHandler = async (req, res): Promise<any> =
     // const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     // if (!emailRegex.test(email)) {
     //   return res.status(400).json({
-    //     success: false,
+    //     success"password123": false,
     //     error: 'Invalid email format'
     //   });
     // }
@@ -89,7 +89,7 @@ export const createInstructor: RequestHandler = async (req, res): Promise<any> =
     //     error: 'Password must be at least 8 characters long'
     //   });
     // }
-
+"password123"
   // check if the secretary id is correct
   const secretary = await db.getSecretaryById(secretaryId);
   if (!secretary) {
