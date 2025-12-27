@@ -1,4 +1,4 @@
-import { checkStudentAuth, getLoggedInStudentData } from '../../../js/utils/studentAuth.js';
+import { checkStudentAuth, getLoggedInStudentData, updateStudentNameInHeader } from '../../../js/utils/studentAuth.js';
 
 // Check if student is logged in
 checkStudentAuth();
@@ -355,53 +355,30 @@ function createCourseCard(course) {
 
     card.innerHTML = `
         <div class="course-header">
-            <div class="course-title">
+            <div class="course-title-section">
                 <h3>${course.name}</h3>
                 <span class="course-code">${course.code}</span>
             </div>
             ${gradeInfo}
         </div>
-        <div class="course-info">
-            <div class="info-item">
-                <i class="fas fa-user"></i>
-                <span>${course.instructor || 'Instructor '}</span>
+        
+        <div class="course-details">
+            <div class="detail-item">
+                <i class="fas fa-chalkboard-teacher"></i>
+                <span>${course.instructor}</span>
             </div>
-            <div class="info-item">
-                <i class="fas fa-clock"></i>
-                <span>${course.schedule || 'Schedule '}</span>
-            </div>
-            <div class="info-item">
-                <i class="fas fa-map-marker-alt"></i>
-                <span>${course.location || 'Location '}</span>
+            <div class="detail-item">
+                <i class="fas fa-building"></i>
+                <span>${course.department}</span>
             </div>
         </div>
-        <div class="course-progress">
-            <div class="progress-header">
-                <span>Course Progress</span>
-                <span class="course-grade">${course.progress || 85}%</span>
-            </div>
-            <div class="progress-bar">
-                <div class="progress" style="width: ${course.progress || 80}%"></div>
-            </div>
-        </div>
+
         ${resitDeadline}
+        
         <div class="course-actions">
-            <a href="#" class="btn btn-secondary btn-assignments">
-                <i class="fas fa-tasks"></i>
-                Assignments
-            </a>
             ${resitButton}
         </div>
     `;
-
-    // Add event listeners
-    const assignmentsBtn = card.querySelector('.btn-assignments');
-    if (assignmentsBtn) {
-        assignmentsBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            openUnderDevModal();
-        });
-    }
 
     // Add event listener for resit exam button
     const resitBtn = card.querySelector('.btn-resit.eligible');

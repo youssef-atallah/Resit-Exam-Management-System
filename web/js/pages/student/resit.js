@@ -1,4 +1,4 @@
-import { checkStudentAuth, getLoggedInStudentData } from '../../../js/utils/studentAuth.js';
+import { checkStudentAuth, getLoggedInStudentData, updateStudentNameInHeader } from '../../../js/utils/studentAuth.js';
 
 // Check if student is logged in
 checkStudentAuth();

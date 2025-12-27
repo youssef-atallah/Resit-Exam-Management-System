@@ -1,10 +1,12 @@
+import { updateInstructorNameInHeader } from '../../utils/instructorAuth.js';
+
 // Function to fetch courses data
 async function fetchCourses() {
     try {
         console.log('Fetching courses...');
         // Get instructor ID from localStorage or use a default for testing
         const instructorId = localStorage.getItem('instructorId') || '12345611';
-        const response = await fetch(`http://localhost:3000/instructor/c-details/${instructorId}`, {
+        const response = await fetch(`http://localhost:3000/instructor/cdetails/${instructorId}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'

@@ -14,9 +14,6 @@
     <!-- Header Component -->
     <header class="header">
         <a href="dashboard.html" class="logo">Uskudar</a>
-        <div class="search-bar">
-            <input type="text" class="search-input" placeholder="Search...">
-        </div>
         <div class="header-right">
             <div class="notifications">
                 <button class="notification-btn" id="notificationBtn">
@@ -82,22 +79,7 @@
                 </a>
             </div>
             <div class="nav-section">
-                <div class="nav-section-title">Schedule & Exams</div>
-                <a href="class-schedule.html" class="nav-link">
-                    <i class="fas fa-calendar-alt"></i>
-                    Class Schedule
-                </a>
-                <a href="exam-schedule.html" class="nav-link">
-                    <i class="fas fa-file-alt"></i>
-                    Exam Schedule
-                </a>
-            </div>
-            <div class="nav-section">
                 <div class="nav-section-title">Academic</div>
-                <a href="assignments.html" class="nav-link">
-                    <i class="fas fa-file-alt"></i>
-                    Assignments
-                </a>
                 <a href="resit.html" class="nav-link">
                     <i class="fas fa-redo"></i>
                     Resit Exams
@@ -108,9 +90,6 @@
 
     <!-- Main Content -->
     <main class="main-content">
-        <div class="under-dev-notice">
-            <i class="fas fa-tools"></i> This page is currently <strong>under development</strong>.
-        </div>
         <div class="dashboard-header">
             <h1>Dashboard</h1>
             <div class="header-actions">
@@ -139,15 +118,15 @@
                     </div>
                     <div class="stat-card">
                         <div class="stat-value">2</div>
-                        <div class="stat-label">Upcoming Exams</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value">3</div>
-                        <div class="stat-label">Pending Assignments</div>
+                        <div class="stat-label">Courses with Resit</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-value">120</div>
                         <div class="stat-label">Total Students</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">15</div>
+                        <div class="stat-label">Resit Registrations</div>
                     </div>
                 </div>
             </div>
@@ -205,6 +184,7 @@
     </main>
 
     <script src="../../js/main.js"></script>
+    <script src="../../js/pages/instructor/dashboard.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // Set active link in sidebar
