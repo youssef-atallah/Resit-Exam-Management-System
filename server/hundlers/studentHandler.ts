@@ -6,15 +6,15 @@ import { Student, StudentCourseDetails } from '../types';
 
   // create a student: id, name , email, password - secretaryId
   export const createAstudent : RequestHandler= (async (req: Request, res: Response) : Promise<any>=> {
-  const { id, name, email, password, secretaryId } = req.body;
+  const { studentId, name, email, password, secretaryId } = req.body;
 
   // Input validation
-  if (!id || !name || !email || !password || !secretaryId) {
+  if (!studentId || !name || !email || !password || !secretaryId) {
     return res.status(400).json({
       success: false,
       error: 'Missing required fields',
       missingFields: {
-        id: !id,
+        studentId: !studentId,
         name: !name,
         email: !email,
         password: !password,
@@ -50,7 +50,7 @@ import { Student, StudentCourseDetails } from '../types';
   }
 
   // check if the student id is already in the database
-  const existingStudent = await db.getAstudent(id);
+  const existingStudent = await db.getAstudent(studentId);
   if (existingStudent) {
     return res.status(400).json({
       success: false,
@@ -65,7 +65,7 @@ import { Student, StudentCourseDetails } from '../types';
 
   // create a new student object
   const newStudent: Student = {
-    id: id,
+    id: studentId,
     name: name,
     email: email,
     password: password,
@@ -81,7 +81,7 @@ import { Student, StudentCourseDetails } from '../types';
     await db.createStudent(newStudent);
 
     // Verify the student was created by retrieving it
-    const createdStudent = await db.getAstudent(id);
+    const createdStudent = await db.getAstudent(studentId);
     if (!createdStudent) {
       throw new Error('Failed to verify student creation');
     }

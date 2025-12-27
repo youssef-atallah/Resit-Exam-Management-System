@@ -146,6 +146,9 @@ GET /student/stu-001
 
 ```json
 DELETE /student/stu-007
+{
+  "secretaryId": "sec-001"
+}
 ```
 
 **Response:**
