@@ -44,8 +44,13 @@ export class SqlDatastore implements Datastore {
       'users'
     ];
 
-    for (const table of tables) {
-      await this.db.run(`DELETE FROM ${table}`);
+    try {
+      await this.db.run('PRAGMA foreign_keys = OFF');
+      for (const table of tables) {
+        await this.db.run(`DELETE FROM ${table}`);
+      }
+    } finally {
+      await this.db.run('PRAGMA foreign_keys = ON');
     }
   }
 
