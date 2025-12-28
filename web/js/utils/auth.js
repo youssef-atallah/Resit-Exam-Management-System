@@ -1,7 +1,7 @@
 // Core Authentication Utilities for JWT-based Auth
 // Handles login, logout, token management, and API request headers
 
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = '';
 
 /**
  * Sign in user and store JWT token
