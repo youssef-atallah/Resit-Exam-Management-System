@@ -1,19 +1,23 @@
 import { updateInstructorNameInHeader } from '../../utils/instructorAuth.js';
+import { authenticatedFetch, getUserId } from '../../utils/auth.js';
 
 // Function to fetch instructor dashboard data
 async function fetchInstructorData() {
     try {
-        const instructorId = localStorage.getItem('instructorId') || '12345611';
+        const instructorId = getUserId();
+        if (!instructorId) {
+            throw new Error('No instructor ID found');
+        }
         
         // Fetch instructor details
-        const instructorResponse = await fetch(`http://localhost:3000/instructor/${instructorId}`);
+        const instructorResponse = await authenticatedFetch(`/instructor/${instructorId}`);
         if (!instructorResponse.ok) {
             throw new Error('Failed to fetch instructor details');
         }
         const instructor = await instructorResponse.json();
 
         // Fetch course details
-        const coursesResponse = await fetch(`http://localhost:3000/instructor/cdetails/${instructorId}`);
+        const coursesResponse = await authenticatedFetch(`/instructor/cdetails/${instructorId}`);
         if (!coursesResponse.ok) {
             throw new Error('Failed to fetch courses');
         }

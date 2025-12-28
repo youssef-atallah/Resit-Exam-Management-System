@@ -152,19 +152,17 @@ async function fetchStudentCourses() {
                 // Check if this course has a resit exam
                 const hasResitExam = studentResitExams.some(resitId => resitId.startsWith(courseId));
 
-                // Fetch instructor details using course/instructor endpoint (accessible to all authenticated users)
+                // Fetch instructor details
                 let instructorName = 'Instructor ';
                 if (courseData.instructor_id) {
                     try {
-                        const instructorResponse = await authenticatedFetch(`/course/instructor/${courseId}`);
+                        const instructorResponse = await authenticatedFetch(`/instructor/${courseData.instructor_id}`);
                         if (instructorResponse.ok) {
                             const instructorData = await instructorResponse.json();
-                            if (instructorData.success && instructorData.instructor) {
-                                instructorName = instructorData.instructor.name;
-                            }
+                            instructorName = instructorData.name;
                         }
                     } catch (error) {
-                        console.error(`Error fetching instructor details for course ${courseId}:`, error);
+                        console.error(`Error fetching instructor details for ${courseData.instructor_id}:`, error);
                     }
                 }
 
@@ -498,7 +496,53 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Note: Notification and user menu dropdowns are handled by header.js utility
+    // Toggle notification dropdown
+    const notificationBtn = document.getElementById('notificationBtn');
+    const notificationDropdown = document.querySelector('.notification-dropdown');
+    
+    if (notificationBtn && notificationDropdown) {
+        notificationBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            notificationDropdown.classList.toggle('show');
+        });
+    }
+
+    // Close notification dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        if (notificationDropdown && !e.target.closest('.notifications')) {
+            notificationDropdown.classList.remove('show');
+        }
+    });
+
+    // Handle mark all as read
+    const markAllReadBtn = document.querySelector('.mark-all-read');
+    if (markAllReadBtn) {
+        markAllReadBtn.addEventListener('click', () => {
+            document.querySelectorAll('.notification-item').forEach(item => {
+                item.classList.add('read');
+            });
+            const badge = document.querySelector('.notification-badge');
+            if (badge) {
+                badge.style.display = 'none';
+            }
+        });
+    }
+
+    // Toggle user menu
+    const userInfo = document.querySelector('.user-info');
+    const dropdownMenu = document.querySelector('.dropdown-menu');
+    if (userInfo && dropdownMenu) {
+        userInfo.addEventListener('click', () => {
+            dropdownMenu.classList.toggle('show');
+        });
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        if (dropdownMenu && !e.target.closest('.user-menu')) {
+            dropdownMenu.classList.remove('show');
+        }
+    });
 });
 
 // Under Development Modal Logic

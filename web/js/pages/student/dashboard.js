@@ -1,4 +1,5 @@
-import { checkStudentAuth, getLoggedInStudentData } from '../../../js/utils/studentAuth.js';
+import { checkStudentAuth, getLoggedInStudentData, updateStudentNameInHeader } from '../../../js/utils/studentAuth.js';
+import { authenticatedFetch, getUserId } from '../../utils/auth.js';
 
 // Check if student is logged in
 checkStudentAuth();
@@ -6,25 +7,30 @@ checkStudentAuth();
 // Function to fetch student dashboard data
 async function fetchDashboardData() {
     try {
-        const studentData = await getLoggedInStudentData();
+        // Get student ID from cached user data
+        const studentId = getUserId();
         
-        // Fetch student details
-        const studentResponse = await fetch(`http://localhost:3000/student/${studentData.id}`);
+        if (!studentId) {
+            throw new Error('No student ID found');
+        }
+        
+        // Fetch student details with auth
+        const studentResponse = await authenticatedFetch(`/student/${studentId}`);
         if (!studentResponse.ok) {
             throw new Error('Failed to fetch student details');
         }
         const studentDetails = await studentResponse.json();
 
-        // Fetch student course details
-        const courseDetailsResponse = await fetch(`http://localhost:3000/student/c-details/${studentData.id}`);
+        // Fetch student course details with auth
+        const courseDetailsResponse = await authenticatedFetch(`/student/c-details/${studentId}`);
         if (!courseDetailsResponse.ok) {
             throw new Error('Failed to fetch course details');
         }
         const courseDetails = await courseDetailsResponse.json();
 
         return {
-            student: studentDetails,
-            courseDetails: courseDetails
+            student: studentDetails.student || studentDetails,
+            courseDetails: courseDetails.courses || courseDetails
         };
     } catch (error) {
         console.error('Error fetching dashboard data:', error);
@@ -94,7 +100,7 @@ async function updateUpcomingEvents() {
     if (student.resitExams && student.resitExams.length > 0) {
         for (const resitId of student.resitExams.slice(0, 2)) {
             try {
-                const response = await fetch(`http://localhost:3000/r-exam/${resitId}`);
+                const response = await authenticatedFetch(`/r-exam/${resitId}`);
                 if (response.ok) {
                     const data = await response.json();
                     if (data.success && data.resitExam) {
@@ -156,7 +162,7 @@ async function updateRecentGrades() {
         for (const course of recentGrades) {
             try {
                 // Fetch course name
-                const courseResponse = await fetch(`http://localhost:3000/course/${course.courseId}`);
+                const courseResponse = await authenticatedFetch(`/course/${course.courseId}`);
                 if (courseResponse.ok) {
                     const courseData = await courseResponse.json();
                     const courseName = courseData.course?.name || course.courseId;
@@ -203,7 +209,7 @@ async function updateCourseProgress() {
     if (courses.length > 0) {
         for (const courseId of courses) {
             try {
-                const courseResponse = await fetch(`http://localhost:3000/course/${courseId}`);
+                const courseResponse = await authenticatedFetch(`/course/${courseId}`);
                 if (courseResponse.ok) {
                     const courseData = await courseResponse.json();
                     const courseName = courseData.course?.name || courseId;

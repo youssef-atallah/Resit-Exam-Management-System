@@ -1,4 +1,5 @@
 import { checkStudentAuth, getLoggedInStudentData, updateStudentNameInHeader } from '../../../js/utils/studentAuth.js';
+import { authenticatedFetch, getUserId } from '../../utils/auth.js';
 
 // Check if student is logged in
 checkStudentAuth();
@@ -73,13 +74,18 @@ function createGradeCard(course) {
 
 // Function to load grades
 async function loadGrades() {
+    const gradesGrid = document.querySelector('.grades-grid');
+    
     try {
-        const studentData = await getLoggedInStudentData();
-        const gradesGrid = document.querySelector('.grades-grid');
+        const studentId = getUserId();
+        if (!studentId) {
+            throw new Error('No student ID found');
+        }
+        
         gradesGrid.innerHTML = '<div class="loading">Loading grades...</div>';
 
         // Fetch student course details
-        const response = await fetch(`http://localhost:3000/student/c-details/${studentData.id}`);
+        const response = await authenticatedFetch(`/student/c-details/${studentId}`);
         if (!response.ok) {
             throw new Error('Failed to fetch grades');
         }
@@ -89,7 +95,7 @@ async function loadGrades() {
         const coursesWithNames = await Promise.all(
             courseDetails.map(async (detail) => {
                 try {
-                    const courseResponse = await fetch(`http://localhost:3000/course/${detail.courseId}`);
+                    const courseResponse = await authenticatedFetch(`/course/${detail.courseId}`);
                     if (courseResponse.ok) {
                         const courseData = await courseResponse.json();
                         return {
@@ -112,10 +118,6 @@ async function loadGrades() {
 
         // Filter courses with grades
         const coursesWithGrades = coursesWithNames.filter(c => c.grade);
-
-        // Calculate GPA
-        const gpa = calculateGPA(coursesWithGrades);
-        document.querySelector('.gpa-value').textContent = gpa;
 
         // Display grades
         gradesGrid.innerHTML = '';
@@ -155,5 +157,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     const activeLink = document.querySelector(`.nav-link[href="${currentPage}"]`);
     if (activeLink) {
         activeLink.classList.add('active');
+    }
+
+    // Search functionality
+    const searchInput = document.querySelector('.search-input');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const gradeCards = document.querySelectorAll('.grade-card');
+            
+            gradeCards.forEach(card => {
+                const courseName = card.querySelector('h3')?.textContent?.toLowerCase() || '';
+                const courseCode = card.querySelector('.course-code')?.textContent?.toLowerCase() || '';
+                
+                if (courseName.includes(searchTerm) || courseCode.includes(searchTerm)) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
     }
 });

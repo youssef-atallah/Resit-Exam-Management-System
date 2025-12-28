@@ -139,7 +139,7 @@
                 <h1>Secretary Login</h1>
                 <p>Access the administrative portal</p>
             </div>
-            <form id="loginForm" onsubmit="handleLogin(event)">
+            <form id="loginForm">
                 <div class="form-group">
                     <label for="username">Special ID</label>
                     <input type="text" id="username" name="username" placeholder="Enter your ID" required>
@@ -156,36 +156,64 @@
         </div>
     </div>
 
-    <script src="../../js/main.js"></script>
-    <script>
-        async function handleLogin(event) {
-            event.preventDefault();
-            
-            const form = event.target;
-            const formData = new FormData(form);
-            
-            const { isValid, errors } = validateForm(formData);
-            if (!isValid) {
-                Object.entries(errors).forEach(([field, message]) => {
-                    const input = form.querySelector(`[name="${field}"]`);
-                    const errorDiv = document.createElement('div');
-                    errorDiv.className = 'error-message';
-                    errorDiv.textContent = message;
-                    input.parentNode.appendChild(errorDiv);
-                });
-                return;
-            }
+    <script type="module">
+        import { login } from '../../js/utils/auth.js';
 
-            try {
-                const username = formData.get('username');
-                const password = formData.get('password');
-                
-                await login(username, password, 'secretary');
-                window.location.href = 'dashboard.html';
-            } catch (error) {
-                showNotification('Login failed. Please check your credentials.', 'error');
+        document.addEventListener('DOMContentLoaded', () => {
+            const loginForm = document.getElementById('loginForm');
+            
+            if (loginForm) {
+                loginForm.addEventListener('submit', async (event) => {
+                    event.preventDefault();
+                    
+                    const username = document.getElementById('username').value.trim();
+                    const password = document.getElementById('password').value;
+                    
+                    // Clear previous errors
+                    document.querySelectorAll('.error-message').forEach(el => el.remove());
+                    
+                    // Basic validation
+                    if (!username || !password) {
+                        showError('Please fill in all fields');
+                        return;
+                    }
+                    
+                    // Show loading state
+                    const loginBtn = loginForm.querySelector('.login-btn');
+                    const originalText = loginBtn.textContent;
+                    loginBtn.textContent = 'Logging in...';
+                    loginBtn.disabled = true;
+                    
+                    try {
+                        await login({
+                            id: username,
+                            password: password,
+                            role: 'secretary'
+                        });
+                        
+                        // Redirect to dashboard on success
+                        window.location.href = 'dashboard.html';
+                    } catch (error) {
+                        console.error('Login error:', error);
+                        showError(error.message || 'Login failed. Please check your credentials.');
+                        loginBtn.textContent = originalText;
+                        loginBtn.disabled = false;
+                    }
+                });
             }
-        }
+            
+            function showError(message) {
+                const form = document.getElementById('loginForm');
+                const existingError = form.querySelector('.error-message');
+                if (existingError) existingError.remove();
+                
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error-message';
+                errorDiv.style.cssText = 'color: #dc3545; background: #f8d7da; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem; text-align: center;';
+                errorDiv.textContent = message;
+                form.insertBefore(errorDiv, form.firstChild);
+            }
+        });
     </script>
 </body>
 </html> 

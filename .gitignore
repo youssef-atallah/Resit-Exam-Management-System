@@ -1,2 +1,5 @@
 node_modules/
 .claude
+frontend/
+tasks.txt
+web/replace_function.py

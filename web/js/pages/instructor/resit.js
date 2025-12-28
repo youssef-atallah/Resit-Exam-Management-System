@@ -1,8 +1,13 @@
+import { authenticatedFetch, getUserId } from '../../utils/auth.js';
+
 // Function to fetch resit exams from the API
 async function fetchResitExams() {
     try {
-        const instructorId = localStorage.getItem('instructorId') || '12345611'; // Default ID for testing
-        const response = await fetch(`http://localhost:3000/instructor/r-exams/${instructorId}`);
+        const instructorId = getUserId();
+        if (!instructorId) {
+            throw new Error('No instructor ID found');
+        }
+        const response = await authenticatedFetch(`/instructor/r-exams/${instructorId}`);
         const data = await response.json();
         
         if (!data.success) {
@@ -195,70 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
         activeLink.classList.add('active');
     }
 
-    // Initialize header functionality
-    const notificationBtn = document.getElementById('notificationBtn');
-    const notificationDropdown = document.querySelector('.notification-dropdown');
-    
-    if (notificationBtn && notificationDropdown) {
-        notificationBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            notificationDropdown.classList.toggle('show');
-        });
-    }
-
-    // Close notification dropdown when clicking outside
-    document.addEventListener('click', (e) => {
-        if (notificationDropdown && !e.target.closest('.notifications')) {
-            notificationDropdown.classList.remove('show');
-        }
-    });
-
-    // Handle mark all as read
-    const markAllReadBtn = document.querySelector('.mark-all-read');
-    if (markAllReadBtn) {
-        markAllReadBtn.addEventListener('click', () => {
-            document.querySelectorAll('.notification-item').forEach(item => {
-                item.classList.add('read');
-            });
-            const badge = document.querySelector('.notification-badge');
-            if (badge) {
-                badge.style.display = 'none';
-            }
-        });
-    }
-
-    // Toggle user menu
-    const userInfo = document.querySelector('.user-info');
-    const dropdownMenu = document.querySelector('.dropdown-menu');
-    if (userInfo && dropdownMenu) {
-        userInfo.addEventListener('click', () => {
-            dropdownMenu.classList.toggle('show');
-        });
-    }
-
-    // Close dropdown when clicking outside
-    document.addEventListener('click', (e) => {
-        if (dropdownMenu && !e.target.closest('.user-menu')) {
-            dropdownMenu.classList.remove('show');
-        }
-    });
-
-    // Handle logout
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', async (e) => {
-            e.preventDefault();
-            try {
-                localStorage.removeItem('instructorId');
-                localStorage.removeItem('instructorName');
-                sessionStorage.clear();
-                window.location.href = '../../index.html';
-            } catch (error) {
-                console.error('Logout error:', error);
-                showNotification('Error during logout', 'error');
-            }
-        });
-    }
+    // Note: Header functionality (notifications, user menu, logout) is handled by header.js utility
 
     // Fetch and display instructor name
     const instructorName = localStorage.getItem('instructorName');
@@ -294,6 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 });
+
 
 // Add Toast Notification CSS
 if (!document.getElementById('toast-styles')) {
@@ -405,7 +348,7 @@ window.uploadGrades = function(resitId) {
                         }));
 
                         // Upload grades to the server
-                        const response = await fetch(`http://localhost:3000/instructor/resit-results/all/${resitId}`, {
+                        const response = await authenticatedFetch(`/instructor/resit-results/all/${resitId}`, {
                             method: 'PUT',
                             headers: {
                                 'Content-Type': 'application/json'
@@ -447,7 +390,7 @@ window.uploadGrades = function(resitId) {
 window.downloadStudentList = async function(resitId, format) {
     try {
         // Fetch resit exam details which includes enrolled students
-        const response = await fetch(`http://localhost:3000/r-exam/${resitId}`);
+        const response = await authenticatedFetch(`/r-exam/${resitId}`);
         const result = await response.json();
         
         if (!result.success) {
@@ -470,7 +413,7 @@ window.downloadStudentList = async function(resitId, format) {
         const studentDetails = [];
         for (const studentId of studentIds) {
             try {
-                const studentResponse = await fetch(`http://localhost:3000/student/${studentId}`);
+                const studentResponse = await authenticatedFetch(`/student/${studentId}`);
                 const studentData = await studentResponse.json();
                 console.log(`Student ${studentId} data:`, studentData); // Debug log
                 

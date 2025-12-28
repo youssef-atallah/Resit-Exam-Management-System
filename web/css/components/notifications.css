@@ -1,0 +1,320 @@
+/**
+ * Notification System CSS Styles
+ * 
+ * Comprehensive styles for the notification dropdown and notification items.
+ * Includes animations, colors for different notification types, and responsive design.
+ */
+
+/* ============================================================================
+   Notification Badge
+   ============================================================================ */
+
+.notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 600;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 5px;
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.4);
+    animation: pulse-badge 2s ease-in-out infinite;
+}
+
+@keyframes pulse-badge {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+/* ============================================================================
+   Notification List & Items
+   ============================================================================ */
+
+.notification-list {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 0.5rem 0;
+}
+
+.notification-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.notification-list::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+}
+
+.notification-list::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+.notification-list::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+.notification-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-left: 3px solid transparent;
+    position: relative;
+}
+
+.notification-item:hover {
+    background: #f8fafc;
+}
+
+.notification-item:not(.read) {
+    background: linear-gradient(90deg, #eff6ff, transparent);
+    border-left-color: #3b82f6;
+}
+
+.notification-item:not(.read)::before {
+    content: '';
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.notification-item.read {
+    opacity: 0.75;
+}
+
+.notification-item > i {
+    font-size: 1.1rem;
+    margin-top: 0.15rem;
+    color: #64748b;
+    width: 24px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.notification-content {
+    flex: 1;
+    min-width: 0;
+    padding-right: 1.5rem;
+}
+
+.notification-title {
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0 0 0.25rem 0;
+    font-size: 0.875rem;
+}
+
+.notification-message {
+    color: #64748b;
+    font-size: 0.8rem;
+    margin: 0 0 0.35rem 0;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.notification-time {
+    font-size: 0.7rem;
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+.notification-delete {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 4px;
+    opacity: 0;
+    transition: all 0.2s ease;
+}
+
+.notification-item:hover .notification-delete {
+    opacity: 1;
+}
+
+.notification-delete:hover {
+    color: #ef4444;
+    background: #fee2e2;
+}
+
+/* ============================================================================
+   Notification Type Colors
+   ============================================================================ */
+
+.notification-item.notification-success > i { color: #10b981; }
+.notification-item.notification-warning > i { color: #f59e0b; }
+.notification-item.notification-danger > i { color: #ef4444; }
+.notification-item.notification-info > i { color: #3b82f6; }
+
+.notification-item.notification-success:not(.read) { 
+    background: linear-gradient(90deg, #ecfdf5, transparent);
+    border-left-color: #10b981;
+}
+
+.notification-item.notification-warning:not(.read) { 
+    background: linear-gradient(90deg, #fffbeb, transparent);
+    border-left-color: #f59e0b;
+}
+
+.notification-item.notification-danger:not(.read) { 
+    background: linear-gradient(90deg, #fef2f2, transparent);
+    border-left-color: #ef4444;
+}
+
+.notification-item.notification-info:not(.read) { 
+    background: linear-gradient(90deg, #eff6ff, transparent);
+    border-left-color: #3b82f6;
+}
+
+/* ============================================================================
+   Empty State
+   ============================================================================ */
+
+.notification-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2.5rem 1rem;
+    color: #94a3b8;
+}
+
+.notification-empty i {
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+    opacity: 0.5;
+}
+
+.notification-empty p {
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+/* ============================================================================
+   Notification Header
+   ============================================================================ */
+
+.notification-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid #e2e8f0;
+    background: #f8fafc;
+}
+
+.notification-header h3 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0;
+}
+
+.mark-all-read {
+    background: none;
+    border: none;
+    color: #3b82f6;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.mark-all-read:hover {
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+/* ============================================================================
+   Notification Dropdown Container
+   ============================================================================ */
+
+.notification-dropdown {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    width: 360px;
+    max-width: calc(100vw - 2rem);
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.2s ease;
+    overflow: hidden;
+}
+
+.notification-dropdown.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* ============================================================================
+   Notification Button
+   ============================================================================ */
+
+.notification-btn {
+    position: relative;
+    background: none;
+    border: none;
+    padding: 0.5rem;
+    cursor: pointer;
+    color: #64748b;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.notification-btn:hover {
+    background: #f1f5f9;
+    color: #1e293b;
+}
+
+.notification-btn i {
+    font-size: 1.25rem;
+}
+
+/* ============================================================================
+   Responsive Adjustments
+   ============================================================================ */
+
+@media (max-width: 480px) {
+    .notification-dropdown {
+        width: 100vw;
+        max-width: 100vw;
+        right: -1rem;
+        border-radius: 0;
+    }
+    
+    .notification-list {
+        max-height: 60vh;
+    }
+}

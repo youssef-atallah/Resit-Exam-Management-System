@@ -1,30 +1,57 @@
-// Student authentication and data utilities
+// Student authentication and data utilities - JWT based
+import { getToken, getUser, logout, authenticatedFetch, requireAuth } from './auth.js';
 
+/**
+ * Check if student is authenticated and redirect if not
+ */
 export function checkStudentAuth() {
-    const studentId = localStorage.getItem('studentId');
-    if (!studentId) {
-        window.location.href = '../../index.html';
-        return false;
-    }
-    return true;
+    return requireAuth('student');
 }
 
+/**
+ * Get logged-in student data from API
+ * Uses JWT token to fetch from /my/profile endpoint
+ */
 export async function getLoggedInStudentData() {
-    const studentId = localStorage.getItem('studentId') || '12345678';
-    
     try {
-        const response = await fetch(`http://localhost:3000/student/${studentId}`);
+        // First try to get from /my/profile
+        const response = await authenticatedFetch('/my/profile');
+        
         if (!response.ok) {
             throw new Error('Failed to fetch student data');
         }
-        const studentData = await response.json();
+        
+        const data = await response.json();
+        
+        // Handle different response structures
+        // API might return { student: {...} } or just {...}
+        const studentData = data.student || data;
+        
+        // Ensure we have the student ID
+        if (!studentData.id) {
+            // Fallback to cached user data
+            const user = getUser();
+            if (user && user.id) {
+                return { ...studentData, id: user.id };
+            }
+        }
+        
         return studentData;
     } catch (error) {
         console.error('Error fetching student data:', error);
-        return { id: studentId, name: 'Student', email: 'student@example.com' };
+        // Return cached user data if available
+        const user = getUser();
+        if (user) {
+            return user;
+        }
+        return { id: 'unknown', name: 'Student', email: 'student@example.com' };
     }
 }
 
+/**
+ * Update student name in header
+ * Fetches real student data and updates all .user-name elements
+ */
 export async function updateStudentNameInHeader() {
     try {
         const studentData = await getLoggedInStudentData();
@@ -39,6 +66,9 @@ export async function updateStudentNameInHeader() {
     }
 }
 
+/**
+ * Update UI with student data (for profile page)
+ */
 export function updateUIWithStudentData(studentData) {
     // Update header name
     const userNameElements = document.querySelectorAll('.user-name');
@@ -58,10 +88,9 @@ export function updateUIWithStudentData(studentData) {
     if (fullName) fullName.textContent = studentData.name || 'N/A';
 }
 
+/**
+ * Handle student logout
+ */
 export function handleStudentLogout() {
-    localStorage.removeItem('studentId');
-    localStorage.removeItem('userData');
-    localStorage.removeItem('token');
-    sessionStorage.clear();
-    window.location.href = '../../index.html';
+    logout();
 }

@@ -10,6 +10,7 @@ import instructorRoutes from './routes/instructorRoutes';
 import courseRoutes from './routes/courseRoutes';
 import secretaryRoutes from './routes/secretaryRoutes';
 import authRoutes from './routes/authRoutes';
+import notificationRoutes from './routes/notificationRoutes';
 import path from 'path';
 import { initializeDb } from './datastore';
 
@@ -34,6 +35,7 @@ import { initializeDb } from './datastore';
   app.use('/', instructorRoutes);
   app.use('/', courseRoutes);
   app.use('/', secretaryRoutes);
+  app.use('/', notificationRoutes);
 
   // general error handler for all errors
   app.use(errorHandler);

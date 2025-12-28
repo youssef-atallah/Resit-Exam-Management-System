@@ -1,4 +1,4 @@
-import { Course, Instructor, ResitExam, ResitExamResponse, Student, StudentCourseDetails, Secretary, User } from '../../types';
+import { Course, Instructor, ResitExam, ResitExamResponse, Student, StudentCourseDetails, Secretary, User, Notification } from '../../types';
 import { InstructorCourseDetails } from '../../types';
 import { Datastore } from '../index';
 
@@ -171,11 +171,16 @@ export class SqlDatastore implements Datastore {
                 c.instructor_id,
                 scg.grade,
                 scg.grade_letter,
-                re.id as resit_exam_id
+                re.id as resit_exam_id,
+                u.id as instructor_user_id,
+                u.name as instructor_name,
+                u.email as instructor_email
             FROM course_students cs
             JOIN courses c ON cs.course_id = c.id
             LEFT JOIN student_course_grades scg ON cs.student_id = scg.student_id AND cs.course_id = scg.course_id
             LEFT JOIN resit_exams re ON c.id = re.course_id
+            LEFT JOIN instructors i ON c.instructor_id = i.id
+            LEFT JOIN users u ON i.id = u.id
             WHERE cs.student_id = ?`, [id]);
 
         if (!rows || rows.length === 0) {
@@ -187,6 +192,11 @@ export class SqlDatastore implements Datastore {
             courseName: row.courseName,
             department: row.department,
             instructor_id: row.instructor_id,
+            instructor: row.instructor_user_id ? {
+                id: row.instructor_user_id,
+                name: row.instructor_name,
+                email: row.instructor_email
+            } : undefined,
             schedule: '', // Default empty string since column doesn't exist
             location: '', // Default empty string since column doesn't exist
             grade: row.grade,
@@ -1154,6 +1164,111 @@ export class SqlDatastore implements Datastore {
     await this.db.run(
       'UPDATE resit_exams SET announcement = ? WHERE id = ?',
       [announcement, resitExamId]
+    );
+  }
+
+  // ============================================================================
+  // NOTIFICATION METHODS
+  // ============================================================================
+
+  async createNotification(notification: Notification): Promise<void> {
+    await this.db.run(
+      `INSERT INTO notifications (id, user_id, type, title, message, related_entity_type, related_entity_id, is_read, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now', 'localtime', '+3 hours'))`,
+      [
+        notification.id,
+        notification.userId,
+        notification.type,
+        notification.title,
+        notification.message,
+        notification.relatedEntityType || null,
+        notification.relatedEntityId || null,
+        notification.isRead ? 1 : 0
+      ]
+    );
+  }
+
+  async createNotifications(notifications: Notification[]): Promise<void> {
+    await this.db.run('BEGIN TRANSACTION');
+    try {
+      for (const notification of notifications) {
+        await this.db.run(
+          `INSERT INTO notifications (id, user_id, type, title, message, related_entity_type, related_entity_id, is_read, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now', 'localtime', '+3 hours'))`,
+          [
+            notification.id,
+            notification.userId,
+            notification.type,
+            notification.title,
+            notification.message,
+            notification.relatedEntityType || null,
+            notification.relatedEntityId || null,
+            notification.isRead ? 1 : 0
+          ]
+        );
+      }
+      await this.db.run('COMMIT');
+    } catch (error) {
+      await this.db.run('ROLLBACK');
+      throw error;
+    }
+  }
+
+  async getNotificationsByUserId(userId: string, limit: number = 50, offset: number = 0): Promise<Notification[]> {
+    const rows = await this.db.all(
+      `SELECT id, user_id, type, title, message, related_entity_type, related_entity_id, is_read, created_at
+       FROM notifications
+       WHERE user_id = ?
+       ORDER BY created_at DESC
+       LIMIT ? OFFSET ?`,
+      [userId, limit, offset]
+    );
+    return rows.map((row: any) => ({
+      id: row.id,
+      userId: row.user_id,
+      type: row.type,
+      title: row.title,
+      message: row.message,
+      relatedEntityType: row.related_entity_type,
+      relatedEntityId: row.related_entity_id,
+      isRead: row.is_read === 1,
+      createdAt: new Date(row.created_at)
+    }));
+  }
+
+  async getUnreadCount(userId: string): Promise<number> {
+    const row = await this.db.get(
+      'SELECT COUNT(*) as count FROM notifications WHERE user_id = ? AND is_read = 0',
+      [userId]
+    );
+    return row?.count || 0;
+  }
+
+  async markAsRead(notificationId: string, userId: string): Promise<void> {
+    await this.db.run(
+      'UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?',
+      [notificationId, userId]
+    );
+  }
+
+  async markAllAsRead(userId: string): Promise<void> {
+    await this.db.run(
+      'UPDATE notifications SET is_read = 1 WHERE user_id = ?',
+      [userId]
+    );
+  }
+
+  async deleteNotification(notificationId: string, userId: string): Promise<void> {
+    await this.db.run(
+      'DELETE FROM notifications WHERE id = ? AND user_id = ?',
+      [notificationId, userId]
+    );
+  }
+
+  async deleteAllNotifications(userId: string): Promise<void> {
+    await this.db.run(
+      'DELETE FROM notifications WHERE user_id = ?',
+      [userId]
     );
   }
 } 

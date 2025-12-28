@@ -1,4 +1,5 @@
 import { checkStudentAuth, getLoggedInStudentData, updateStudentNameInHeader } from '../../../js/utils/studentAuth.js';
+import { authenticatedFetch, getUserId } from '../../utils/auth.js';
 
 // Check if student is logged in
 checkStudentAuth();
@@ -65,12 +66,16 @@ function updateRemainingTimes() {
 // Function to fetch student's resit exams
 async function fetchStudentResitExams() {
     try {
-        const studentData = await getLoggedInStudentData();
+        const studentId = getUserId();
+        if (!studentId) {
+            throw new Error('No student ID found');
+        }
+        
         const courseList = document.querySelector('.course-list');
         courseList.innerHTML = '<div class="loading">Loading resit exams...</div>';
 
         // First fetch student details to get resit exams
-        const studentResponse = await fetch(`http://localhost:3000/student/${studentData.id}`);
+        const studentResponse = await authenticatedFetch(`/student/${studentId}`);
         if (!studentResponse.ok) {
             throw new Error('Failed to fetch student details');
         }
@@ -85,7 +90,7 @@ async function fetchStudentResitExams() {
         // Fetch details for each resit exam
         const resitPromises = studentDetails.resitExams.map(async (resitId) => {
             try {
-                const response = await fetch(`http://localhost:3000/r-exam/${resitId}`);
+                const response = await authenticatedFetch(`/r-exam/${resitId}`);
                 if (!response.ok) {
                     throw new Error(`Failed to fetch resit exam ${resitId}`);
                 }
@@ -472,8 +477,8 @@ function formatTimeRemaining(deadline) {
 // Function to cancel resit exam registration
 async function cancelResitExam(resitId) {
     try {
-        const studentData = await getLoggedInStudentData();
-        const response = await fetch(`http://localhost:3000/student/resit-exam/${studentData.id}`, {
+        const studentId = getUserId();
+        const response = await authenticatedFetch(`/student/resit-exam/${studentId}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json'
@@ -559,4 +564,25 @@ document.addEventListener('DOMContentLoaded', () => {
     if (activeLink) {
         activeLink.classList.add('active');
     }
-}); 
+
+    // Search functionality
+    const searchInput = document.querySelector('.search-input');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const resitCards = document.querySelectorAll('.course-item');
+            
+            resitCards.forEach(card => {
+                const courseName = card.querySelector('h3')?.textContent?.toLowerCase() || '';
+                const courseCode = card.querySelector('.course-code')?.textContent?.toLowerCase() || '';
+                
+                if (courseName.includes(searchTerm) || courseCode.includes(searchTerm)) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    }
+});
+ 

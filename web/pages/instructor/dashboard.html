@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="../../css/components/header.css">
     <link rel="stylesheet" href="../../css/components/sidebar.css">
     <link rel="stylesheet" href="../../css/pages/instructor/instructor-dashboard.css">
+    <link rel="stylesheet" href="../../css/components/notifications.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
@@ -26,26 +27,10 @@
                         <button class="mark-all-read">Mark all as read</button>
                     </div>
                     <div class="notification-list">
-                        <div class="notification-item">
-                            <i class="fas fa-file-alt"></i>
-                            <div class="notification-content">
-                                <p>New assignment submission: Mathematics I</p>
-                                <span class="notification-time">1 hour ago</span>
-                            </div>
-                        </div>
-                        <div class="notification-item">
-                            <i class="fas fa-calendar"></i>
-                            <div class="notification-content">
-                                <p>Upcoming class: Programming I</p>
-                                <span class="notification-time">2 hours ago</span>
-                            </div>
-                        </div>
-                        <div class="notification-item read">
-                            <i class="fas fa-user"></i>
-                            <div class="notification-content">
-                                <p>New student registration: Physics I</p>
-                                <span class="notification-time">1 day ago</span>
-                            </div>
+                        <!-- Notifications loaded dynamically via JavaScript -->
+                        <div class="notification-empty">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <p>Loading notifications...</p>
                         </div>
                     </div>
                 </div>
@@ -57,7 +42,6 @@
                 </div>
                 <div class="dropdown-menu">
                     <a href="profile.html"><i class="fas fa-user"></i> Profile</a>
-                    <a href="#" id="settingsBtn"><i class="fas fa-cog"></i> Settings</a>
                     <a href="#" class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
                 </div>
             </div>
@@ -92,19 +76,6 @@
     <main class="main-content">
         <div class="dashboard-header">
             <h1>Dashboard</h1>
-            <div class="header-actions">
-                <div class="period-selector">
-                <select id="academicYear" class="period-select">
-                        <option value="2024-2025">2024-2025</option>
-                    <option value="2023-2024">2023-2024</option>
-                    <option value="2022-2023">2022-2023</option>
-                </select>
-                <select id="academicTerm" class="period-select">
-                    <option value="spring">Spring</option>
-                    <option value="fall">Fall</option>
-                </select>
-                </div>
-            </div>
         </div>
 
         <div class="dashboard-grid">
@@ -184,87 +155,22 @@
     </main>
 
     <script src="../../js/main.js"></script>
-    <script src="../../js/pages/instructor/dashboard.js"></script>
-    <script>
+    <script type="module" src="../../js/pages/instructor/dashboard.js"></script>
+    <script type="module">
+        import { initializePageHeader } from '../../js/utils/header.js';
+        import { initializeNotifications } from '../../js/utils/notifications.js';
+        import { updateInstructorNameInHeader } from '../../js/utils/instructorAuth.js';
+
         document.addEventListener('DOMContentLoaded', () => {
+            initializePageHeader();
+            initializeNotifications();
+            updateInstructorNameInHeader();
+
             // Set active link in sidebar
             const currentPage = window.location.pathname.split('/').pop();
             const activeLink = document.querySelector(`.nav-link[href="${currentPage}"]`);
             if (activeLink) {
                 activeLink.classList.add('active');
-            }
-
-            // Initialize header functionality
-            const userData = JSON.parse(localStorage.getItem('userData'));
-            if (userData) {
-                const userNameElement = document.querySelector('.user-name');
-                if (userNameElement) {
-                    userNameElement.textContent = userData.name;
-                }
-            }
-
-            // Toggle notification dropdown
-            const notificationBtn = document.getElementById('notificationBtn');
-            const notificationDropdown = document.querySelector('.notification-dropdown');
-            
-            if (notificationBtn && notificationDropdown) {
-                notificationBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    notificationDropdown.classList.toggle('show');
-                });
-            }
-
-            // Close notification dropdown when clicking outside
-            document.addEventListener('click', (e) => {
-                if (notificationDropdown && !e.target.closest('.notifications')) {
-                    notificationDropdown.classList.remove('show');
-                }
-            });
-
-            // Handle mark all as read
-            const markAllReadBtn = document.querySelector('.mark-all-read');
-            if (markAllReadBtn) {
-                markAllReadBtn.addEventListener('click', () => {
-                    document.querySelectorAll('.notification-item').forEach(item => {
-                        item.classList.add('read');
-                    });
-                    const badge = document.querySelector('.notification-badge');
-                    if (badge) {
-                        badge.style.display = 'none';
-                    }
-                });
-            }
-
-            // Toggle user menu
-            const userInfo = document.querySelector('.user-info');
-            const dropdownMenu = document.querySelector('.dropdown-menu');
-            if (userInfo && dropdownMenu) {
-                userInfo.addEventListener('click', () => {
-                    dropdownMenu.classList.toggle('show');
-                });
-            }
-
-            // Close dropdown when clicking outside
-            document.addEventListener('click', (e) => {
-                if (dropdownMenu && !e.target.closest('.user-menu')) {
-                    dropdownMenu.classList.remove('show');
-                }
-            });
-
-            // Handle logout
-            const logoutBtn = document.getElementById('logoutBtn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', async (e) => {
-                    e.preventDefault();
-                    try {
-                        localStorage.removeItem('userData');
-                        localStorage.removeItem('token');
-                        sessionStorage.clear();
-                        window.location.href = '../../index.html';
-                    } catch (error) {
-                        console.error('Logout error:', error);
-                    }
-                });
             }
         });
     </script>

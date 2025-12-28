@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="../../css/components/header.css">
     <link rel="stylesheet" href="../../css/components/sidebar.css">
     <link rel="stylesheet" href="../../css/pages/student/student-dashboard.css">
+    <link rel="stylesheet" href="../../css/components/notifications.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
@@ -29,26 +30,10 @@
                         <button class="mark-all-read">Mark all as read</button>
                     </div>
                     <div class="notification-list">
-                        <div class="notification-item">
-                            <i class="fas fa-bell"></i>
-                            <div class="notification-content">
-                                <p>New grade posted for Mathematics I</p>
-                                <span class="notification-time">2 hours ago</span>
-                            </div>
-                        </div>
-                        <div class="notification-item">
-                            <i class="fas fa-calendar"></i>
-                            <div class="notification-content">
-                                <p>Upcoming exam: Programming Final</p>
-                                <span class="notification-time">1 day ago</span>
-                            </div>
-                        </div>
-                        <div class="notification-item read">
-                            <i class="fas fa-file-alt"></i>
-                            <div class="notification-content">
-                                <p>New assignment posted: Project Submission</p>
-                                <span class="notification-time">2 days ago</span>
-                            </div>
+                        <!-- Notifications loaded dynamically -->
+                        <div class="notification-empty">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <p>Loading notifications...</p>
                         </div>
                     </div>
                 </div>
@@ -60,7 +45,6 @@
                 </div>
                 <div class="dropdown-menu">
                     <a href="profile.html"><i class="fas fa-user"></i> Profile</a>
-                    <a href="#" id="settingsBtn"><i class="fas fa-cog"></i> Settings</a>
                     <a href="#" class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
                 </div>
             </div>
@@ -99,10 +83,6 @@
     <main class="main-content">
         <div class="page-header">
             <h1>Grades</h1>
-            <div class="gpa-display">
-                <span class="gpa-label">Current GPA:</span>
-                <span class="gpa-value">0.00</span>
-            </div>
         </div>
         <div class="grades-container">
             <div class="grades-grid"></div>
@@ -157,80 +137,13 @@
 
     <script src="../../js/main.js"></script>
     <script type="module" src="../../js/pages/student/grades.js"></script>
-    <script>
+    <script type="module">
+        import { initializePageHeader } from '../../js/utils/header.js';
+        import { initializeNotifications } from '../../js/utils/notifications.js';
+        
         document.addEventListener('DOMContentLoaded', () => {
-            // Initialize header functionality
-            const userData = JSON.parse(localStorage.getItem('userData'));
-            if (userData) {
-                const userNameElement = document.querySelector('.user-name');
-                if (userNameElement) {
-                    userNameElement.textContent = userData.name;
-                }
-            }
-
-            // Toggle notification dropdown
-            const notificationBtn = document.getElementById('notificationBtn');
-            const notificationDropdown = document.querySelector('.notification-dropdown');
-            
-            if (notificationBtn && notificationDropdown) {
-                notificationBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    notificationDropdown.classList.toggle('show');
-                });
-            }
-
-            // Close notification dropdown when clicking outside
-            document.addEventListener('click', (e) => {
-                if (notificationDropdown && !e.target.closest('.notifications')) {
-                    notificationDropdown.classList.remove('show');
-                }
-            });
-
-            // Handle mark all as read
-            const markAllReadBtn = document.querySelector('.mark-all-read');
-            if (markAllReadBtn) {
-                markAllReadBtn.addEventListener('click', () => {
-                    document.querySelectorAll('.notification-item').forEach(item => {
-                        item.classList.add('read');
-                    });
-                    const badge = document.querySelector('.notification-badge');
-                    if (badge) {
-                        badge.style.display = 'none';
-                    }
-                });
-            }
-
-            // Toggle user menu
-            const userInfo = document.querySelector('.user-info');
-            const dropdownMenu = document.querySelector('.dropdown-menu');
-            if (userInfo && dropdownMenu) {
-                userInfo.addEventListener('click', () => {
-                    dropdownMenu.classList.toggle('show');
-                });
-            }
-
-            // Close dropdown when clicking outside
-            document.addEventListener('click', (e) => {
-                if (dropdownMenu && !e.target.closest('.user-menu')) {
-                    dropdownMenu.classList.remove('show');
-                }
-            });
-
-            // Handle logout
-            const logoutBtn = document.getElementById('logoutBtn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', async (e) => {
-                    e.preventDefault();
-                    try {
-                        localStorage.removeItem('userData');
-                        localStorage.removeItem('token');
-                        sessionStorage.clear();
-                        window.location.href = '../../index.html';
-                    } catch (error) {
-                        console.error('Logout error:', error);
-                    }
-                });
-            }
+            initializePageHeader();
+            initializeNotifications();
         });
     </script>
 </body>

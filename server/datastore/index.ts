@@ -3,6 +3,7 @@ import { InstructorDao } from './dao/InstructorDao';
 import { ResitExamDao } from './dao/ResitExamDao';
 import { StudentDao } from './dao/StudentDao';
 import { SecretaryDao } from './dao/SecretaryDao';
+import { NotificationDao } from './dao/NotificationDao';
 // Removing the SecretaryDao import since the module cannot be found
 import { SqlDatastore } from './sql';
 import { ResitExam } from '../types';
@@ -10,7 +11,7 @@ import { ResitExam } from '../types';
 
 import { UserDao } from './dao/userDao';
 
-export interface Datastore extends CourseDao, InstructorDao, ResitExamDao, StudentDao, SecretaryDao, UserDao {
+export interface Datastore extends CourseDao, InstructorDao, ResitExamDao, StudentDao, SecretaryDao, UserDao, NotificationDao {
   getResitExamByCourseId(courseId: string): Promise<ResitExam | undefined>;
 }
 

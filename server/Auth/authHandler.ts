@@ -111,17 +111,19 @@ export const requireRole = (...allowedRoles: Array<'student' | 'instructor' | 's
     const userRole = (req as any).userRole;
     
     if (!userRole) {
-      return res.status(401).json({ 
+      res.status(401).json({ 
         error: 'Unauthorized - No role in token' 
       });
+      return;
     }
     
     if (!allowedRoles.includes(userRole)) {
-      return res.status(403).json({ 
+      res.status(403).json({ 
         error: 'Forbidden - Insufficient permissions',
         required: allowedRoles,
         current: userRole
       });
+      return;
     }
     
     next();
@@ -134,15 +136,17 @@ export const requireOwnResource = (req: Request, res: Response, next: NextFuncti
   const resourceId = req.params.id;
   
   if (!userId) {
-    return res.status(401).json({
+    res.status(401).json({
       error: 'Unauthorized - No user ID in token'
     });
+    return;
   }
   
   if (userId !== resourceId) {
-    return res.status(403).json({
+    res.status(403).json({
       error: 'Forbidden - You can only access your own resources'
     });
+    return;
   }
   
   next();
@@ -154,9 +158,10 @@ export const requireInstructorAccess = async (req: Request, res: Response, next:
   const studentId = req.params.id || req.params.studentId;
   
   if (!instructorId || !studentId) {
-    return res.status(400).json({
+    res.status(400).json({
       error: 'Bad request - Missing required parameters'
     });
+    return;
   }
   
   try {
@@ -167,9 +172,10 @@ export const requireInstructorAccess = async (req: Request, res: Response, next:
     const studentCourses = await db.getStudentCourses(studentId);
     
     if (!instructorCourses || !studentCourses) {
-      return res.status(404).json({
+      res.status(404).json({
         error: 'Instructor or student not found'
       });
+      return;
     }
     
     // Check if there's any overlap
@@ -178,18 +184,20 @@ export const requireInstructorAccess = async (req: Request, res: Response, next:
     );
     
     if (!hasAccess) {
-      return res.status(403).json({
+      res.status(403).json({
         error: 'Forbidden - Student is not enrolled in any of your courses'
       });
+      return;
     }
     
     next();
   } catch (error) {
     console.error('Error checking instructor access:', error);
-    return res.status(500).json({ 
+    res.status(500).json({ 
       error: 'Authorization check failed',
       details: error instanceof Error ? error.message : 'Unknown error'
     });
+    return;
   }
 };
 
@@ -201,29 +209,34 @@ export const requireOwnerOrRole = (...allowedRoles: Array<'student' | 'instructo
     const resourceId = req.params.id || req.params.studentId;
     
     if (!userId || !userRole) {
-      return res.status(401).json({
+      res.status(401).json({
         error: 'Unauthorized - Missing authentication data'
       });
+      return;
     }
     
     // Allow if user owns the resource
     if (userId === resourceId) {
-      return next();
+      next();
+      return;
     }
     
     // Allow if user has required role
     if (allowedRoles.includes(userRole)) {
       // If instructor, verify they have access to the student
       if (userRole === 'instructor' && resourceId) {
-        return requireInstructorAccess(req, res, next);
+        requireInstructorAccess(req, res, next);
+        return;
       }
-      return next();
+      next();
+      return;
     }
     
-    return res.status(403).json({
+    res.status(403).json({
       error: 'Forbidden - Insufficient permissions',
       required: allowedRoles,
       current: userRole
     });
+    return;
   };
 };

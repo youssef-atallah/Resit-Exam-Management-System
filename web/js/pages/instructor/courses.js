@@ -1,12 +1,15 @@
 import { updateInstructorNameInHeader } from '../../utils/instructorAuth.js';
+import { authenticatedFetch, getUserId } from '../../utils/auth.js';
 
 // Function to fetch courses data
 async function fetchCourses() {
     try {
         console.log('Fetching courses...');
-        // Get instructor ID from localStorage or use a default for testing
-        const instructorId = localStorage.getItem('instructorId') || '12345611';
-        const response = await fetch(`http://localhost:3000/instructor/cdetails/${instructorId}`, {
+        const instructorId = getUserId();
+        if (!instructorId) {
+            throw new Error('No instructor ID found');
+        }
+        const response = await authenticatedFetch(`/instructor/cdetails/${instructorId}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -115,8 +118,8 @@ async function confirmAndCancelResit(resitExamId) {
         'Are you sure you want to cancel this resit exam? This action cannot be undone.',
         async () => {
             try {
-                const instructorId = localStorage.getItem('instructorId') || '12345611';
-                const response = await fetch(`http://localhost:3000/instructor/r-exam/${instructorId}`, {
+                const instructorId = getUserId();
+                const response = await authenticatedFetch(`/instructor/r-exam/${instructorId}`, {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json'
@@ -525,7 +528,7 @@ async function populateCourses() {
 // Function to fetch instructor details
 async function fetchInstructorDetails(instructorId) {
     try {
-        const response = await fetch(`http://localhost:3000/instructor/${instructorId}`, {
+        const response = await authenticatedFetch(`/instructor/${instructorId}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -606,8 +609,8 @@ window.showAnnounceModal = function(courseId) {
             return;
         }
         try {
-            const instructorId = localStorage.getItem('instructorId') || '12345611';
-            const response = await fetch(`http://localhost:3000/instructor/r-announcement/${instructorId}`, {
+            const instructorId = getUserId();
+            const response = await authenticatedFetch(`/instructor/r-announcement/${instructorId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'

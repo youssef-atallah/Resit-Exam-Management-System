@@ -128,6 +128,11 @@ export interface StudentCourseDetails {
   courseName: string;
   department: string;
   instructor_id: string;
+  instructor?: {
+    id: string;
+    name: string;
+    email: string;
+  };
   schedule: string;
   location: string;
   grade?: number;
@@ -144,4 +149,40 @@ export type MyExpressHandler<Req, Res> = RequestHandler<string, Partial<Res>, Pa
 export interface JWTObject {
   id: string;
   role: 'student' | 'instructor' | 'secretary';
+}
+
+
+
+
+// ============================================================================
+// NOTIFICATION TYPES
+// ============================================================================
+
+export type NotificationType = 
+  | 'grade_posted' 
+  | 'resit_announced' 
+  | 'resit_deadline' 
+  | 'application_status' 
+  | 'resit_result' 
+  | 'system';
+
+export interface Notification {
+  id: string;
+  userId: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  relatedEntityType?: 'course' | 'resit_exam' | 'application';
+  relatedEntityId?: string;
+  isRead: boolean;
+  createdAt: Date;
+}
+
+export interface CreateNotificationRequest {
+  userId: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  relatedEntityType?: 'course' | 'resit_exam' | 'application';
+  relatedEntityId?: string;
 }

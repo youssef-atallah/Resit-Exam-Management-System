@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="../../css/components/header.css">
     <link rel="stylesheet" href="../../css/components/sidebar.css">
     <link rel="stylesheet" href="../../css/pages/student/student-dashboard.css">
+    <link rel="stylesheet" href="../../css/components/notifications.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
@@ -29,7 +30,11 @@
                         <button class="mark-all-read">Mark all as read</button>
                     </div>
                     <div class="notification-list">
-                        <!-- Notifications will be populated dynamically -->
+                        <!-- Notifications loaded dynamically -->
+                        <div class="notification-empty">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <p>Loading notifications...</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -43,7 +48,6 @@
                 </div>
                 <div class="dropdown-menu">
                     <a href="profile.html"><i class="fas fa-user"></i> Profile</a>
-                    <a href="#" id="settingsBtn"><i class="fas fa-cog"></i> Settings</a>
                     <a href="#" class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
                 </div>
             </div>
@@ -149,6 +153,8 @@
 
     <script type="module">
         import { checkStudentAuth, getLoggedInStudentData, updateUIWithStudentData, handleStudentLogout } from '../../js/utils/studentAuth.js';
+        import { initializePageHeader } from '../../js/utils/header.js';
+        import { initializeNotifications } from '../../js/utils/notifications.js';
 
         // Check if student is logged in
         checkStudentAuth();
@@ -192,62 +198,14 @@
                 document.getElementById('userAvatar').src = canvas.toDataURL();
             } catch (error) {
                 console.error('Error loading student data:', error);
-                // Handle error (e.g., show error message to user)
             }
         }
 
         // Initialize page
         document.addEventListener('DOMContentLoaded', () => {
             loadStudentData();
-
-            // Handle logout
-            document.getElementById('logoutBtn').addEventListener('click', (e) => {
-                e.preventDefault();
-                handleStudentLogout();
-            });
-
-            // Toggle notification dropdown
-            const notificationBtn = document.getElementById('notificationBtn');
-            const notificationDropdown = document.querySelector('.notification-dropdown');
-            
-            notificationBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                notificationDropdown.classList.toggle('show');
-            });
-
-            // Close notification dropdown when clicking outside
-            document.addEventListener('click', (e) => {
-                if (!e.target.closest('.notifications')) {
-                    notificationDropdown.classList.remove('show');
-                }
-            });
-
-            // Handle mark all as read
-            document.querySelector('.mark-all-read').addEventListener('click', () => {
-                document.querySelectorAll('.notification-item').forEach(item => {
-                    item.classList.add('read');
-                });
-                document.querySelector('.notification-badge').style.display = 'none';
-            });
-
-            // Toggle user menu
-            document.querySelector('.user-info').addEventListener('click', () => {
-                document.querySelector('.dropdown-menu').classList.toggle('show');
-            });
-
-            // Close dropdown when clicking outside
-            document.addEventListener('click', (e) => {
-                if (!e.target.closest('.user-menu')) {
-                    document.querySelector('.dropdown-menu').classList.remove('show');
-                }
-            });
-
-            // Set active link in sidebar
-            const currentPage = window.location.pathname.split('/').pop();
-            const activeLink = document.querySelector(`.nav-link[href="${currentPage}"]`);
-            if (activeLink) {
-                activeLink.classList.add('active');
-            }
+            initializePageHeader();
+            initializeNotifications();
         });
     </script>
 </body>

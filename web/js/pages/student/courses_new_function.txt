@@ -1,0 +1,62 @@
+
+// Function to fetch student courses - OPTIMIZED VERSION
+async function fetchStudentCourses() {
+    try {
+        const coursesGrid = document.querySelector('.courses-grid');
+        coursesGrid.innerHTML = '<div class="loading">Loading courses...</div>';
+
+        // Use the new optimized endpoint that returns everything in one request
+        const response = await authenticatedFetch('/my/course-details');
+        
+        if (!response.ok) {
+            throw new Error('Failed to fetch course details');
+        }
+        
+        const data = await response.json();
+        const courseDetails = data.courseDetails || data;
+
+        if (!courseDetails || courseDetails.length === 0) {
+            coursesGrid.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-book"></i>
+                    <h3>No courses found</h3>
+                    <p>You are not enrolled in any courses yet.</p>
+                </div>
+            `;
+            return;
+        }
+
+        // Map the course details to the format expected by createCourseCard
+        const courses = courseDetails.map(detail => ({
+            courseId: detail.courseId,
+            name: detail.courseName,
+            code: detail.courseId,
+            department: detail.department,
+            instructor: detail.instructor?.name || 'Instructor',
+            grade: detail.grade,
+            gradeLetter: detail.gradeLetter,
+            resit_exam: detail.resit_exam,
+            hasAppliedForResit: !!detail.resit_exam
+        }));
+
+        // Clear loading message
+        coursesGrid.innerHTML = '';
+
+        // Display courses
+        courses.forEach(course => {
+            const courseCard = createCourseCard(course);
+            coursesGrid.appendChild(courseCard);
+        });
+
+    } catch (error) {
+        console.error('Error fetching student courses:', error);
+        const coursesGrid = document.querySelector('.courses-grid');
+        coursesGrid.innerHTML = `
+            <div class="error-state">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>Error loading courses</h3>
+                <p>Please try again later.</p>
+            </div>
+        `;
+    }
+}
