@@ -78,11 +78,8 @@ function createResitCard(resitExam) {
                     <div class="resit-stat-value">${resitExam.enrolled_count || 0}</div>
                     <div class="resit-stat-label">Students Applied</div>
                 </div>
-                <!-- <div class="resit-stat">
-                    <div class="resit-stat-value">${resitExam.course.department}</div>
-                    <div class="resit-stat-label">Department</div>
-                </div> -->
             </div>
+            <p><i class="fas fa-list-alt"></i> Allowed Grades: ${resitExam.lettersAllowed && resitExam.lettersAllowed.length > 0 ? resitExam.lettersAllowed.join(', ') : 'All Grades'}</p>
             <span class="status-badge status-${status}">${formatStatus(status)}</span>
         </div>
         <div class="resit-actions">
@@ -259,6 +256,24 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     });
+    
+    // Add search functionality
+    const searchInput = document.querySelector('.search-input');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            const resitCards = document.querySelectorAll('.resit-card');
+            
+            resitCards.forEach(card => {
+                const courseName = card.querySelector('.resit-header h3')?.textContent.toLowerCase() || '';
+                const department = card.querySelector('.resit-info')?.textContent.toLowerCase() || '';
+                
+                const matches = courseName.includes(searchTerm) || department.includes(searchTerm);
+                
+                card.style.display = matches ? '' : 'none';
+            });
+        });
+    }
 });
 
 

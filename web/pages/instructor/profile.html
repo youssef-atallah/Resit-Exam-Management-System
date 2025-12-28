@@ -14,9 +14,7 @@
     <!-- Header Component -->
     <header class="header">
         <a href="dashboard.html" class="logo">Uskudar</a>
-        <div class="search-bar">
-            <input type="text" class="search-input" placeholder="Search schedule...">
-        </div>
+
         <div class="header-right">
             <div class="notifications">
                 <button class="notification-btn" id="notificationBtn">
@@ -96,82 +94,48 @@
             <h1>Profile</h1>
         </div>
 
+        <div class="profile-header-card">
+            <div class="profile-avatar-large" id="initialsAvatar">
+                <!-- Initials via JS -->
+            </div>
+            <div class="profile-info-large">
+                <h2 id="profileName">Loading...</h2>
+                <div class="profile-email">
+                    <i class="fas fa-envelope"></i>
+                    <span id="profileEmail">loading...</span>
+                </div>
+                <div class="profile-badges">
+                    <span class="badge-blue">
+                        <i class="fas fa-id-card"></i>
+                        <span id="profileId">ID: ...</span>
+                    </span>
+                    <span class="badge-green">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                        Instructor
+                    </span>
+                </div>
+            </div>
+        </div>
+
         <div class="dashboard-grid">
             <div class="card">
-                <div class="profile-section">
-                    <div class="profile-header">
-                        <div class="profile-info">
-                            <h2 id="profileName">Instructor Name</h2>
-                            <p id="profileId">Instructor ID: 12345</p>
-                            <p id="profileEmail">instructor@uskudar.edu.tr</p>
-                        </div>
-                    </div>
+                <div class="card-header">
+                    <h2><i class="fas fa-graduation-cap"></i> Academic & Professional Info</h2>
                 </div>
-            </div>
-
-            <div class="card">
                 <div class="profile-section">
-                    <h3>Personal Information</h3>
-                    <div class="info-grid">
-                        <div class="info-item">
-                            <label>Full Name</label>
-                            <p id="fullName">Instructor Name</p>
-                        </div>
-                        <div class="info-item">
-                            <label>Date of Birth</label>
-                            <p id="dob">01/01/1980</p>
-                        </div>
-                        <div class="info-item">
-                            <label>Gender</label>
-                            <p id="gender">Male</p>
-                        </div>
-                        <div class="info-item">
-                            <label>Nationality</label>
-                            <p id="nationality">Turkish</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="profile-section">
-                    <h3>Academic Information</h3>
                     <div class="info-grid">
                         <div class="info-item">
                             <label>Department</label>
-                            <p id="department">Computer Engineering</p>
+                            <p id="department">Loading...</p>
                         </div>
+
                         <div class="info-item">
-                            <label>Title</label>
-                            <p id="title">Associate Professor</p>
-                        </div>
-                        <div class="info-item">
-                            <label>Office</label>
-                            <p id="office">Room 301</p>
+                            <label>Office Location</label>
+                            <p id="office">N/A</p>
                         </div>
                         <div class="info-item">
                             <label>Office Hours</label>
-                            <p id="officeHours">Mon, Wed 14:00 - 16:00</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="profile-section">
-                    <h3>Contact Information</h3>
-                    <div class="info-grid">
-                        <div class="info-item">
-                            <label>Email</label>
-                            <p id="email">instructor@uskudar.edu.tr</p>
-                        </div>
-                        <div class="info-item">
-                            <label>Phone</label>
-                            <p id="phone">+90 (216) 123 4567</p>
-                        </div>
-                        <div class="info-item">
-                            <label>Extension</label>
-                            <p id="extension">1234</p>
+                            <p id="officeHours">N/A</p>
                         </div>
                     </div>
                 </div>
@@ -180,17 +144,7 @@
     </main>
 
     <script src="../../js/main.js"></script>
-    <script src="../../js/pages/instructor/profile.js"></script>
-    <script type="module">
-        import { initializePageHeader } from '../../js/utils/header.js';
-        import { initializeNotifications } from '../../js/utils/notifications.js';
-        import { updateInstructorNameInHeader } from '../../js/utils/instructorAuth.js';
-
-        document.addEventListener('DOMContentLoaded', () => {
-            initializePageHeader();
-            initializeNotifications();
-            updateInstructorNameInHeader();
-        });
-    </script>
+    <script src="../../js/main.js"></script>
+    <script type="module" src="../../js/pages/instructor/profile.js"></script>
 </body>
 </html> 

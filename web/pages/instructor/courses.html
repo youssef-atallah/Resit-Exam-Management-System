@@ -77,22 +77,7 @@
 
   <main class="main-content">
       <div class="courses-container">
-          <div class="courses-header">
-              <div class="filters-section">
-                  <div class="filter-group">
-                      <label for="yearLevelFilter">Year Level:</label>
-                      <select id="yearLevelFilter" class="filter-select">
-                          <option value="all">All Years</option>
-                          <option value="1">First Year</option>
-                          <option value="2">Second Year</option>
-                          <option value="3">Third Year</option>
-                          <option value="4">Fourth Year</option>
-                          <option value="5">Fifth Year</option>
-                          <option value="6">Sixth Year</option>
-                      </select>
-                  </div>
-              </div>
-          </div>
+
 
           <div class="courses-grid">
               <!-- Course cards will be dynamically populated here -->
@@ -733,10 +718,12 @@
               }
 
               try {
+                  const token = localStorage.getItem('token');
                   const response = await fetch(`http://localhost:3000/instructor/r-exam/${instructorId}`, {
                       method: 'POST',
                       headers: {
-                          'Content-Type': 'application/json'
+                          'Content-Type': 'application/json',
+                          'Authorization': `Bearer ${token}`
                       },
                       body: JSON.stringify({
                           courseId: courseCode,

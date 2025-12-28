@@ -51,17 +51,28 @@
             color: #2c3e50;
         }
         .role-badge {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
+            display: inline-flex !important;
+            align-items: center;
+            gap: 0.5rem;
+            position: static !important; /* Override absolute from external CSS */
             background: #2c3e50;
             color: white;
             padding: 0.25rem 0.75rem;
             border-radius: 20px;
             font-size: 0.9rem;
+            margin: 0 auto 1rem auto !important; /* Center and add spacing */
+        }
+        /* Center the badge container */
+        .login-form {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 0.5rem;
+        }
+        .login-form > * {
+            width: 100%; /* Ensure children take full width unless specified */
+        }
+        .role-badge {
+            width: auto; /* Reset width for badge */
         }
         .login-header {
             text-align: center;
@@ -150,8 +161,9 @@
                 </div>
                 <button type="submit" class="login-btn">Login</button>
                 <div class="form-footer">
-                    <a href="#" class="forgot-password">Forgot Password?</a>
+                    <a href="#" class="forgot-password" onclick="openForgotPasswordModal(); return false;">Forgot Password?</a>
                 </div>
+
             </form>
         </div>
     </div>
@@ -212,6 +224,42 @@
                 errorDiv.style.cssText = 'color: #dc3545; background: #f8d7da; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem; text-align: center;';
                 errorDiv.textContent = message;
                 form.insertBefore(errorDiv, form.firstChild);
+            }
+        });
+    </script>
+    <!-- Custom Forgot Password Modal -->
+    <div id="forgotPasswordModal" class="custom-modal-overlay">
+        <div class="custom-modal">
+            <div class="custom-modal-icon">
+                <i class="fas fa-key"></i>
+            </div>
+            <h3>Secretary Access</h3>
+            <p>Please contact the System Administrator to reset your secretary credentials.</p>
+            <button class="custom-modal-btn" onclick="closeForgotPasswordModal()">Got it</button>
+        </div>
+    </div>
+
+    <script>
+        function openForgotPasswordModal() {
+            const modal = document.getElementById('forgotPasswordModal');
+            modal.style.display = 'flex';
+            // Force reflow for animation
+            modal.offsetHeight; 
+            modal.classList.add('active');
+        }
+
+        function closeForgotPasswordModal() {
+            const modal = document.getElementById('forgotPasswordModal');
+            modal.classList.remove('active');
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 300);
+        }
+        
+        // Close on outside click
+        document.getElementById('forgotPasswordModal').addEventListener('click', (e) => {
+            if (e.target.id === 'forgotPasswordModal') {
+                closeForgotPasswordModal();
             }
         });
     </script>

@@ -85,23 +85,28 @@
         <div class="dashboard-grid">
             <!-- Quick Stats -->
             <div class="card">
-                <h2>Quick Stats</h2>
+                <h2><i class="fas fa-chart-line"></i> Quick Stats</h2>
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="stat-value">4</div>
-                        <div class="stat-label">Active Courses</div>
+                        <div class="stat-icon purple"><i class="fas fa-book-open"></i></div>
+                        <div class="stat-info">
+                            <div class="stat-value">...</div>
+                            <div class="stat-label">Active Courses</div>
+                        </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-value">2</div>
-                        <div class="stat-label">Resit Exams</div>
+                        <div class="stat-icon orange"><i class="fas fa-clock"></i></div>
+                        <div class="stat-info">
+                            <div class="stat-value">...</div>
+                            <div class="stat-label">Resit Exams</div>
+                        </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-value">3</div>
-                        <div class="stat-label">Graded Courses</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value">3.5</div>
-                        <div class="stat-label">GPA</div>
+                        <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
+                        <div class="stat-info">
+                            <div class="stat-value">...</div>
+                            <div class="stat-label">Graded Courses</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -110,25 +115,9 @@
             <div class="card">
                 <h2>Upcoming Events</h2>
                 <div class="event-list">
-                    <div class="event-item">
-                        <div class="event-date">
-                            <span class="day">15</span>
-                            <span class="month">Mar</span>
-                        </div>
-                        <div class="event-details">
-                            <h3>Mathematics Final Exam</h3>
-                            <p>Room 101, 10:00 AM</p>
-                        </div>
-                    </div>
-                    <div class="event-item">
-                        <div class="event-date">
-                            <span class="day">18</span>
-                            <span class="month">Mar</span>
-                        </div>
-                        <div class="event-details">
-                            <h3>Programming Assignment Due</h3>
-                            <p>Project Submission</p>
-                        </div>
+                    <!-- Events will be loaded dynamically -->
+                    <div class="loading-placeholder" style="text-align: center; color: var(--text-muted); padding: 1rem;">
+                        <i class="fas fa-spinner fa-spin"></i> Loading events...
                     </div>
                 </div>
             </div>
@@ -137,47 +126,14 @@
             <div class="card">
                 <h2>Recent Grades</h2>
                 <div class="grade-list">
-                    <div class="grade-item">
-                        <div class="course-info">
-                            <h3>Physics I</h3>
-                            <p>Midterm Exam</p>
-                        </div>
-                        <div class="grade">85</div>
-                    </div>
-                    <div class="grade-item">
-                        <div class="course-info">
-                            <h3>Chemistry I</h3>
-                            <p>Lab Report</p>
-                        </div>
-                        <div class="grade">92</div>
+                    <!-- Grades will be loaded dynamically -->
+                    <div class="loading-placeholder" style="text-align: center; color: var(--text-muted); padding: 1rem;">
+                        <i class="fas fa-spinner fa-spin"></i> Loading grades...
                     </div>
                 </div>
             </div>
 
-            <!-- Course Progress -->
-            <div class="card">
-                <h2>Course Progress</h2>
-                <div class="progress-list">
-                    <div class="progress-item">
-                        <div class="course-info">
-                            <h3>Mathematics I</h3>
-                            <p>75% Complete</p>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress" style="width: 75%"></div>
-                        </div>
-                    </div>
-                    <div class="progress-item">
-                        <div class="course-info">
-                            <h3>Programming I</h3>
-                            <p>60% Complete</p>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress" style="width: 60%"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+
         </div>
     </main>
 
@@ -223,5 +179,38 @@
         font-size: 1.5em;
     }
     </style>
+    <!-- Event Details Modal -->
+    <div id="eventModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div class="modal-header">
+                <h2 id="modalTitle">Event Details</h2>
+                <div id="modalDate" class="modal-date-badge"></div>
+            </div>
+            <div class="modal-body">
+                <div class="detail-row">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <div>
+                        <strong>Location</strong>
+                        <p id="modalLocation">Loading...</p>
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <i class="fas fa-clock"></i>
+                    <div>
+                        <strong>Time</strong>
+                        <p id="modalTime">Loading...</p>
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <i class="fas fa-info-circle"></i>
+                    <div>
+                        <strong>Description</strong>
+                        <p id="modalDescription">No description available.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html> 

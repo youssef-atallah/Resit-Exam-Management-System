@@ -38,31 +38,6 @@ async function fetchDashboardData() {
     }
 }
 
-// Function to calculate GPA
-function calculateGPA(courseDetails) {
-    if (!courseDetails || courseDetails.length === 0) return 0;
-    
-    const gradePoints = {
-        'A': 4.0, 'A-': 3.7,
-        'B+': 3.3, 'B': 3.0, 'B-': 2.7,
-        'C+': 2.3, 'C': 2.0, 'C-': 1.7,
-        'D+': 1.3, 'D': 1.0,
-        'F': 0.0
-    };
-
-    let totalPoints = 0;
-    let totalCourses = 0;
-
-    courseDetails.forEach(course => {
-        if (course.gradeLetter && gradePoints[course.gradeLetter] !== undefined) {
-            totalPoints += gradePoints[course.gradeLetter];
-            totalCourses++;
-        }
-    });
-
-    return totalCourses > 0 ? (totalPoints / totalCourses).toFixed(2) : 0;
-}
-
 // Function to update quick stats
 async function updateQuickStats() {
     const data = await fetchDashboardData();
@@ -81,16 +56,19 @@ async function updateQuickStats() {
     // Count courses with grades
     const gradedCourses = courseDetails.filter(c => c.grade).length;
     document.querySelector('.stat-card:nth-child(3) .stat-value').textContent = gradedCourses;
-
-    // Calculate and display GPA
-    const gpa = calculateGPA(courseDetails);
-    document.querySelector('.stat-card:nth-child(4) .stat-value').textContent = gpa;
 }
 
 // Function to update upcoming events
 async function updateUpcomingEvents() {
     const data = await fetchDashboardData();
-    if (!data) return;
+    if (!data) {
+        document.querySelector('.event-list').innerHTML = `
+            <div class="error-state" style="text-align: center; color: var(--error-color); padding: 1rem;">
+                <i class="fas fa-exclamation-circle"></i> Error loading events
+            </div>
+        `;
+        return;
+    }
 
     const { student } = data;
     const eventList = document.querySelector('.event-list');
@@ -105,20 +83,48 @@ async function updateUpcomingEvents() {
                     const data = await response.json();
                     if (data.success && data.resitExam) {
                         const exam = data.resitExam;
-                        const examDate = new Date(parseInt(exam.examDate));
+                        
+                        let day = '--';
+                        let month = '---';
+                        let timeString = 'Time TBA';
+                        
+                        if (exam.examDate) {
+                            const dateVal = new Date(parseInt(exam.examDate) || exam.examDate);
+                            if (!isNaN(dateVal.getTime())) {
+                                day = dateVal.getDate();
+                                month = dateVal.toLocaleString('en-US', { month: 'short' });
+                                timeString = dateVal.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                            }
+                        }
+
+                        // Clean up name: Remove redundant " - Resit Exam" if present
+                        const displayName = exam.name.replace(/ - Resit Exam$/i, '');
                         
                         const eventItem = document.createElement('div');
                         eventItem.className = 'event-item';
                         eventItem.innerHTML = `
                             <div class="event-date">
-                                <span class="day">${examDate.getDate()}</span>
-                                <span class="month">${examDate.toLocaleString('en-US', { month: 'short' })}</span>
+                                <span class="day">${day}</span>
+                                <span class="month">${month}</span>
                             </div>
                             <div class="event-details">
-                                <h3>${exam.name} - Resit Exam</h3>
-                                <p>${exam.location || 'Location TBA'}, ${examDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</p>
+                                <h3>${displayName} - Resit Exam</h3>
+                                <p>${timeString}</p>
                             </div>
                         `;
+                        
+                        // Add click handler for modal
+                        eventItem.addEventListener('click', () => {
+                            openEventModal({
+                                title: `${displayName} - Resit Exam`,
+                                date: `${day} ${month}`,
+                                time: timeString,
+                                location: exam.location || 'Location TBA',
+                                description: exam.announcement || 'No additional details provided.',
+                                fullDate: exam.examDate ? new Date(parseInt(exam.examDate) || exam.examDate).toLocaleDateString() : 'Date TBA'
+                            });
+                        });
+
                         eventList.appendChild(eventItem);
                     }
                 }
@@ -131,7 +137,7 @@ async function updateUpcomingEvents() {
     // If no events, show placeholder
     if (eventList.children.length === 0) {
         eventList.innerHTML = `
-            <div class="event-item">
+            <div class="event-item" style="cursor: default;">
                 <div class="event-date">
                     <span class="day">--</span>
                     <span class="month">---</span>
@@ -145,10 +151,48 @@ async function updateUpcomingEvents() {
     }
 }
 
+// Modal functions
+function openEventModal(details) {
+    const modal = document.getElementById('eventModal');
+    const title = document.getElementById('modalTitle');
+    const dateBadge = document.getElementById('modalDate');
+    const location = document.getElementById('modalLocation');
+    const time = document.getElementById('modalTime');
+    const description = document.getElementById('modalDescription');
+
+    title.textContent = details.title;
+    dateBadge.textContent = details.fullDate;
+    location.textContent = details.location;
+    time.textContent = details.time;
+    description.textContent = details.description;
+
+    modal.style.display = 'block';
+
+    // Close handler
+    const closeBtn = modal.querySelector('.close-modal');
+    closeBtn.onclick = () => {
+        modal.style.display = 'none';
+    };
+
+    // Click outside to close
+    window.onclick = (event) => {
+        if (event.target == modal) {
+            modal.style.display = 'none';
+        }
+    };
+}
+
 // Function to update recent grades
 async function updateRecentGrades() {
     const data = await fetchDashboardData();
-    if (!data) return;
+    if (!data) {
+        document.querySelector('.grade-list').innerHTML = `
+            <div class="error-state" style="text-align: center; color: var(--error-color); padding: 1rem;">
+                <i class="fas fa-exclamation-circle"></i> Error loading grades
+            </div>
+        `;
+        return;
+    }
 
     const { courseDetails } = data;
     const gradeList = document.querySelector('.grade-list');
@@ -194,58 +238,7 @@ async function updateRecentGrades() {
     }
 }
 
-// Function to update course progress
-async function updateCourseProgress() {
-    const data = await fetchDashboardData();
-    if (!data) return;
 
-    const { student, courseDetails } = data;
-    const progressList = document.querySelector('.progress-list');
-    progressList.innerHTML = '';
-
-    // Get first 2 courses
-    const courses = student.courses?.slice(0, 2) || [];
-
-    if (courses.length > 0) {
-        for (const courseId of courses) {
-            try {
-                const courseResponse = await authenticatedFetch(`/course/${courseId}`);
-                if (courseResponse.ok) {
-                    const courseData = await courseResponse.json();
-                    const courseName = courseData.course?.name || courseId;
-                    
-                    // Get course detail for progress
-                    const detail = courseDetails.find(d => d.courseId === courseId);
-                    const progress = detail?.progress || 75;
-
-                    const progressItem = document.createElement('div');
-                    progressItem.className = 'progress-item';
-                    progressItem.innerHTML = `
-                        <div class="course-info">
-                            <h3>${courseName}</h3>
-                            <p>${progress}% Complete</p>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress" style="width: ${progress}%"></div>
-                        </div>
-                    `;
-                    progressList.appendChild(progressItem);
-                }
-            } catch (error) {
-                console.error(`Error fetching course ${courseId}:`, error);
-            }
-        }
-    } else {
-        progressList.innerHTML = `
-            <div class="progress-item">
-                <div class="course-info">
-                    <h3>No courses enrolled</h3>
-                    <p>Course progress will appear here</p>
-                </div>
-            </div>
-        `;
-    }
-}
 
 // Initialize dashboard
 document.addEventListener('DOMContentLoaded', async () => {
@@ -256,8 +249,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await Promise.all([
         updateQuickStats(),
         updateUpcomingEvents(),
-        updateRecentGrades(),
-        updateCourseProgress()
+        updateRecentGrades()
     ]);
 
     // Set active link in sidebar

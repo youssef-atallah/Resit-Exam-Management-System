@@ -84,6 +84,14 @@ function createCourseCard(course) {
                     <span>${course.resit_exam ? 'Has Resit' : 'No Resit'}</span>
                 </div>
             </div>
+            ${course.resit_exam ? `
+            <div class="info-row">
+                <div class="info-item" style="width: 100%;">
+                    <i class="fas fa-list-alt"></i>
+                    <span>Allowed Grades: ${course.resit_exam.lettersAllowed && course.resit_exam.lettersAllowed.length > 0 ? course.resit_exam.lettersAllowed.join(', ') : 'All Grades'}</span>
+                </div>
+            </div>
+            ` : ''}
         </div>
         <div class="course-actions">
             ${course.resit_exam ? 
@@ -92,7 +100,7 @@ function createCourseCard(course) {
                         <i class="fas fa-eye"></i>
                         <span>View Resit</span>
                     </button>
-                    <button class="action-btn cancel-resit" onclick="confirmAndCancelResit('${course.courseId}-rId')">
+                    <button class="action-btn cancel-resit" onclick="confirmAndCancelResit('${course.resit_exam.id}')">
                         <i class="fas fa-times"></i>
                         <span>Delete Resit</span>
                     </button>
@@ -113,7 +121,7 @@ function createCourseCard(course) {
 }
 
 // Function to confirm and cancel resit exam
-async function confirmAndCancelResit(resitExamId) {
+window.confirmAndCancelResit = async function(resitExamId) {
     showConfirmationModal('Cancel Resit Exam', 
         'Are you sure you want to cancel this resit exam? This action cannot be undone.',
         async () => {
@@ -513,12 +521,7 @@ async function populateCourses() {
             coursesGrid.appendChild(card);
         });
 
-        // Since we don't have year levels in the API response,
-        // we'll hide the year level filter
-        const yearLevelFilter = document.getElementById('yearLevelFilter');
-        if (yearLevelFilter) {
-            yearLevelFilter.parentElement.style.display = ''; // Show the year level filter | 'none' to hide it
-        }
+
     } catch (error) {
         console.error('Error populating courses:', error);
         coursesGrid.innerHTML = `<div class="error">Error loading courses: ${error.message}</div>`;
@@ -566,6 +569,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // Initialize courses
     await populateCourses();
+    
+    // Add search functionality
+    const searchInput = document.querySelector('.search-input');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            const courseCards = document.querySelectorAll('.course-card');
+            
+            courseCards.forEach(card => {
+                const courseName = card.querySelector('.course-header h3')?.textContent.toLowerCase() || '';
+                // Get all info-item spans (department, student count, course ID, resit status)
+                const infoItems = Array.from(card.querySelectorAll('.info-item span'))
+                    .map(span => span.textContent.toLowerCase())
+                    .join(' ');
+                
+                const matches = courseName.includes(searchTerm) || infoItems.includes(searchTerm);
+                
+                card.style.display = matches ? '' : 'none';
+            });
+        });
+    }
 });
 
 // Add showAnnounceModal function

@@ -128,6 +128,9 @@ async function fetchStudentCourses() {
             throw new Error('Failed to fetch student course details');
         }
         const studentCourseDetails = await studentDetailsResponse.json();
+        
+        // Debug: Log the course details to see if resit_exam is present
+        console.log('Student Course Details from API:', studentCourseDetails);
 
         // Create a map of course details for easy lookup
         const courseDetailsMap = new Map(
@@ -168,24 +171,15 @@ async function fetchStudentCourses() {
                     }
                 }
 
-                // Fetch resit exam details if available
+                // Use resit exam details from the backend (already includes lettersAllowed)
                 let resitExamDetails = null;
                 if (studentDetail?.resit_exam) {
-                    try {
-                        const resitResponse = await authenticatedFetch(`/r-exam/${courseId}-rId`);
-                        if (resitResponse.ok) {
-                            const resitData = await resitResponse.json();
-                            if (resitData.success && resitData.resitExam) {
-                                resitExamDetails = {
-                                    ...studentDetail.resit_exam,
-                                    allowedLetters: resitData.resitExam.lettersAllowed || []
-                                };
-                                console.log(`Resit exam details for ${courseId}:`, resitData.resitExam);
-                            }
-                        }
-                    } catch (error) {
-                        console.error(`Error fetching resit exam details for ${courseId}:`, error);
-                    }
+                    resitExamDetails = {
+                        ...studentDetail.resit_exam,
+                        // The backend now returns lettersAllowed directly
+                        lettersAllowed: studentDetail.resit_exam.lettersAllowed || []
+                    };
+                    console.log(`Resit exam details for ${courseId}:`, resitExamDetails);
                 }
                 
                 return {
@@ -236,22 +230,22 @@ function createCourseCard(course) {
     const card = document.createElement('div');
     card.className = 'course-card';
     
-    // Format the grade display
-    const gradeInfo = course.grade ? `
-        <div class="grade-info">
+    // Format the grade display - always show the grade box
+    const gradeInfo = `
+        <div class="grade-info ${!course.grade ? 'no-grade' : ''}">
             <div class="grade-details">
-                <div class="grade-letter">${course.gradeLetter || 'N/A'}</div>
-                <div class="grade-number">${course.grade || 'N/A'}</div>
+                <div class="grade-letter">${course.gradeLetter || '—'}</div>
+                <div class="grade-number">${course.grade ? course.grade : 'Not Graded'}</div>
             </div>
-            <div class="grade-status">Final Grade</div>
+            <div class="grade-status">${course.grade ? 'Final Grade' : 'Pending'}</div>
         </div>
-    ` : '<div class="grade-info not-announced"></div>';
+    `;
 
-    // Format the resit exam deadline if available
-    const resitDeadline = course.resit_exam ? `
+    // Format the resit exam deadline if available - only show if deadline is set
+    const resitDeadline = course.resit_exam && course.resit_exam.deadline ? `
         <div class="apply-deadline-info">
             <i class="fas fa-hourglass-end"></i>
-            Deadline to Apply for Resit Exam: 
+            Deadline to Apply: 
             <span class="apply-deadline">${formatDate(course.resit_exam.deadline)}</span>
             <span class="remaining-time" data-deadline="${course.resit_exam.deadline}">(${formatRemainingTime(course.resit_exam.deadline)})</span>
         </div>
@@ -263,23 +257,40 @@ function createCourseCard(course) {
     console.log('Resit Exam Details:', course.resit_exam);
     
     const studentGradeLetter = course.gradeLetter?.toUpperCase() || '';
-    const allowedLetters = course.resit_exam?.allowedLetters || [];
-    const isGradeLetterAllowed = allowedLetters.includes(studentGradeLetter);
+    // Fix: API returns 'lettersAllowed' not 'allowedLetters'
+    const allowedLetters = course.resit_exam?.lettersAllowed || [];
+    const hasResitExam = !!course.resit_exam;
+    const isGradeLetterAllowed = hasResitExam && allowedLetters.length > 0 && allowedLetters.includes(studentGradeLetter);
     
     console.log('Student Grade Letter (uppercase):', studentGradeLetter);
     console.log('Allowed Letters:', allowedLetters);
+    console.log('Has Resit Exam:', hasResitExam);
     console.log('Is Grade Letter Allowed:', isGradeLetterAllowed);
     console.log('Has Applied for Resit:', course.hasAppliedForResit);
     
     let resitButton;
     
     if (course.hasAppliedForResit) {
-        // If student has already applied for resit, show View Resit Details regardless of deadline
+        // If student has already applied for resit, show View Resit Details and Cancel button
         resitButton = `
-            <a href="resit.html" class="btn btn-resit applied">
-                <i class="fas fa-check"></i>
-                View Resit Details
-            </a>
+            <div class="resit-applied-actions" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <a href="resit.html" class="btn btn-resit applied" style="flex: 1;">
+                    <i class="fas fa-check"></i>
+                    View Resit Details
+                </a>
+                <button class="btn btn-cancel-resit" data-course-id="${course.code}" style="flex: 1; background: #ef4444; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer;">
+                    <i class="fas fa-times"></i>
+                    Cancel
+                </button>
+            </div>
+        `;
+    } else if (!hasResitExam) {
+        // No resit exam has been created for this course
+        resitButton = `
+            <button class="btn btn-resit no-resit" disabled>
+                <i class="fas fa-clock"></i>
+                No Resit Available
+            </button>
         `;
     } else {
         // Check if deadline has passed with timezone adjustment
@@ -301,8 +312,8 @@ function createCourseCard(course) {
         if (!isGradeLetterAllowed) {
             resitButton = `
                 <button class="btn btn-resit not-eligible" disabled>
-                    <i class="fas fa-redo"></i>
-                    Not Eligible for Resit Exam
+                    <i class="fas fa-times-circle"></i>
+                    Not Eligible (Your grade: ${studentGradeLetter || 'No Grade'})
                 </button>
             `;
         } else {
@@ -361,6 +372,11 @@ function createCourseCard(course) {
             background: #047857;
             transform: translateY(-2px);
         }
+        .btn-resit.no-resit {
+            background: #e5e7eb;
+            color: #9ca3af;
+            cursor: not-allowed;
+        }
     `;
     document.head.appendChild(style);
 
@@ -383,6 +399,13 @@ function createCourseCard(course) {
                 <span>${course.department}</span>
             </div>
         </div>
+
+        ${course.resit_exam ? `
+        <div class="allowed-grades-info" style="margin: 0.5rem 0; padding: 0.5rem; background: #f0f9ff; border-radius: 6px; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-list-alt" style="color: #3b82f6;"></i>
+            <span style="font-size: 0.9rem;">Eligible Grades: <strong>${course.resit_exam.lettersAllowed && course.resit_exam.lettersAllowed.length > 0 ? course.resit_exam.lettersAllowed.join(', ') : 'All Grades'}</strong></span>
+        </div>
+        ` : ''}
 
         ${resitDeadline}
         
@@ -420,7 +443,7 @@ function createCourseCard(course) {
 
             try {
                 const studentId = getUserId();
-                const response = await authenticatedFetch(`/student/resit-exam/${studentId}`, {
+                const response = await authenticatedFetch(`/my/apply-resit`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -445,6 +468,54 @@ function createCourseCard(course) {
                 console.error('Error applying for resit exam:', error);
                 showSuccessModal('An error occurred while applying for the resit exam. Please try again later.', true);
             }
+        });
+    }
+
+    // Add event listener for cancel resit button (for already applied courses)
+    const cancelResitBtn = card.querySelector('.btn-cancel-resit');
+    if (cancelResitBtn) {
+        cancelResitBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const courseId = e.currentTarget.getAttribute('data-course-id');
+            
+            // Show styled confirmation modal
+            showConfirmationModal(
+                `Are you sure you want to cancel your resit exam enrollment for ${course.name}?`,
+                async () => {
+                    try {
+                        // Get the resit exam ID from the course's resit exam data
+                        const resitExamId = course.resit_exam?.id;
+                        if (!resitExamId) {
+                            showSuccessModal('Could not find resit exam information.', true);
+                            return;
+                        }
+                        
+                        const response = await authenticatedFetch(`/my/cancel-resit`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                resitExamId: resitExamId
+                            })
+                        });
+
+                        if (response.ok) {
+                            showSuccessModal('Successfully cancelled resit exam enrollment!');
+                            // Refresh the page to show updated status
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1500);
+                        } else {
+                            const errorData = await response.json();
+                            showSuccessModal(`Failed to cancel: ${errorData.error || 'Unknown error'}`, true);
+                        }
+                    } catch (error) {
+                        console.error('Error cancelling resit exam:', error);
+                        showSuccessModal('An error occurred. Please try again later.', true);
+                    }
+                }
+            );
         });
     }
 
@@ -517,9 +588,148 @@ function closeUnderDevModal() {
 document.querySelectorAll('.close-modal').forEach(btn => {
     btn.addEventListener('click', function(e) {
         e.preventDefault();
-        closeUnderDevModal();
+    closeUnderDevModal();
     });
 });
+
+// Show styled confirmation modal
+function showConfirmationModal(message, onConfirm) {
+    const modal = document.createElement('div');
+    modal.className = 'custom-modal confirmation-modal';
+    
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-icon warning">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="modal-message">${message}</div>
+            <div class="modal-buttons">
+                <button class="modal-cancel-btn">Cancel</button>
+                <button class="modal-confirm-btn">Confirm</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Add styles for the confirmation modal
+    const style = document.createElement('style');
+    style.id = 'confirmation-modal-styles';
+    if (!document.getElementById('confirmation-modal-styles')) {
+        style.textContent = `
+            .confirmation-modal .modal-content {
+                background: white;
+                padding: 2rem;
+                border-radius: 12px;
+                text-align: center;
+                max-width: 400px;
+                width: 90%;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+                transform: translateY(-20px);
+                transition: transform 0.3s ease;
+                position: relative;
+                margin: 20px;
+            }
+
+            .custom-modal.show .modal-content {
+                transform: translateY(0);
+            }
+            
+            .confirmation-modal .modal-icon {
+                font-size: 3rem;
+                margin-bottom: 1rem;
+                color: #f59e0b;
+            }
+            
+            .confirmation-modal .modal-message {
+                font-size: 1.1rem;
+                color: #374151;
+                margin-bottom: 1.5rem;
+                line-height: 1.5;
+                word-wrap: break-word;
+            }
+            
+            .confirmation-modal .modal-buttons {
+                display: flex;
+                gap: 1rem;
+                justify-content: center;
+            }
+            
+            .confirmation-modal .modal-cancel-btn,
+            .confirmation-modal .modal-confirm-btn {
+                padding: 0.7rem 1.5rem;
+                border-radius: 8px;
+                font-size: 1rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s;
+                min-width: 100px;
+            }
+            
+            .confirmation-modal .modal-cancel-btn {
+                background: #f3f4f6;
+                color: #4b5563;
+                border: none;
+            }
+            
+            .confirmation-modal .modal-cancel-btn:hover {
+                background: #e5e7eb;
+            }
+            
+            .confirmation-modal .modal-confirm-btn {
+                background: #ef4444;
+                color: white;
+                border: none;
+            }
+            
+            .confirmation-modal .modal-confirm-btn:hover {
+                background: #dc2626;
+            }
+
+            @media (max-width: 480px) {
+                .confirmation-modal .modal-content {
+                    width: 95%;
+                    margin: 10px;
+                    padding: 1.5rem;
+                }
+
+                .confirmation-modal .modal-buttons {
+                    flex-direction: column;
+                    gap: 0.5rem;
+                }
+
+                .confirmation-modal .modal-cancel-btn,
+                .confirmation-modal .modal-confirm-btn {
+                    width: 100%;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    setTimeout(() => {
+        modal.classList.add('show');
+    }, 10);
+    
+    const closeModal = () => {
+        modal.classList.remove('show');
+        setTimeout(() => {
+            modal.remove();
+        }, 300);
+    };
+    
+    modal.querySelector('.modal-cancel-btn').addEventListener('click', closeModal);
+    modal.querySelector('.modal-confirm-btn').addEventListener('click', () => {
+        closeModal();
+        onConfirm();
+    });
+    
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+}
 
 // Add this at the beginning of the file, after the existing functions
 function showSuccessModal(message, isError = false) {

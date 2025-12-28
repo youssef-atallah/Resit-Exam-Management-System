@@ -17,7 +17,9 @@ import {
   getMyCourses,
   getMyCourseDetails,
   getMyResitExams,
-  updateMyProfile
+  updateMyProfile,
+  applyForResitExam,
+  cancelResitExamEnrollment
 } from '../hundlers/studentHandler';
 import { authMiddleware, requireRole, requireOwnerOrRole } from '../Auth/authHandler';
 
@@ -58,6 +60,12 @@ router.get('/my/course-details', authMiddleware, requireRole('student'), getMyCo
 
 // GET /my/resit-exams - Get authenticated student's resit exams
 router.get('/my/resit-exams', authMiddleware, requireRole('student'), getMyResitExams);
+
+// POST /my/apply-resit - Student self-enrollment in resit exam
+router.post('/my/apply-resit', authMiddleware, requireRole('student'), applyForResitExam);
+
+// DELETE /my/cancel-resit - Student self-cancellation of resit exam enrollment
+router.delete('/my/cancel-resit', authMiddleware, requireRole('student'), cancelResitExamEnrollment);
 
 
 

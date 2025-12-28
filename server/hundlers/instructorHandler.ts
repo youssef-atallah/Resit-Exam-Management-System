@@ -557,26 +557,17 @@ export const deleteResitExam: RequestHandler<{ id: string }> = async (req, res):
   const { id } = req.params; // instructor id
   const { resitExamId } = req.body;
 
-  const resitExam = await db.getResitExam(resitExamId);
-
-  if (!resitExam) {
-    return res.status(404).json({
-      success: false,
-      error: 'Resit exam not found'
-    });
-  }
-  console.log(resitExam);
-  const courseId = resitExam.course_id;
-  // const course = await db.getCourseById(resitExam.courseId);
-  console.log(courseId);
-  if (!courseId) {
-    return res.status(404).json({
-      success: false,
-      error: 'Course not found'
-    });
-  }
-
   try {
+    const resitExam = await db.getResitExam(resitExamId);
+
+    if (!resitExam) {
+      return res.status(404).json({
+        success: false,
+        error: 'Resit exam not found'
+      });
+    }
+    
+    const courseId = resitExam.course_id;
     // Validate instructor exists
     const instructor = await db.getInstructorById(id);
     if (!instructor) {
@@ -586,12 +577,16 @@ export const deleteResitExam: RequestHandler<{ id: string }> = async (req, res):
       });
     }
 
-    // Check if the instructor is enrolled in the resit exam
-    if (!instructor.resitExams.includes(resitExamId)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Instructor not enrolled in the resit exam'
-      });
+    // Check if the instructor created this resit exam or is owner of the course
+    if (resitExam.createdBy !== id) {
+      // Also check if instructor owns the course
+      const course = await db.getCourseById(courseId);
+      if (!course || course.instructor_id !== id) {
+        return res.status(403).json({
+          success: false,
+          error: 'You are not authorized to delete this resit exam'
+        });
+      }
     }
 
     //? Use the datastore method to delete the resit exam

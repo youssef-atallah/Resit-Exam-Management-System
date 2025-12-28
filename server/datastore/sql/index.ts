@@ -172,6 +172,9 @@ export class SqlDatastore implements Datastore {
                 scg.grade,
                 scg.grade_letter,
                 re.id as resit_exam_id,
+                re.name as resit_exam_name,
+                re.deadline as resit_deadline,
+                re.exam_date as resit_exam_date,
                 u.id as instructor_user_id,
                 u.name as instructor_name,
                 u.email as instructor_email
@@ -187,7 +190,7 @@ export class SqlDatastore implements Datastore {
             return undefined;
         }
 
-        return rows.map(row => ({
+        const courseDetails = rows.map(row => ({
             courseId: row.courseId,
             courseName: row.courseName,
             department: row.department,
@@ -197,16 +200,32 @@ export class SqlDatastore implements Datastore {
                 name: row.instructor_name,
                 email: row.instructor_email
             } : undefined,
-            schedule: '', // Default empty string since column doesn't exist
-            location: '', // Default empty string since column doesn't exist
+            schedule: '',
+            location: '',
             grade: row.grade,
             gradeLetter: row.grade_letter,
             resit_exam: row.resit_exam_id ? {
                 id: row.resit_exam_id,
-                deadline: null, // Column doesn't exist in schema
-                status: 'pending' // Default status since column doesn't exist
+                name: row.resit_exam_name,
+                deadline: row.resit_deadline,
+                exam_date: row.resit_exam_date,
+                status: 'pending',
+                lettersAllowed: [] as string[]
             } : undefined
         }));
+        
+        // Fetch lettersAllowed for each resit exam
+        for (const course of courseDetails) {
+            if (course.resit_exam) {
+                const lettersRows = await this.db.all(
+                    'SELECT letter FROM resit_exam_letters_allowed WHERE resit_exam_id = ?',
+                    [course.resit_exam.id]
+                );
+                course.resit_exam.lettersAllowed = lettersRows.map(row => row.letter);
+            }
+        }
+        
+        return courseDetails;
     } catch (error) {
         console.error('Error in getStudentCourseDetails:', error);
         throw error;
@@ -538,14 +557,28 @@ export class SqlDatastore implements Datastore {
             id: row.resit_exam_id,
             name: row.resit_exam_name,
             department: row.resit_exam_department,
-            exam_date: null, // Column doesn't exist in schema
-            deadline: null, // Column doesn't exist in schema
-            location: null // Column doesn't exist in schema
+            exam_date: null,
+            deadline: null,
+            location: null,
+            lettersAllowed: [] as string[] // Will be populated below
           } : undefined
         };
       }
       if (row.studentId) detailsMap[row.courseId].students.push(row.studentId);
     }
+    
+    // Fetch lettersAllowed for each resit exam
+    for (const courseId in detailsMap) {
+      const details = detailsMap[courseId];
+      if (details.resit_exam) {
+        const lettersRows = await this.db.all(
+          'SELECT letter FROM resit_exam_letters_allowed WHERE resit_exam_id = ?',
+          [details.resit_exam.id]
+        );
+        details.resit_exam.lettersAllowed = lettersRows.map(row => row.letter);
+      }
+    }
+    
     return Object.values(detailsMap);
   }
   
@@ -565,7 +598,7 @@ export class SqlDatastore implements Datastore {
        GROUP BY re.id`, [id]);
 
     // Process the enrolled_students string into an array
-    return rows.map(row => ({
+    const resitExams = rows.map(row => ({
       ...row,
       enrolled_students: row.enrolled_students ? row.enrolled_students.split(',') : [],
       course: {
@@ -574,6 +607,17 @@ export class SqlDatastore implements Datastore {
         department: row.course_department
       }
     }));
+    
+    // Fetch lettersAllowed for each resit exam
+    for (const exam of resitExams) {
+      const lettersRows = await this.db.all(
+        'SELECT letter FROM resit_exam_letters_allowed WHERE resit_exam_id = ?',
+        [exam.id]
+      );
+      exam.lettersAllowed = lettersRows.map(row => row.letter);
+    }
+    
+    return resitExams;
   }
   
   async deleteInstructor(id: string): Promise<void> {
@@ -747,12 +791,24 @@ export class SqlDatastore implements Datastore {
       );
       const instructors = instructorsRows.map(row => row.instructor_id);
       
+      // Get instructor names from users table
+      let instructorNames: string[] = [];
+      if (instructors.length > 0) {
+        const placeholders = instructors.map(() => '?').join(',');
+        const namesRows = await this.db.all(
+          `SELECT id, name FROM users WHERE id IN (${placeholders})`,
+          instructors
+        );
+        instructorNames = namesRows.map(row => row.name);
+      }
+      
       // Return a complete ResitExam object
       return {
         ...exam,
         lettersAllowed,
         students,
-        instructors
+        instructors,
+        instructorNames
       };
     } catch (error) {
       console.error('Error fetching resit exam details:', error);

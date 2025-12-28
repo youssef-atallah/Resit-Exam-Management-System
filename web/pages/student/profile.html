@@ -15,9 +15,7 @@
     <!-- Header Component -->
     <header class="header">
         <a href="dashboard.html" class="logo">Uskudar</a>
-        <div class="search-bar">
-            <input type="text" class="search-input" placeholder="Search...">
-        </div>
+
         <div class="header-right">
             <div class="notifications">
                 <button class="notification-btn" id="notificationBtn">
@@ -38,9 +36,7 @@
                     </div>
                 </div>
             </div>
-            <div class="user-avatar">
-                <img src="../../assets/images/default-avatar.png" alt="Profile Picture" class="avatar-img" id="userAvatar">
-            </div>
+            <!-- Removed avatar section -->
             <div class="user-menu">
                 <div class="user-info">
                     <span class="user-name">Loading...</span>
@@ -88,122 +84,51 @@
             <h1>Profile</h1>
         </div>
 
-        <div class="dashboard-grid">
-            <div class="card">
-                <div class="profile-section">
-                    <div class="profile-header">
-                        <div class="profile-info">
-                            <h2 id="profileName">Loading...</h2>
-                            <p id="profileId">Student ID: Loading...</p>
-                            <p id="profileEmail">Loading...</p>
-                        </div>
+            <!-- Profile Header Card -->
+            <div class="card profile-header-card">
+                <div class="profile-avatar-large">
+                    <span id="profileInitials">ST</span>
+                </div>
+                <div class="profile-info-large">
+                    <h2 id="profileName">Loading...</h2>
+                    <p class="profile-subtitle" id="profileEmail">loading...</p>
+                    <div class="profile-badges">
+                        <span class="badge badge-blue" id="profileId">ID: ...</span>
+                        <span class="badge badge-green" id="profileDept">Department: ...</span>
                     </div>
                 </div>
             </div>
 
+            <!-- Academic Details Card -->
             <div class="card">
-                <div class="profile-section">
-                    <h3>Personal Information</h3>
-                    <div class="info-grid">
-                        <div class="info-item">
-                            <label>Full Name</label>
-                            <p id="fullName">Loading...</p>
-                        </div>
-                        <div class="info-item">
-                            <label>Date of Birth</label>
-                            <p id="dob">Loading...</p>
-                        </div>
-                        <div class="info-item">
-                            <label>Gender</label>
-                            <p id="gender">Loading...</p>
-                        </div>
-                        <div class="info-item">
-                            <label>Nationality</label>
-                            <p id="nationality">Loading...</p>
-                        </div>
-                    </div>
+                <div class="card-header">
+                    <h3><i class="fas fa-graduation-cap"></i> Academic Overview</h3>
                 </div>
-            </div>
-
-            <div class="card">
-                <div class="profile-section">
-                    <h3>Academic Information</h3>
-                    <div class="info-grid">
-                        <div class="info-item">
-                            <label>Department</label>
-                            <p id="department">Loading...</p>
-                        </div>
-                        <div class="info-item">
-                            <label>Program</label>
-                            <p id="program">Loading...</p>
-                        </div>
-                        <div class="info-item">
-                            <label>Year</label>
-                            <p id="year">Loading...</p>
-                        </div>
-                        <div class="info-item">
-                            <label>GPA</label>
-                            <p id="gpa">Loading...</p>
-                        </div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label>Current Year</label>
+                        <p id="yearLevel">Loading...</p>
+                    </div>
+                    <div class="info-item">
+                        <label>Active Courses</label>
+                        <p id="activeCoursesCount">...</p>
+                    </div>
+                    <div class="info-item">
+                        <label>Completed Resit Exams</label>
+                        <p id="resitCount">...</p>
                     </div>
                 </div>
             </div>
         </div>
     </main>
 
+    <script src="../../js/main.js"></script>
+    <script type="module" src="../../js/pages/student/profile.js"></script>
     <script type="module">
-        import { checkStudentAuth, getLoggedInStudentData, updateUIWithStudentData, handleStudentLogout } from '../../js/utils/studentAuth.js';
         import { initializePageHeader } from '../../js/utils/header.js';
         import { initializeNotifications } from '../../js/utils/notifications.js';
 
-        // Check if student is logged in
-        checkStudentAuth();
-
-        // Load and display student data
-        async function loadStudentData() {
-            try {
-                const studentData = await getLoggedInStudentData();
-                updateUIWithStudentData(studentData);
-
-                // Update additional profile information
-                document.getElementById('dob').textContent = studentData.dateOfBirth || 'no info';
-                document.getElementById('gender').textContent = studentData.gender || 'no info';
-                document.getElementById('nationality').textContent = studentData.nationality || 'no info';
-                document.getElementById('department').textContent = studentData.department || 'no info';
-                document.getElementById('program').textContent = studentData.program || 'no info';
-                document.getElementById('year').textContent = studentData.year || 'no info';
-                document.getElementById('gpa').textContent = studentData.gpa || 'no info';
-
-                // Create default avatar with initials
-                const initials = studentData.name
-                    .split(' ')
-                    .map(word => word[0])
-                    .join('')
-                    .toUpperCase();
-                
-                const canvas = document.createElement('canvas');
-                canvas.width = 100;
-                canvas.height = 100;
-                const ctx = canvas.getContext('2d');
-                
-                ctx.fillStyle = '#3498db';
-                ctx.fillRect(0, 0, 100, 100);
-                
-                ctx.fillStyle = 'white';
-                ctx.font = 'bold 40px Arial';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(initials, 50, 50);
-                
-                document.getElementById('userAvatar').src = canvas.toDataURL();
-            } catch (error) {
-                console.error('Error loading student data:', error);
-            }
-        }
-
-        // Initialize page
         document.addEventListener('DOMContentLoaded', () => {
-            loadStudentData();
             initializePageHeader();
             initializeNotifications();
         });

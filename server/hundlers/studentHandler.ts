@@ -730,3 +730,131 @@ export const updateMyProfile: RequestHandler = async (req, res): Promise<any> =>
     });
   }
 };
+
+/**
+ * Apply for resit exam - Student self-enrollment
+ * Uses JWT token to identify user
+ */
+export const applyForResitExam: RequestHandler = async (req, res): Promise<any> => {
+  try {
+    const userId = (req as any).userId; // Set by authMiddleware
+    const { courseId } = req.body;
+    
+    if (!courseId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Course ID is required'
+      });
+    }
+    
+    // Get student
+    const student = await db.getAstudent(userId);
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        error: 'Student not found'
+      });
+    }
+    
+    // Check if student is enrolled in the course
+    if (!student.courses.includes(courseId)) {
+      return res.status(400).json({
+        success: false,
+        error: 'You are not enrolled in this course'
+      });
+    }
+    
+    // Get resit exam for the course
+    const resitExam = await db.getResitExamByCourseId(courseId);
+    if (!resitExam) {
+      return res.status(404).json({
+        success: false,
+        error: 'No resit exam found for this course'
+      });
+    }
+    
+    // Check if student is already enrolled in the resit exam
+    if (student.resitExams.includes(resitExam.id)) {
+      return res.status(400).json({
+        success: false,
+        error: 'You are already enrolled in this resit exam'
+      });
+    }
+    
+    // Add resit exam to student
+    const status = await db.enrollStudentInResitExam(userId, resitExam.id);
+    if (status === true) {
+      return res.status(200).json({
+        success: true,
+        message: 'Successfully applied for resit exam'
+      });
+    } else if (status === false) {
+      return res.status(400).json({
+        success: false,
+        error: 'Your grade is not eligible for this resit exam'
+      });
+    } else {
+      return res.status(500).json({
+        success: false,
+        error: 'Error occurred while applying for resit exam'
+      });
+    }
+  } catch (error) {
+    console.error('Error applying for resit exam:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Server error while applying for resit exam',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+};
+
+/**
+ * Cancel resit exam enrollment - Student self-cancellation
+ * Uses JWT token to identify user
+ */
+export const cancelResitExamEnrollment: RequestHandler = async (req, res): Promise<any> => {
+  try {
+    const userId = (req as any).userId; // Set by authMiddleware
+    const { resitExamId } = req.body;
+    
+    if (!resitExamId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Resit Exam ID is required'
+      });
+    }
+    
+    // Get student
+    const student = await db.getAstudent(userId);
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        error: 'Student not found'
+      });
+    }
+    
+    // Check if student is enrolled in this resit exam
+    if (!student.resitExams.includes(resitExamId)) {
+      return res.status(400).json({
+        success: false,
+        error: 'You are not enrolled in this resit exam'
+      });
+    }
+    
+    // Remove student from resit exam
+    await db.unenrollStudentFromResitExam(userId, resitExamId);
+    
+    return res.status(200).json({
+      success: true,
+      message: 'Successfully cancelled resit exam enrollment'
+    });
+  } catch (error) {
+    console.error('Error cancelling resit exam enrollment:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Server error while cancelling resit exam enrollment',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+};

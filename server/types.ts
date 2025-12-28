@@ -66,6 +66,7 @@ export interface ResitExamInfo {
   exam_date: string | null;
   deadline: string | null;
   location: string | null;
+  lettersAllowed?: string[];
 }
 
 export interface InstructorCourseDetails {

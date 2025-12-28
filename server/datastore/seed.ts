@@ -342,59 +342,59 @@ export async function seedDatabase() {
     console.log('Enrolling students in courses...');
     const enrollments = [
       // SE302 - Software Project Management (inst-001)
-      { studentId: 'stu-001', courseId: 'SE302', grade: 45, gradeLetter: 'F' },
-      { studentId: 'stu-002', courseId: 'SE302', grade: 72, gradeLetter: 'B' },
-      { studentId: 'stu-003', courseId: 'SE302', grade: 38, gradeLetter: 'F' },
-      { studentId: 'stu-004', courseId: 'SE302', grade: 85, gradeLetter: 'A' },
-      { studentId: 'stu-007', courseId: 'SE302', grade: 52, gradeLetter: 'D' },
-      { studentId: 'stu-008', courseId: 'SE302', grade: 60, gradeLetter: 'C' },
+      { studentId: 'stu-001', courseId: 'SE302', grade: 45, gradeLetter: 'FF' },
+      { studentId: 'stu-002', courseId: 'SE302', grade: 72, gradeLetter: 'CC' },
+      { studentId: 'stu-003', courseId: 'SE302', grade: 38, gradeLetter: 'FF' },
+      { studentId: 'stu-004', courseId: 'SE302', grade: 85, gradeLetter: 'BA' },
+      { studentId: 'stu-007', courseId: 'SE302', grade: 52, gradeLetter: 'FD' },
+      { studentId: 'stu-008', courseId: 'SE302', grade: 60, gradeLetter: 'DD' },
       
       // CS101 - Intro to CS (inst-002)
-      { studentId: 'stu-001', courseId: 'CS101', grade: 68, gradeLetter: 'C' },
-      { studentId: 'stu-002', courseId: 'CS101', grade: 42, gradeLetter: 'F' },
-      { studentId: 'stu-005', courseId: 'CS101', grade: 78, gradeLetter: 'B' },
-      { studentId: 'stu-006', courseId: 'CS101', grade: 90, gradeLetter: 'A' },
-      { studentId: 'stu-009', courseId: 'CS101', grade: 35, gradeLetter: 'F' },
-      { studentId: 'stu-010', courseId: 'CS101', grade: 55, gradeLetter: 'D' },
+      { studentId: 'stu-001', courseId: 'CS101', grade: 68, gradeLetter: 'DC' },
+      { studentId: 'stu-002', courseId: 'CS101', grade: 42, gradeLetter: 'FF' },
+      { studentId: 'stu-005', courseId: 'CS101', grade: 78, gradeLetter: 'CB' },
+      { studentId: 'stu-006', courseId: 'CS101', grade: 90, gradeLetter: 'AA' },
+      { studentId: 'stu-009', courseId: 'CS101', grade: 35, gradeLetter: 'FF' },
+      { studentId: 'stu-010', courseId: 'CS101', grade: 55, gradeLetter: 'FD' },
       
       // MATH201 - Calculus II (inst-003)
-      { studentId: 'stu-003', courseId: 'MATH201', grade: 55, gradeLetter: 'D' },
-      { studentId: 'stu-004', courseId: 'MATH201', grade: 48, gradeLetter: 'F' },
-      { studentId: 'stu-005', courseId: 'MATH201', grade: 82, gradeLetter: 'A' },
-      { studentId: 'stu-007', courseId: 'MATH201', grade: 40, gradeLetter: 'F' },
-      { studentId: 'stu-008', courseId: 'MATH201', grade: 65, gradeLetter: 'C' },
+      { studentId: 'stu-003', courseId: 'MATH201', grade: 55, gradeLetter: 'FD' },
+      { studentId: 'stu-004', courseId: 'MATH201', grade: 48, gradeLetter: 'FF' },
+      { studentId: 'stu-005', courseId: 'MATH201', grade: 82, gradeLetter: 'BB' },
+      { studentId: 'stu-007', courseId: 'MATH201', grade: 40, gradeLetter: 'FF' },
+      { studentId: 'stu-008', courseId: 'MATH201', grade: 65, gradeLetter: 'DC' },
       
       // DS205 - Data Structures (inst-002)
-      { studentId: 'stu-001', courseId: 'DS205', grade: 75, gradeLetter: 'B' },
-      { studentId: 'stu-003', courseId: 'DS205', grade: 40, gradeLetter: 'F' },
-      { studentId: 'stu-006', courseId: 'DS205', grade: 88, gradeLetter: 'A' },
-      { studentId: 'stu-009', courseId: 'DS205', grade: 30, gradeLetter: 'F' },
-      { studentId: 'stu-010', courseId: 'DS205', grade: 70, gradeLetter: 'B' },
+      { studentId: 'stu-001', courseId: 'DS205', grade: 75, gradeLetter: 'CB' },
+      { studentId: 'stu-003', courseId: 'DS205', grade: 40, gradeLetter: 'FF' },
+      { studentId: 'stu-006', courseId: 'DS205', grade: 88, gradeLetter: 'BA' },
+      { studentId: 'stu-009', courseId: 'DS205', grade: 30, gradeLetter: 'FF' },
+      { studentId: 'stu-010', courseId: 'DS205', grade: 70, gradeLetter: 'CC' },
       
       // DB301 - Database Systems (inst-004)
-      { studentId: 'stu-002', courseId: 'DB301', grade: 65, gradeLetter: 'C' },
-      { studentId: 'stu-004', courseId: 'DB301', grade: 92, gradeLetter: 'A' },
-      { studentId: 'stu-005', courseId: 'DB301', grade: 44, gradeLetter: 'F' },
-      { studentId: 'stu-008', courseId: 'DB301', grade: 38, gradeLetter: 'F' },
+      { studentId: 'stu-002', courseId: 'DB301', grade: 65, gradeLetter: 'DC' },
+      { studentId: 'stu-004', courseId: 'DB301', grade: 92, gradeLetter: 'AA' },
+      { studentId: 'stu-005', courseId: 'DB301', grade: 44, gradeLetter: 'FF' },
+      { studentId: 'stu-008', courseId: 'DB301', grade: 38, gradeLetter: 'FF' },
       
       // SE201 - OOP (inst-001)
-      { studentId: 'stu-001', courseId: 'SE201', grade: 58, gradeLetter: 'D' },
-      { studentId: 'stu-002', courseId: 'SE201', grade: 80, gradeLetter: 'A' },
-      { studentId: 'stu-006', courseId: 'SE201', grade: 45, gradeLetter: 'F' },
-      { studentId: 'stu-007', courseId: 'SE201', grade: 72, gradeLetter: 'B' },
-      { studentId: 'stu-009', courseId: 'SE201', grade: 25, gradeLetter: 'F' },
+      { studentId: 'stu-001', courseId: 'SE201', grade: 58, gradeLetter: 'FD' },
+      { studentId: 'stu-002', courseId: 'SE201', grade: 80, gradeLetter: 'BB' },
+      { studentId: 'stu-006', courseId: 'SE201', grade: 45, gradeLetter: 'FF' },
+      { studentId: 'stu-007', courseId: 'SE201', grade: 72, gradeLetter: 'CC' },
+      { studentId: 'stu-009', courseId: 'SE201', grade: 25, gradeLetter: 'FF' },
       
       // CS301 - Operating Systems (inst-005)
-      { studentId: 'stu-003', courseId: 'CS301', grade: 55, gradeLetter: 'D' },
-      { studentId: 'stu-004', courseId: 'CS301', grade: 42, gradeLetter: 'F' },
-      { studentId: 'stu-005', courseId: 'CS301', grade: 78, gradeLetter: 'B' },
-      { studentId: 'stu-010', courseId: 'CS301', grade: 35, gradeLetter: 'F' },
+      { studentId: 'stu-003', courseId: 'CS301', grade: 55, gradeLetter: 'FD' },
+      { studentId: 'stu-004', courseId: 'CS301', grade: 42, gradeLetter: 'FF' },
+      { studentId: 'stu-005', courseId: 'CS301', grade: 78, gradeLetter: 'CB' },
+      { studentId: 'stu-010', courseId: 'CS301', grade: 35, gradeLetter: 'FF' },
       
       // SE401 - Software Architecture (inst-004)
-      { studentId: 'stu-001', courseId: 'SE401', grade: 62, gradeLetter: 'C' },
-      { studentId: 'stu-002', courseId: 'SE401', grade: 48, gradeLetter: 'F' },
-      { studentId: 'stu-006', courseId: 'SE401', grade: 85, gradeLetter: 'A' },
-      { studentId: 'stu-007', courseId: 'SE401', grade: 40, gradeLetter: 'F' }
+      { studentId: 'stu-001', courseId: 'SE401', grade: 62, gradeLetter: 'DD' },
+      { studentId: 'stu-002', courseId: 'SE401', grade: 48, gradeLetter: 'FF' },
+      { studentId: 'stu-006', courseId: 'SE401', grade: 85, gradeLetter: 'BA' },
+      { studentId: 'stu-007', courseId: 'SE401', grade: 40, gradeLetter: 'FF' }
     ];
 
     for (const enrollment of enrollments) {
@@ -419,7 +419,7 @@ export async function seedDatabase() {
       'Software Project Management - Resit Exam',
       'Software Engineering',
       'inst-001',
-      ['F', 'D'],
+      ['FF', 'FD'],
       'This is a resit exam for students who failed SE302. Please prepare well! The exam will cover all topics from the semester.'
     );
     await db.enrollStudentInResitExam('stu-001', 'resit-SE302');
@@ -433,7 +433,7 @@ export async function seedDatabase() {
       'Introduction to Computer Science - Resit Exam',
       'Computer Science',
       'inst-002',
-      ['F'],
+      ['FF'],
       'Resit exam for CS101. Focus on programming fundamentals, algorithms, and problem-solving techniques.'
     );
     await db.enrollStudentInResitExam('stu-002', 'resit-CS101');
@@ -446,7 +446,7 @@ export async function seedDatabase() {
       'Calculus II - Resit Exam',
       'Mathematics',
       'inst-003',
-      ['F', 'D'],
+      ['FF', 'FD'],
       'Resit exam covering integrals, series, and differential equations. Bring your calculators!'
     );
     await db.enrollStudentInResitExam('stu-004', 'resit-MATH201');
@@ -460,7 +460,7 @@ export async function seedDatabase() {
       'Data Structures and Algorithms - Resit Exam',
       'Computer Science',
       'inst-002',
-      ['F'],
+      ['FF'],
       'The resit exam will include implementation questions. You may use pseudocode for algorithms.'
     );
     await db.enrollStudentInResitExam('stu-003', 'resit-DS205');
@@ -473,7 +473,7 @@ export async function seedDatabase() {
       'Database Management Systems - Resit Exam',
       'Software Engineering',
       'inst-004',
-      ['F'],
+      ['FF'],
       'SQL queries, normalization, and ER diagrams will be covered. Practice makes perfect!'
     );
     await db.enrollStudentInResitExam('stu-005', 'resit-DB301');
@@ -486,7 +486,7 @@ export async function seedDatabase() {
       'Object Oriented Programming - Resit Exam',
       'Software Engineering',
       'inst-001',
-      ['F', 'D'],
+      ['FF', 'FD'],
       'OOP concepts, design patterns, and Java programming. Bring your A-game!'
     );
     await db.enrollStudentInResitExam('stu-001', 'resit-SE201');
@@ -500,7 +500,7 @@ export async function seedDatabase() {
       'Operating Systems - Resit Exam',
       'Computer Science',
       'inst-005',
-      ['F', 'D'],
+      ['FF', 'FD'],
       'Process management, memory management, and file systems. Multiple choice and short answer questions.'
     );
     await db.enrollStudentInResitExam('stu-004', 'resit-CS301');
@@ -514,7 +514,7 @@ export async function seedDatabase() {
       'Software Architecture - Resit Exam',
       'Software Engineering',
       'inst-004',
-      ['F'],
+      ['FF'],
       'Architecture patterns, design decisions, and system design. Case study based exam.'
     );
     await db.enrollStudentInResitExam('stu-002', 'resit-SE401');
