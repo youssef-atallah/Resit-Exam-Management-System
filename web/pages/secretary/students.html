@@ -29,8 +29,8 @@
             align-items: center;
         }
         .search-box {
-            flex: 1;
-            min-width: 250px;
+            flex: 2;
+            min-width: 200px;
             position: relative;
         }
         .search-box input {
@@ -46,6 +46,16 @@
             top: 50%;
             transform: translateY(-50%);
             color: #666;
+        }
+        .filter-select {
+            flex: 1;
+            min-width: 150px;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: white;
+            cursor: pointer;
         }
         .stats-row {
             display: flex;
@@ -120,6 +130,32 @@
             padding: 3rem;
             color: #666;
         }
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+        }
+        .modal.active { display: flex; justify-content: center; align-items: center; }
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            width: 400px;
+            max-width: 90%;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; color: #666; font-weight: 500; }
+        .form-group input { width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem; }
+        
+        .action-btn { background: none; border: none; cursor: pointer; color: #666; margin: 0 0.5rem; font-size: 1.1rem; }
+        .action-btn:hover { color: #1976d2; }
+        .action-btn.delete:hover { color: #dc3545; }
     </style>
 </head>
 <body>
@@ -205,6 +241,22 @@
                 <i class="fas fa-search"></i>
                 <input type="text" id="searchInput" placeholder="Search by name, ID, or department...">
             </div>
+            
+            <select id="filterDepartment" class="filter-select">
+                <option value="">All Departments</option>
+            </select>
+            
+            <select id="filterYear" class="filter-select">
+                <option value="">All Years</option>
+                <option value="1">1st Year</option>
+                <option value="2">2nd Year</option>
+                <option value="3">3rd Year</option>
+                <option value="4">4th Year</option>
+            </select>
+
+            <button class="btn btn-success" onclick="openCreateModal()">
+                <i class="fas fa-plus mr-2"></i> Add Student
+            </button>
         </div>
 
         <!-- Data Table -->
@@ -217,11 +269,12 @@
                         <th>Email</th>
                         <th>Department</th>
                         <th>Year</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
                     <tr class="loading-row">
-                        <td colspan="5">
+                        <td colspan="6">
                             <i class="fas fa-spinner fa-spin"></i> Loading students...
                         </td>
                     </tr>
@@ -230,6 +283,43 @@
         </div>
     </main>
 
+    <!-- Modal -->
+    <div id="studentModal" class="modal">
+        <div class="modal-content">
+            <h2 id="modalTitle" class="mb-3">Add Student</h2>
+            <form id="studentForm">
+                <div class="form-group">
+                    <label>ID</label>
+                    <input type="text" id="studentId" required class="form-control" placeholder="e.g. stu-011">
+                </div>
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" id="studentName" required class="form-control" placeholder="Full Name">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="studentEmail" required class="form-control" placeholder="student@uskudar.edu.tr">
+                </div>
+                <div class="form-group">
+                    <label>Department</label>
+                    <input type="text" id="studentDepartment" class="form-control" placeholder="e.g. Software Engineering">
+                </div>
+                <div class="form-group">
+                    <label>Year Level</label>
+                    <input type="number" id="studentYear" class="form-control" min="1" max="6" placeholder="1-4">
+                </div>
+                 <div class="form-group" id="passwordGroup">
+                    <label>Password</label>
+                    <input type="password" id="studentPassword" class="form-control" placeholder="Initial Password">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script type="module">
         import { initializePageHeader } from '../../js/utils/header.js';
         import { initializeNotifications } from '../../js/utils/notifications.js';
@@ -237,13 +327,14 @@
         import { authenticatedFetch } from '../../js/utils/auth.js';
 
         let allStudents = [];
+        let isEditing = false;
 
         document.addEventListener('DOMContentLoaded', async () => {
             initializePageHeader();
             initializeNotifications();
             await updateSecretaryNameInHeader();
             await loadStudents();
-            setupSearch();
+            setupFilters();
         });
 
         async function loadStudents() {
@@ -256,15 +347,29 @@
                 }
                 
                 document.getElementById('totalCount').textContent = allStudents.length;
+                populateDepartmentFilter(allStudents);
                 renderStudents(allStudents);
             } catch (error) {
                 console.error('Error loading students:', error);
                 document.getElementById('tableBody').innerHTML = `
-                    <tr><td colspan="5" style="text-align: center; padding: 2rem; color: #dc3545;">
+                    <tr><td colspan="6" style="text-align: center; padding: 2rem; color: #dc3545;">
                         <i class="fas fa-exclamation-triangle"></i> Error loading students
                     </td></tr>
                 `;
             }
+        }
+
+        function populateDepartmentFilter(students) {
+            const departments = [...new Set(students.map(s => s.department).filter(Boolean))].sort();
+            const select = document.getElementById('filterDepartment');
+            // Keep first option
+            select.innerHTML = '<option value="">All Departments</option>';
+            departments.forEach(dept => {
+                const option = document.createElement('option');
+                option.value = dept;
+                option.textContent = dept;
+                select.appendChild(option);
+            });
         }
 
         function renderStudents(students) {
@@ -272,7 +377,7 @@
             
             if (!students || students.length === 0) {
                 tbody.innerHTML = `
-                    <tr><td colspan="5" style="text-align: center; padding: 2rem; color: #666;">
+                    <tr><td colspan="6" style="text-align: center; padding: 2rem; color: #666;">
                         No students found
                     </td></tr>
                 `;
@@ -286,22 +391,128 @@
                     <td>${student.email || 'N/A'}</td>
                     <td><span class="department-badge">${student.department || 'N/A'}</span></td>
                     <td>${student.yearLevel || 'N/A'}</td>
+                    <td>
+                        <button class="action-btn" onclick="openEditModal('${student.id}')" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn delete" onclick="deleteStudent('${student.id}')" title="Delete">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </td>
                 </tr>
             `).join('');
         }
 
-        function setupSearch() {
-            document.getElementById('searchInput').addEventListener('input', (e) => {
-                const term = e.target.value.toLowerCase();
-                const filtered = allStudents.filter(s => 
-                    (s.name || '').toLowerCase().includes(term) ||
-                    (s.id || '').toLowerCase().includes(term) ||
-                    (s.department || '').toLowerCase().includes(term) ||
-                    (s.email || '').toLowerCase().includes(term)
-                );
+        function setupFilters() {
+            const filterStudents = () => {
+                const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+                const deptFilter = document.getElementById('filterDepartment').value;
+                const yearFilter = document.getElementById('filterYear').value;
+
+                const filtered = allStudents.filter(student => {
+                    const matchesSearch = (student.name || '').toLowerCase().includes(searchTerm) ||
+                                        (student.id || '').toLowerCase().includes(searchTerm) ||
+                                        (student.email || '').toLowerCase().includes(searchTerm);
+                    
+                    const matchesDept = !deptFilter || student.department === deptFilter;
+                    const matchesYear = !yearFilter || student.yearLevel == yearFilter;
+
+                    return matchesSearch && matchesDept && matchesYear;
+                });
+                
                 renderStudents(filtered);
-            });
+            };
+
+            document.getElementById('searchInput').addEventListener('input', filterStudents);
+            document.getElementById('filterDepartment').addEventListener('change', filterStudents);
+            document.getElementById('filterYear').addEventListener('change', filterStudents);
         }
+
+        // Attach global functions to window
+        window.openCreateModal = function() {
+            isEditing = false;
+            document.getElementById('modalTitle').textContent = 'Add Student';
+            document.getElementById('studentForm').reset();
+            document.getElementById('studentId').removeAttribute('readonly');
+            document.getElementById('passwordGroup').style.display = 'block';
+            document.getElementById('studentPassword').required = true;
+            document.getElementById('studentModal').classList.add('active');
+        };
+
+        window.openEditModal = function(id) {
+            isEditing = true;
+            document.getElementById('modalTitle').textContent = 'Edit Student';
+            // Find student
+            const student = allStudents.find(s => s.id === id);
+            if(student) {
+                document.getElementById('studentId').value = student.id;
+                document.getElementById('studentId').setAttribute('readonly', 'true');
+                document.getElementById('studentName').value = student.name || '';
+                document.getElementById('studentEmail').value = student.email || '';
+                document.getElementById('studentDepartment').value = student.department || '';
+                document.getElementById('studentYear').value = student.yearLevel || '';
+                
+                document.getElementById('passwordGroup').style.display = 'none';
+                document.getElementById('studentPassword').required = false;
+
+                document.getElementById('studentModal').classList.add('active');
+            }
+        };
+
+        window.closeModal = function() {
+            document.getElementById('studentModal').classList.remove('active');
+        };
+
+        document.getElementById('studentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = {
+                id: document.getElementById('studentId').value,
+                name: document.getElementById('studentName').value,
+                email: document.getElementById('studentEmail').value,
+                department: document.getElementById('studentDepartment').value,
+                yearLevel: document.getElementById('studentYear').value,
+                password: document.getElementById('studentPassword').value
+            };
+
+            const url = isEditing ? `/secretary/students/${formData.id}` : '/secretary/students';
+            const method = isEditing ? 'PUT' : 'POST';
+
+            try {
+                const response = await authenticatedFetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+                
+                if (response.ok) {
+                    closeModal();
+                    await loadStudents(); // reload list
+                    alert(isEditing ? 'Student updated!' : 'Student created!');
+                } else {
+                    const data = await response.json();
+                    alert('Error: ' + (data.error || 'Unknown error'));
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Error submitting form');
+            }
+        });
+
+        window.deleteStudent = async function(id) {
+            if(!confirm('Are you sure you want to delete this student?')) return;
+            try {
+                const response = await authenticatedFetch(`/secretary/students/${id}`, {
+                    method: 'DELETE'
+                });
+                if(response.ok) {
+                    await loadStudents();
+                    alert('Student deleted');
+                } else {
+                    const data = await response.json();
+                    alert('Failed to delete: ' + (data.error || 'Unknown error'));
+                }
+            } catch(e) { console.error(e); alert('Error deleting'); }
+        };
     </script>
 </body>
 </html>

@@ -295,9 +295,7 @@
     <!-- Header Component -->
     <header class="header">
         <a href="dashboard.html" class="logo">Uskudar</a>
-        <div class="search-bar">
-            <input type="text" class="search-input" placeholder="Search...">
-        </div>
+
         <div class="header-right">
             <div class="notifications">
                 <button class="notification-btn" id="notificationBtn">
@@ -478,9 +476,12 @@
                 if (currentFilter === 'confirmed' && isPending) return false;
                 
                 // Filter by search
+                // Filter by search
                 const name = (exam.name || '').toLowerCase();
                 const courseId = (exam.course_id || '').toLowerCase();
-                if (searchTerm && !name.includes(searchTerm) && !courseId.includes(searchTerm)) {
+                const courseName = (exam.courseName || '').toLowerCase();
+                
+                if (searchTerm && !name.includes(searchTerm) && !courseId.includes(searchTerm) && !courseName.includes(searchTerm)) {
                     return false;
                 }
                 
@@ -514,7 +515,7 @@
                         <div class="resit-card-body">
                             <div class="info-row">
                                 <i class="fas fa-hashtag"></i>
-                                <span>Course: <strong>${exam.course_id || 'N/A'}</strong></span>
+                                <span>Course: <strong>${exam.course_id || 'N/A'} ${exam.courseName ? `- ${exam.courseName}` : ''}</strong></span>
                             </div>
                             <div class="info-row">
                                 <i class="fas fa-chalkboard-teacher"></i>

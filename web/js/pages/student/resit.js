@@ -7,8 +7,19 @@ checkStudentAuth();
 // Function to format date
 function formatDate(timestamp) {
     if (!timestamp) return 'not announced';
-    const date = new Date(parseInt(timestamp));
-    return date.toISOString().replace('T', ' ').replace('.000Z', 'Z');
+    let date = new Date(timestamp);
+    if (isNaN(date.getTime())) {
+        date = new Date(parseInt(timestamp));
+    }
+    if (isNaN(date.getTime())) return 'Invalid Date';
+
+    return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
 }
 
 // Function to get current time with timezone adjustment
@@ -22,7 +33,10 @@ function getCurrentTime() {
 // Function to format remaining time
 function formatRemainingTime(deadline) {
     if (!deadline) return 'TBA';
-    const deadlineDate = new Date(parseInt(deadline));
+    let deadlineDate = new Date(deadline);
+    if (isNaN(deadlineDate.getTime())) {
+        deadlineDate = new Date(parseInt(deadline));
+    }
     const now = getCurrentTime();
     const diff = deadlineDate - now;
 
@@ -340,15 +354,20 @@ function createResitExamCard(exam) {
         });
     }
 
-    // Add styles for the card
+    return card;
+}
+
+// Add styles for the card (only once)
+if (!document.getElementById('resit-card-styles')) {
     const style = document.createElement('style');
+    style.id = 'resit-card-styles';
     style.textContent = `
         .course-list {
             display: flex;
             flex-wrap: wrap;
             gap: 2rem;
             width: 100%;
-            justify-content: center;
+            justify-content: flex-start;
             padding: 1rem;
         }
 
@@ -368,6 +387,7 @@ function createResitExamCard(exam) {
             min-width: 300px;
             max-width: 600px;
             width: 100%;
+            text-align: left;
         }
 
         .improved-resit-card:hover {
@@ -403,6 +423,14 @@ function createResitExamCard(exam) {
             align-items: center;
             gap: 0.5em;
         }
+        
+        .remaining-time {
+            color: #dc3545;
+            font-weight: 600;
+            margin-left: 0.5rem;
+            min-width: 120px;
+            display: inline-block;
+        }
 
         .improved-resit-card .course-actions {
             margin-top: 1.2em;
@@ -428,27 +456,6 @@ function createResitExamCard(exam) {
         }
     `;
     document.head.appendChild(style);
-
-    // Add styles for the remaining time
-    const remainingTimeStyle = document.createElement('style');
-    remainingTimeStyle.textContent = `
-        .course-info p {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin: 0.5rem 0;
-        }
-        .remaining-time {
-            color: #dc3545;
-            font-weight: 600;
-            margin-left: 0.5rem;
-            min-width: 120px;
-            display: inline-block;
-        }
-    `;
-    document.head.appendChild(remainingTimeStyle);
-
-    return card;
 }
 
 // Function to format time remaining
@@ -544,6 +551,9 @@ function showSuccessModal(message) {
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', () => {
+    // Update student name
+    updateStudentNameInHeader();
+
     // Load resit exams
     fetchStudentResitExams();
 

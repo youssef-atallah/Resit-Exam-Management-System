@@ -31,25 +31,25 @@ function getCurrentIstanbulTime() {
 
 // Function to determine resit exam status
 function getResitStatus(resitExam) {
-    // Check if deadline has passed
-    if (resitExam.deadline) {
-        let deadlineDate;
-        if (typeof resitExam.deadline === 'string' && resitExam.deadline.includes(' ')) {
-            const [datePart, timePart] = resitExam.deadline.split(' ');
+    // Check if EXAM DATE has passed (not deadline)
+    if (resitExam.exam_date) {
+        let examDate;
+        if (typeof resitExam.exam_date === 'string' && resitExam.exam_date.includes(' ')) {
+            const [datePart, timePart] = resitExam.exam_date.split(' ');
             const [year, month, day] = datePart.split('-');
             const [hours, minutes, seconds] = timePart.split(':');
-            deadlineDate = new Date(year, month - 1, day, hours, minutes, seconds);
+            examDate = new Date(year, month - 1, day, hours, minutes, seconds);
         } else {
-            deadlineDate = new Date(parseInt(resitExam.deadline));
+            examDate = new Date(resitExam.exam_date);
         }
         
         const currentTime = getCurrentIstanbulTime();
-        if (deadlineDate <= currentTime) {
+        if (examDate <= currentTime) {
             return 'completed';
         }
     }
 
-    // If deadline hasn't passed, check other conditions
+    // If exam date hasn't passed (or isn't set), check other conditions
     if (resitExam.exam_date && resitExam.location) {
         return 'active';
     } else if (!resitExam.exam_date || !resitExam.location) {
@@ -87,6 +87,9 @@ function createResitCard(resitExam) {
         </div>
         <div class="resit-actions">
             ${status === 'completed' ? `
+                <button class="btn btn-outline" onclick="downloadStudentList('${resitExam.id}', 'grades-template')">
+                    <i class="fas fa-file-excel"></i> Download Template
+                </button>
                 <button class="btn btn-primary" onclick="uploadGrades('${resitExam.id}')">
                     <i class="fas fa-upload"></i> Upload Grades
                 </button>
@@ -189,6 +192,27 @@ async function loadResitExams() {
             `;
         });
     }
+
+    // Auto-switch to pending tab if active is empty and pending has items
+    const activeSection = document.getElementById('active-resits');
+    const pendingSection = document.getElementById('pending-resits');
+    const activeCount = activeSection?.querySelector('.resit-grid')?.children?.length || 0;
+    const pendingCount = pendingSection?.querySelector('.resit-grid')?.children?.length || 0;
+
+    // Check if active items are actually cards (not empty state div)
+    const activeHasCards = activeCount > 0 && !activeSection.querySelector('.empty-state');
+    const pendingHasCards = pendingCount > 0 && !pendingSection.querySelector('.empty-state');
+
+    if (!activeHasCards && pendingHasCards) {
+        // Find pending tab and click it
+        const pendingTab = document.querySelector('.resit-tab[data-tab="pending"]');
+        if (pendingTab) {
+            pendingTab.click();
+            showToast('Switched to Pending view as you have pending requests', false);
+        }
+    }
+
+
 }
 
 // Initialize the page
@@ -435,14 +459,25 @@ window.downloadStudentList = async function(resitId, format) {
             return;
         }
         
-        if (format === 'excel') {
+        if (format === 'excel' || format === 'grades-template') {
             // Create Excel workbook
             const workbook = XLSX.utils.book_new();
             
+            // Define headers based on format
+            const headers = format === 'grades-template' 
+                ? ['Student ID', 'Student Name', 'Grade', 'Grade Letter']
+                : ['Student ID', 'Student Name'];
+
             // Convert student details to array of arrays for Excel
             const excelData = [
-                ['Student ID', 'Student Name'], // Header row
-                ...studentDetails.map(student => [student.id, student.name])
+                headers, // Header row
+                ...studentDetails.map(student => {
+                    const row = [student.id, student.name];
+                    if (format === 'grades-template') {
+                        row.push('', ''); // Empty columns for Grade and Grade Letter
+                    }
+                    return row;
+                })
             ];
             
             console.log('Excel Data:', excelData); // Debug log
@@ -455,13 +490,19 @@ window.downloadStudentList = async function(resitId, format) {
                 {wch: 15}, // Student ID column width
                 {wch: 30}  // Student Name column width
             ];
+            if (format === 'grades-template') {
+                wscols.push({wch: 10}, {wch: 12}); // Widths for Grade and Grade Letter
+            }
             worksheet['!cols'] = wscols;
             
             // Add worksheet to workbook
             XLSX.utils.book_append_sheet(workbook, worksheet, 'Students');
             
             // Generate Excel file
-            XLSX.writeFile(workbook, `resit_students_${resitId}.xlsx`);
+            const filename = format === 'grades-template' 
+                ? `resit_grades_template_${resitId}.xlsx`
+                : `resit_students_${resitId}.xlsx`;
+            XLSX.writeFile(workbook, filename);
         } else if (format === 'pdf') {
             try {
             // Initialize jsPDF

@@ -459,6 +459,9 @@ function viewCourseDetails(courseId) {
 
 // Initialize page
 document.addEventListener('DOMContentLoaded', () => {
+    // Update student name
+    updateStudentNameInHeader();
+
     fetchStudentCourses();
 
     // Handle academic year/term changes

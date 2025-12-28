@@ -6,20 +6,29 @@
 ![Node](https://img.shields.io/badge/Node.js-18+-green.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)
 ![License](https://img.shields.io/badge/license-Academic-yellow.svg)
+[![Live Demo](https://img.shields.io/badge/demo-online-green.svg)](http://167.71.15.239:3000/)
 
 **A comprehensive web-based platform for managing resit examinations at Üsküdar University**
 
-[Features](#-features) • [Quick Start](#-quick-start) • [API Docs](#-api-documentation) • [Test Accounts](#-test-accounts)
+[Live Demo](#-live-demo) • [Features](#-features) • [Quick Start](#-quick-start) • [API Docs](#-api-documentation) • [Test Accounts](#-test-accounts)
 
 </div>
 
 ---
 
-> ⚠️ **Academic Project**: This is a coursework project developed for the Software Project Management course (SE302/1) at Üsküdar University. Not intended for production use.
+
 
 ## 📋 Overview
 
 The Resit Exam Management System streamlines the resit examination process with role-based access for **Students**, **Instructors**, and **Faculty Secretaries**. Each role has tailored features to manage their responsibilities effectively.
+
+## 🌐 Live Demo
+
+Experience the system in action on our live demo server:
+
+### 👉 [http://167.71.15.239:3000/](http://167.71.15.239:3000/)
+
+Use the [Test Accounts](#-test-accounts) below to explore different roles and functionalities.
 
 ## ✨ Features
 

@@ -16,6 +16,7 @@
         .search-box { flex: 1; min-width: 250px; position: relative; }
         .search-box input { width: 100%; padding: 0.75rem 1rem 0.75rem 2.5rem; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; }
         .search-box i { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #666; }
+        .filter-select { flex: 1; min-width: 150px; padding: 0.75rem; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; background-color: white; cursor: pointer; }
         .stats-row { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
         .stat-pill { background: white; padding: 0.75rem 1.25rem; border-radius: 20px; font-size: 0.9rem; color: #666; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .stat-pill strong { color: #1976d2; }
@@ -84,6 +85,16 @@
                 <i class="fas fa-search"></i>
                 <input type="text" id="searchInput" placeholder="Search by course name, code, or department...">
             </div>
+            
+            <select id="filterDepartment" class="filter-select">
+                <option value="">All Departments</option>
+            </select>
+
+            <select id="filterResit" class="filter-select">
+                <option value="">All Courses</option>
+                <option value="yes">Has Resit Exam</option>
+                <option value="no">No Resit Exam</option>
+            </select>
         </div>
 
         <div class="data-table">
@@ -130,6 +141,7 @@
                 const withResit = allCourses.filter(c => c.resitExamId).length;
                 document.getElementById('resitCount').textContent = withResit;
                 
+                populateDepartmentFilter(allCourses);
                 renderCourses(allCourses);
             } catch (error) {
                 console.error('Error loading courses:', error);
@@ -157,16 +169,44 @@
             }).join('');
         }
 
-        function setupSearch() {
-            document.getElementById('searchInput').addEventListener('input', (e) => {
-                const term = e.target.value.toLowerCase();
-                const filtered = allCourses.filter(c => 
-                    (c.name || '').toLowerCase().includes(term) ||
-                    (c.id || '').toLowerCase().includes(term) ||
-                    (c.department || '').toLowerCase().includes(term)
-                );
-                renderCourses(filtered);
+        function populateDepartmentFilter(courses) {
+            const departments = [...new Set(courses.map(c => c.department).filter(Boolean))].sort();
+            const select = document.getElementById('filterDepartment');
+            select.innerHTML = '<option value="">All Departments</option>';
+            departments.forEach(dept => {
+                const option = document.createElement('option');
+                option.value = dept;
+                option.textContent = dept;
+                select.appendChild(option);
             });
+        }
+
+        function setupSearch() {
+            const filterCourses = () => {
+                const term = document.getElementById('searchInput').value.toLowerCase();
+                const deptFilter = document.getElementById('filterDepartment').value;
+                const resitFilter = document.getElementById('filterResit').value;
+                
+                const filtered = allCourses.filter(c => {
+                    const matchesSearch = (c.name || '').toLowerCase().includes(term) ||
+                                          (c.id || '').toLowerCase().includes(term) ||
+                                          (c.department || '').toLowerCase().includes(term);
+                    
+                    const matchesDept = !deptFilter || c.department === deptFilter;
+
+                    const hasResit = !!c.resitExamId;
+                    const matchesResit = !resitFilter || 
+                                         (resitFilter === 'yes' && hasResit) || 
+                                         (resitFilter === 'no' && !hasResit);
+                    
+                    return matchesSearch && matchesDept && matchesResit;
+                });
+                renderCourses(filtered);
+            };
+
+            document.getElementById('searchInput').addEventListener('input', filterCourses);
+            document.getElementById('filterDepartment').addEventListener('change', filterCourses);
+            document.getElementById('filterResit').addEventListener('change', filterCourses);
         }
     </script>
 </body>
