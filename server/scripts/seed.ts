@@ -1,5 +1,5 @@
-import { initializeDb } from './datastore';
-import { seedDatabase } from './datastore/seed';
+import { initializeDb } from '../datastore';
+import { seedDatabase } from '../datastore/seed';
 
 (async () => {
   try {
