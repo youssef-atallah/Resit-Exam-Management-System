@@ -12,7 +12,7 @@ export class SqlDatastore implements Datastore {
 
   public async openDb() {
     this.db = await sqliteOpen({
-      filename: path.join(__dirname, '../../data/resit.db'),
+      filename: path.join(__dirname, '../../data/resit_management_system.db'),
       driver: sqlite3.Database
     });
 

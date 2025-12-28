@@ -152,14 +152,17 @@ The seed script creates:
 Resit-Exam-Management-System/
 ├── server/                    # Backend (Node.js + Express + TypeScript)
 │   ├── Auth/                  # Authentication handlers
-│   ├── datastore/             # Database layer
+│   ├── data/                  # Database storage
+│   │   └── resit_management_system.db
+│   ├── datastore/             # Database logic
 │   │   ├── dao/               # Data Access Objects
-│   │   ├── sql/               # SQLite implementation
-│   │   │   └── migrations/    # Database migrations
-│   │   └── seed.ts            # Database seeding script
+│   │   └── sql/               # SQLite implementation
+│   │       └── migrations/    # Database migrations
 │   ├── handlers/              # Request handlers
 │   ├── middleware/            # Express middleware
 │   ├── routes/                # API routes
+│   ├── scripts/               # Utility scripts
+│   │   └── seed.ts            # Database seeding script
 │   ├── types.ts               # TypeScript types
 │   └── server.ts              # Entry point
 │
