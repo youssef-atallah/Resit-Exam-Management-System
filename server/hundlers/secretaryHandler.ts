@@ -1,7 +1,7 @@
 import { Request, Response, RequestHandler } from 'express';
 import { db } from '../datastore';
-import { Secretary } from '../types';
-
+import { Secretary, Notification } from '../types';
+import { v4 as uuidv4 } from 'uuid';
 
 
 
@@ -118,6 +118,70 @@ export const updateResitExamBySecr: RequestHandler = async (req, res): Promise<a
       throw new Error('Failed to update resit exam');
     }
 
+    // =====================================================
+    // CREATE NOTIFICATIONS FOR STUDENTS AND INSTRUCTORS
+    // =====================================================
+    const notifications: Notification[] = [];
+    const formattedDate = examDateObj.toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    const formattedDeadline = deadlineObj.toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    // Notify enrolled students
+    if (updatedResitExam.students && Array.isArray(updatedResitExam.students)) {
+      for (const studentId of updatedResitExam.students) {
+        notifications.push({
+          id: uuidv4(),
+          userId: studentId,
+          type: 'resit_confirmed',
+          title: `Resit Exam Confirmed: ${course.name}`,
+          message: `The resit exam for ${course.name} has been scheduled for ${formattedDate} at ${location}. Registration deadline: ${formattedDeadline}`,
+          relatedEntityType: 'resit_exam',
+          relatedEntityId: resitExamId,
+          isRead: false,
+          createdAt: new Date()
+        });
+      }
+    }
+
+    // Notify the course instructor
+    if (course.instructor_id) {
+      notifications.push({
+        id: uuidv4(),
+        userId: course.instructor_id,
+        type: 'resit_confirmed',
+        title: `Resit Exam Confirmed: ${course.name}`,
+        message: `The resit exam for ${course.name} has been scheduled for ${formattedDate} at ${location}. Registration deadline: ${formattedDeadline}`,
+        relatedEntityType: 'resit_exam',
+        relatedEntityId: resitExamId,
+        isRead: false,
+        createdAt: new Date()
+      });
+    }
+
+    // Save all notifications
+    if (notifications.length > 0) {
+      try {
+        await db.createNotifications(notifications);
+        console.log(`Created ${notifications.length} notifications for resit exam confirmation`);
+      } catch (notifError) {
+        console.error('Error creating notifications:', notifError);
+        // Don't fail the whole request if notifications fail
+      }
+    }
+
     return res.status(200).json({
       success: true,
       message: 'Resit exam updated successfully',
@@ -131,7 +195,8 @@ export const updateResitExamBySecr: RequestHandler = async (req, res): Promise<a
         location: updatedResitExam.location,
         instructors: updatedResitExam.instructors,
         lettersAllowed: updatedResitExam.lettersAllowed
-      }
+      },
+      notificationsSent: notifications.length
     });
   } catch (error) {
     console.error('Error updating resit exam:', error);

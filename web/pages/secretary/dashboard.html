@@ -7,26 +7,195 @@
     <link rel="stylesheet" href="../../css/common.css">
     <link rel="stylesheet" href="../../css/components/header.css">
     <link rel="stylesheet" href="../../css/components/sidebar.css">
-    <link rel="stylesheet" href="../../css/pages/secretary/secretary-dashboard.css">
+    <link rel="stylesheet" href="../../css/components/notifications.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .dashboard-header {
+            margin-bottom: 2rem;
+        }
+        .dashboard-header h1 {
+            color: #2c3e50;
+            font-size: 1.8rem;
+            margin: 0 0 0.5rem 0;
+        }
+        .secretary-info {
+            color: #666;
+            font-size: 0.95rem;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        }
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+        .stat-icon.students { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .stat-icon.instructors { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        .stat-icon.courses { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+        .stat-icon.resits { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+        .stat-content h3 {
+            font-size: 1.8rem;
+            color: #2c3e50;
+            margin: 0;
+        }
+        .stat-content p {
+            color: #666;
+            margin: 0.25rem 0 0 0;
+            font-size: 0.9rem;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 1.5rem;
+        }
+        .card h2 {
+            color: #2c3e50;
+            font-size: 1.2rem;
+            margin: 0 0 1rem 0;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .pending-resits-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .pending-resit-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #ffc107;
+        }
+        .resit-info h4 {
+            margin: 0 0 0.25rem 0;
+            color: #2c3e50;
+        }
+        .resit-info p {
+            margin: 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background: #1976d2;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #1565c0;
+        }
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+        }
+        .action-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1.25rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+        .action-card:hover {
+            background: #e3f2fd;
+            border-color: #1976d2;
+        }
+        .action-card i {
+            font-size: 2rem;
+            color: #1976d2;
+            margin-bottom: 0.75rem;
+        }
+        .action-card h3 {
+            margin: 0 0 0.25rem 0;
+            font-size: 1rem;
+            color: #2c3e50;
+        }
+        .action-card p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: #666;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+        .empty-state i {
+            font-size: 3rem;
+            color: #ddd;
+            margin-bottom: 1rem;
+        }
+    </style>
 </head>
 <body>
     <!-- Header Component -->
     <header class="header">
-        <a href="#" class="logo">Uskudar</a>
+        <a href="dashboard.html" class="logo">Uskudar</a>
         <div class="search-bar">
             <input type="text" class="search-input" placeholder="Search...">
         </div>
-        <div class="user-menu">
-            <div class="user-info">
-                <span class="user-name">Secretary Name</span>
-                <span class="user-role">Secretary</span>
-                <i class="fas fa-chevron-down"></i>
+        <div class="header-right">
+            <div class="notifications">
+                <button class="notification-btn" id="notificationBtn">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge">0</span>
+                </button>
+                <div class="notification-dropdown">
+                    <div class="notification-header">
+                        <h3>Notifications</h3>
+                        <button class="mark-all-read">Mark all as read</button>
+                    </div>
+                    <div class="notification-list">
+                        <div class="notification-empty">
+                            <p>No notifications</p>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="dropdown-menu">
-                <a href="#"><i class="fas fa-user"></i> Profile</a>
-                <a href="#"><i class="fas fa-cog"></i> Settings</a>
-                <a href="#" class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            <div class="user-menu">
+                <div class="user-info">
+                    <span class="user-name">Secretary Name</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="dropdown-menu">
+                    <a href="#" class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                </div>
             </div>
         </div>
     </header>
@@ -36,32 +205,28 @@
         <nav class="nav-menu">
             <div class="nav-section">
                 <div class="nav-section-title">Main</div>
-                <a href="#" class="nav-link active">
+                <a href="dashboard.html" class="nav-link active">
                     <i class="fas fa-home"></i>
                     Dashboard
-                </a>
-                <a href="#" class="nav-link">
-                    <i class="fas fa-users"></i>
-                    Students
-                </a>
-                <a href="#" class="nav-link">
-                    <i class="fas fa-chalkboard-teacher"></i>
-                    Instructors
                 </a>
             </div>
             <div class="nav-section">
                 <div class="nav-section-title">Management</div>
-                <a href="#" class="nav-link">
-                    <i class="fas fa-calendar-alt"></i>
-                    Schedule
+                <a href="resit-exams.html" class="nav-link">
+                    <i class="fas fa-redo"></i>
+                    Resit Exams
                 </a>
-                <a href="#" class="nav-link">
+                <a href="students.html" class="nav-link">
+                    <i class="fas fa-users"></i>
+                    Students
+                </a>
+                <a href="instructors.html" class="nav-link">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                    Instructors
+                </a>
+                <a href="courses.html" class="nav-link">
                     <i class="fas fa-book"></i>
                     Courses
-                </a>
-                <a href="#" class="nav-link">
-                    <i class="fas fa-file-alt"></i>
-                    Reports
                 </a>
             </div>
         </nav>
@@ -70,150 +235,163 @@
     <!-- Main Content -->
     <main class="main-content">
         <div class="dashboard-header">
-            <h1>Welcome, <span id="secretaryName">Secretary Name</span></h1>
-            <p class="secretary-info">Administrative Office</p>
+            <h1>Welcome, <span id="secretaryName">Secretary</span></h1>
+            <p class="secretary-info">Secretary Dashboard - Uskudar University</p>
         </div>
 
-        <div class="dashboard-grid">
-            <!-- Quick Actions -->
-            <div class="card">
-                <h2>Quick Actions</h2>
-                <div class="quick-actions">
-                    <div class="action-card">
-                        <i class="fas fa-user-plus"></i>
-                        <h3>Add Student</h3>
-                        <p>Register new student</p>
-                    </div>
-                    <div class="action-card">
-                        <i class="fas fa-chalkboard-teacher"></i>
-                        <h3>Add Instructor</h3>
-                        <p>Register new instructor</p>
-                    </div>
-                    <div class="action-card">
-                        <i class="fas fa-calendar-plus"></i>
-                        <h3>Schedule Class</h3>
-                        <p>Create new class schedule</p>
-                    </div>
-                    <div class="action-card">
-                        <i class="fas fa-file-export"></i>
-                        <h3>Generate Report</h3>
-                        <p>Create system reports</p>
-                    </div>
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon students">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="studentCount">-</h3>
+                    <p>Total Students</p>
                 </div>
             </div>
-
-            <!-- Recent Activities -->
-            <div class="card">
-                <h2>Recent Activities</h2>
-                <div class="activity-list">
-                    <div class="activity-item">
-                        <div class="activity-icon">
-                            <i class="fas fa-user-plus"></i>
-                        </div>
-                        <div class="activity-info">
-                            <h3>New Student Registration</h3>
-                            <p>Ahmed Mohamed registered for Spring 2024</p>
-                            <span class="activity-time">2 hours ago</span>
-                        </div>
-                        <span class="status-badge active">Completed</span>
-                    </div>
-                    <div class="activity-item">
-                        <div class="activity-icon">
-                            <i class="fas fa-calendar-alt"></i>
-                        </div>
-                        <div class="activity-info">
-                            <h3>Schedule Update</h3>
-                            <p>Updated Mathematics I class schedule</p>
-                            <span class="activity-time">5 hours ago</span>
-                        </div>
-                        <span class="status-badge pending">Pending</span>
-                    </div>
-                    <div class="activity-item">
-                        <div class="activity-icon">
-                            <i class="fas fa-file-alt"></i>
-                        </div>
-                        <div class="activity-info">
-                            <h3>Report Generation</h3>
-                            <p>Generated monthly enrollment report</p>
-                            <span class="activity-time">1 day ago</span>
-                        </div>
-                        <span class="status-badge completed">Completed</span>
-                    </div>
+            <div class="stat-card">
+                <div class="stat-icon instructors">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="instructorCount">-</h3>
+                    <p>Instructors</p>
                 </div>
             </div>
-
-            <!-- Student List -->
-            <div class="card">
-                <h2>Recent Students</h2>
-                <div class="student-list">
-                    <div class="student-item">
-                        <div class="student-info">
-                            <h3>Ahmed Mohamed</h3>
-                            <p>ID: 12345</p>
-                            <p>Computer Science</p>
-                        </div>
-                        <div class="action-buttons">
-                            <button class="action-btn edit"><i class="fas fa-edit"></i></button>
-                            <button class="action-btn delete"><i class="fas fa-trash"></i></button>
-                        </div>
-                    </div>
-                    <div class="student-item">
-                        <div class="student-info">
-                            <h3>Sarah Ahmed</h3>
-                            <p>ID: 12346</p>
-                            <p>Information Technology</p>
-                        </div>
-                        <div class="action-buttons">
-                            <button class="action-btn edit"><i class="fas fa-edit"></i></button>
-                            <button class="action-btn delete"><i class="fas fa-trash"></i></button>
-                        </div>
-                    </div>
+            <div class="stat-card">
+                <div class="stat-icon courses">
+                    <i class="fas fa-book"></i>
                 </div>
+                <div class="stat-content">
+                    <h3 id="courseCount">-</h3>
+                    <p>Courses</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon resits">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="pendingResitCount">-</h3>
+                    <p>Pending Resit Exams</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Resit Exams -->
+        <div class="card">
+            <h2><i class="fas fa-exclamation-circle" style="color: #ffc107;"></i> Pending Resit Exam Confirmations</h2>
+            <div class="pending-resits-list" id="pendingResitsList">
+                <div class="empty-state">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Loading...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card">
+            <h2>Quick Actions</h2>
+            <div class="quick-actions">
+                <a href="resit-exams.html" class="action-card" style="text-decoration: none;">
+                    <i class="fas fa-calendar-check"></i>
+                    <h3>Confirm Resit Exams</h3>
+                    <p>Set dates and locations</p>
+                </a>
             </div>
         </div>
     </main>
 
-    <script src="../../js/main.js"></script>
-    <script>
-        // Load user data
-        document.addEventListener('DOMContentLoaded', () => {
-            const userData = JSON.parse(localStorage.getItem('userData'));
-            if (userData) {
-                document.getElementById('secretaryName').textContent = userData.name;
-                document.querySelector('.user-name').textContent = userData.name;
+    <script type="module">
+        import { initializePageHeader } from '../../js/utils/header.js';
+        import { initializeNotifications } from '../../js/utils/notifications.js';
+        import { updateSecretaryNameInHeader } from '../../js/utils/secretaryAuth.js';
+        import { authenticatedFetch } from '../../js/utils/auth.js';
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            initializePageHeader();
+            initializeNotifications();
+            await updateSecretaryNameInHeader();
+
+            // Load dashboard data
+            await loadDashboardData();
+        });
+
+        async function loadDashboardData() {
+            try {
+                // Fetch all data in parallel
+                const [studentsRes, instructorsRes, coursesRes, resitExamsRes] = await Promise.all([
+                    authenticatedFetch('/secretary/students'),
+                    authenticatedFetch('/secretary/instructors'),
+                    authenticatedFetch('/secretary/courses'),
+                    authenticatedFetch('/secretary/resit-exams')
+                ]);
+
+                const students = await studentsRes.json();
+                const instructors = await instructorsRes.json();
+                const courses = await coursesRes.json();
+                const resitExams = await resitExamsRes.json();
+
+                // Update counts
+                document.getElementById('studentCount').textContent = Array.isArray(students) ? students.length : 0;
+                document.getElementById('instructorCount').textContent = Array.isArray(instructors) ? instructors.length : 0;
+                document.getElementById('courseCount').textContent = Array.isArray(courses) ? courses.length : 0;
+
+                // Filter pending resit exams (no examDate or location set)
+                const pendingResits = Array.isArray(resitExams) 
+                    ? resitExams.filter(exam => !exam.examDate || !exam.location)
+                    : [];
+                
+                document.getElementById('pendingResitCount').textContent = pendingResits.length;
+
+                // Render pending resits
+                renderPendingResits(pendingResits);
+
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+                document.getElementById('pendingResitsList').innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Error loading data. Please try again.</p>
+                    </div>
+                `;
             }
-        });
+        }
 
-        // Toggle user menu
-        document.querySelector('.user-info').addEventListener('click', () => {
-            document.querySelector('.dropdown-menu').classList.toggle('show');
-        });
-
-        // Close dropdown when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.user-menu')) {
-                document.querySelector('.dropdown-menu').classList.remove('show');
+        function renderPendingResits(resits) {
+            const container = document.getElementById('pendingResitsList');
+            
+            if (!resits || resits.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-check-circle" style="color: #28a745;"></i>
+                        <p>No pending resit exams to confirm!</p>
+                    </div>
+                `;
+                return;
             }
-        });
 
-        // Handle action buttons
-        document.querySelectorAll('.action-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const action = e.target.closest('.action-btn').classList.contains('edit') ? 'edit' : 'delete';
-                const item = e.target.closest('.student-item');
-                // Handle edit/delete action
-                console.log(`${action} student:`, item);
-            });
-        });
+            container.innerHTML = resits.slice(0, 5).map(exam => `
+                <div class="pending-resit-item">
+                    <div class="resit-info">
+                        <h4>${exam.name || 'Unnamed Course'}</h4>
+                        <p>Course: ${exam.course_id || 'N/A'} | Instructor: ${exam.instructors || 'N/A'}</p>
+                    </div>
+                    <a href="resit-exams.html" class="btn btn-primary">
+                        <i class="fas fa-edit"></i> Confirm
+                    </a>
+                </div>
+            `).join('');
 
-        // Handle quick action cards
-        document.querySelectorAll('.action-card').forEach(card => {
-            card.addEventListener('click', () => {
-                const action = card.querySelector('h3').textContent;
-                console.log(`Quick action: ${action}`);
-                // Handle quick action
-            });
-        });
+            if (resits.length > 5) {
+                container.innerHTML += `
+                    <div style="text-align: center; padding-top: 0.5rem;">
+                        <a href="resit-exams.html" style="color: #1976d2;">View all ${resits.length} pending exams →</a>
+                    </div>
+                `;
+            }
+        }
     </script>
 </body>
-</html> 
+</html>

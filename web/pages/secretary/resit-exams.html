@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resit Exams - Secretary - Uskudar</title>
+    <link rel="stylesheet" href="../../css/common.css">
+    <link rel="stylesheet" href="../../css/components/header.css">
+    <link rel="stylesheet" href="../../css/components/sidebar.css">
+    <link rel="stylesheet" href="../../css/components/notifications.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .page-header h1 {
+            color: #2c3e50;
+            font-size: 1.8rem;
+            margin: 0;
+        }
+        .filters-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+        }
+        .search-box input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        .search-box i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+        }
+        .filter-tabs {
+            display: flex;
+            background: #f0f0f0;
+            border-radius: 8px;
+            padding: 4px;
+        }
+        .filter-tab {
+            padding: 0.5rem 1rem;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            border-radius: 6px;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.2s;
+        }
+        .filter-tab.active {
+            background: white;
+            color: #1976d2;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .resit-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+        .resit-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .resit-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        }
+        .resit-card-header {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .resit-card-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: #2c3e50;
+        }
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .status-confirmed {
+            background: #d4edda;
+            color: #155724;
+        }
+        .resit-card-body {
+            padding: 1.25rem;
+        }
+        .info-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        .info-row i {
+            width: 20px;
+            color: #1976d2;
+        }
+        .info-row strong {
+            color: #2c3e50;
+        }
+        .resit-card-footer {
+            padding: 1rem 1.25rem;
+            background: #f8f9fa;
+            border-top: 1px solid #f0f0f0;
+        }
+        .btn {
+            padding: 0.6rem 1.25rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .btn-primary {
+            background: #1976d2;
+            color: white;
+            width: 100%;
+            justify-content: center;
+        }
+        .btn-primary:hover {
+            background: #1565c0;
+        }
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        .btn-success:hover {
+            background: #218838;
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #666;
+        }
+        .empty-state i {
+            font-size: 4rem;
+            color: #ddd;
+            margin-bottom: 1rem;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.show {
+            display: flex;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            padding: 1.25rem;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.25rem;
+            color: #2c3e50;
+        }
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+        .modal-body {
+            padding: 1.25rem;
+        }
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #2c3e50;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+        .form-group input:focus {
+            border-color: #1976d2;
+            outline: none;
+        }
+        .form-group small {
+            display: block;
+            margin-top: 0.25rem;
+            color: #666;
+            font-size: 0.85rem;
+        }
+        .modal-footer {
+            padding: 1.25rem;
+            border-top: 1px solid #f0f0f0;
+            display: flex;
+            gap: 0.75rem;
+            justify-content: flex-end;
+        }
+        .course-info-box {
+            background: #e3f2fd;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.25rem;
+        }
+        .course-info-box h4 {
+            margin: 0 0 0.5rem 0;
+            color: #1976d2;
+        }
+        .course-info-box p {
+            margin: 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 2000;
+            animation: slideIn 0.3s ease;
+        }
+        .toast.success { background: #28a745; }
+        .toast.error { background: #dc3545; }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Component -->
+    <header class="header">
+        <a href="dashboard.html" class="logo">Uskudar</a>
+        <div class="search-bar">
+            <input type="text" class="search-input" placeholder="Search...">
+        </div>
+        <div class="header-right">
+            <div class="notifications">
+                <button class="notification-btn" id="notificationBtn">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge">0</span>
+                </button>
+                <div class="notification-dropdown">
+                    <div class="notification-header">
+                        <h3>Notifications</h3>
+                        <button class="mark-all-read">Mark all as read</button>
+                    </div>
+                    <div class="notification-list">
+                        <div class="notification-empty">
+                            <p>No notifications</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="user-menu">
+                <div class="user-info">
+                    <span class="user-name">Secretary Name</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="dropdown-menu">
+                    <a href="#" class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sidebar Component -->
+    <aside class="sidebar">
+        <nav class="nav-menu">
+            <div class="nav-section">
+                <div class="nav-section-title">Main</div>
+                <a href="dashboard.html" class="nav-link">
+                    <i class="fas fa-home"></i>
+                    Dashboard
+                </a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">Management</div>
+                <a href="resit-exams.html" class="nav-link active">
+                    <i class="fas fa-redo"></i>
+                    Resit Exams
+                </a>
+                <a href="students.html" class="nav-link">
+                    <i class="fas fa-users"></i>
+                    Students
+                </a>
+                <a href="instructors.html" class="nav-link">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                    Instructors
+                </a>
+                <a href="courses.html" class="nav-link">
+                    <i class="fas fa-book"></i>
+                    Courses
+                </a>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="page-header">
+            <h1><i class="fas fa-redo"></i> Resit Exams</h1>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-bar">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Search by course name or code...">
+            </div>
+            <div class="filter-tabs">
+                <button class="filter-tab active" data-filter="all">All</button>
+                <button class="filter-tab" data-filter="pending">Pending</button>
+                <button class="filter-tab" data-filter="confirmed">Confirmed</button>
+            </div>
+        </div>
+
+        <!-- Resit Grid -->
+        <div class="resit-grid" id="resitGrid">
+            <div class="empty-state">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading resit exams...</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Confirm Modal -->
+    <div class="modal" id="confirmModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-calendar-check"></i> Confirm Resit Exam</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="course-info-box">
+                    <h4 id="modalCourseName">Course Name</h4>
+                    <p id="modalCourseCode">Course Code</p>
+                </div>
+                <form id="confirmForm">
+                    <input type="hidden" id="courseId">
+                    <div class="form-group">
+                        <label for="examDate">Exam Date & Time</label>
+                        <input type="datetime-local" id="examDate" required>
+                        <small>When will the resit exam take place?</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="deadline">Registration Deadline</label>
+                        <input type="datetime-local" id="deadline" required>
+                        <small>Last date for students to register (must be before exam date)</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="location">Location</label>
+                        <input type="text" id="location" placeholder="e.g., Room 101, Building A" required>
+                        <small>Where will the exam be held?</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-success" onclick="submitConfirmation()">
+                    <i class="fas fa-check"></i> Confirm Exam
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializePageHeader } from '../../js/utils/header.js';
+        import { initializeNotifications } from '../../js/utils/notifications.js';
+        import { updateSecretaryNameInHeader } from '../../js/utils/secretaryAuth.js';
+        import { authenticatedFetch, getUserId } from '../../js/utils/auth.js';
+
+        let allResitExams = [];
+        let currentFilter = 'all';
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            initializePageHeader();
+            initializeNotifications();
+            await updateSecretaryNameInHeader();
+
+            await loadResitExams();
+            setupEventListeners();
+        });
+
+        async function loadResitExams() {
+            try {
+                const response = await authenticatedFetch('/secretary/resit-exams');
+                allResitExams = await response.json();
+                
+                if (!Array.isArray(allResitExams)) {
+                    allResitExams = [];
+                }
+                
+                renderResitExams();
+            } catch (error) {
+                console.error('Error loading resit exams:', error);
+                document.getElementById('resitGrid').innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Error loading resit exams. Please try again.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function renderResitExams() {
+            const grid = document.getElementById('resitGrid');
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            let filteredExams = allResitExams.filter(exam => {
+                // Filter by status
+                const isPending = !exam.examDate || !exam.location;
+                if (currentFilter === 'pending' && !isPending) return false;
+                if (currentFilter === 'confirmed' && isPending) return false;
+                
+                // Filter by search
+                const name = (exam.name || '').toLowerCase();
+                const courseId = (exam.course_id || '').toLowerCase();
+                if (searchTerm && !name.includes(searchTerm) && !courseId.includes(searchTerm)) {
+                    return false;
+                }
+                
+                return true;
+            });
+
+            if (filteredExams.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1 / -1;">
+                        <i class="fas fa-folder-open"></i>
+                        <p>No resit exams found</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = filteredExams.map(exam => {
+                const isPending = !exam.examDate || !exam.location;
+                const statusClass = isPending ? 'status-pending' : 'status-confirmed';
+                const statusText = isPending ? 'Pending' : 'Confirmed';
+                
+                const examDate = exam.examDate ? new Date(exam.examDate).toLocaleString() : 'Not set';
+                const deadline = exam.deadline ? new Date(exam.deadline).toLocaleString() : 'Not set';
+                
+                return `
+                    <div class="resit-card" data-id="${exam.id || exam.course_id}">
+                        <div class="resit-card-header">
+                            <h3>${exam.name || 'Unnamed Course'}</h3>
+                            <span class="status-badge ${statusClass}">${statusText}</span>
+                        </div>
+                        <div class="resit-card-body">
+                            <div class="info-row">
+                                <i class="fas fa-hashtag"></i>
+                                <span>Course: <strong>${exam.course_id || 'N/A'}</strong></span>
+                            </div>
+                            <div class="info-row">
+                                <i class="fas fa-chalkboard-teacher"></i>
+                                <span>Instructor: <strong>${exam.instructors || 'N/A'}</strong></span>
+                            </div>
+                            <div class="info-row">
+                                <i class="fas fa-calendar"></i>
+                                <span>Exam Date: <strong>${examDate}</strong></span>
+                            </div>
+                            <div class="info-row">
+                                <i class="fas fa-clock"></i>
+                                <span>Deadline: <strong>${deadline}</strong></span>
+                            </div>
+                            <div class="info-row">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>Location: <strong>${exam.location || 'Not set'}</strong></span>
+                            </div>
+                            <div class="info-row">
+                                <i class="fas fa-graduation-cap"></i>
+                                <span>Allowed Grades: <strong>${exam.lettersAllowed || 'N/A'}</strong></span>
+                            </div>
+                        </div>
+                        <div class="resit-card-footer">
+                            <button class="btn btn-primary" onclick="openConfirmModal('${exam.course_id}', '${exam.name || 'Course'}')">
+                                <i class="fas fa-edit"></i> ${isPending ? 'Confirm' : 'Edit'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function setupEventListeners() {
+            // Search
+            document.getElementById('searchInput').addEventListener('input', () => {
+                renderResitExams();
+            });
+
+            // Filter tabs
+            document.querySelectorAll('.filter-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    currentFilter = tab.dataset.filter;
+                    renderResitExams();
+                });
+            });
+
+            // Modal close
+            document.querySelector('.close-modal').addEventListener('click', closeModal);
+            document.getElementById('confirmModal').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('confirmModal')) {
+                    closeModal();
+                }
+            });
+        }
+
+        // Make functions global for onclick handlers
+        window.openConfirmModal = function(courseId, courseName) {
+            document.getElementById('courseId').value = courseId;
+            document.getElementById('modalCourseName').textContent = courseName;
+            document.getElementById('modalCourseCode').textContent = `Course ID: ${courseId}`;
+            
+            // Set minimum dates
+            const now = new Date();
+            const nowString = now.toISOString().slice(0, 16);
+            document.getElementById('deadline').min = nowString;
+            document.getElementById('examDate').min = nowString;
+            
+            document.getElementById('confirmModal').classList.add('show');
+        };
+
+        window.closeModal = function() {
+            document.getElementById('confirmModal').classList.remove('show');
+            document.getElementById('confirmForm').reset();
+        };
+
+        window.submitConfirmation = async function() {
+            const courseId = document.getElementById('courseId').value;
+            const examDate = document.getElementById('examDate').value;
+            const deadline = document.getElementById('deadline').value;
+            const location = document.getElementById('location').value;
+
+            if (!examDate || !deadline || !location) {
+                showToast('Please fill in all fields', 'error');
+                return;
+            }
+
+            if (new Date(deadline) >= new Date(examDate)) {
+                showToast('Deadline must be before exam date', 'error');
+                return;
+            }
+
+            try {
+                const secretaryId = getUserId();
+                const response = await authenticatedFetch(`/secretary/confirm/resit-exam/${secretaryId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        courseId,
+                        examDate,
+                        deadline,
+                        location
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast('Resit exam confirmed successfully!', 'success');
+                    closeModal();
+                    await loadResitExams();
+                } else {
+                    showToast(result.error || 'Failed to confirm resit exam', 'error');
+                }
+            } catch (error) {
+                console.error('Error confirming resit exam:', error);
+                showToast('An error occurred. Please try again.', 'error');
+            }
+        };
+
+        function showToast(message, type) {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

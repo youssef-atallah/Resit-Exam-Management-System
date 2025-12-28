@@ -1,108 +1,220 @@
-# Resit Exam Management System
+# 🎓 Resit Exam Management System
 
-> ⚠ **Note:** This is an academic project developed for coursework purposes and not intended for production use.
+<div align="center">
 
+![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
+![Node](https://img.shields.io/badge/Node.js-18+-green.svg)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)
+![License](https://img.shields.io/badge/license-Academic-yellow.svg)
 
-> 📚 **This project is an academic submission for the Software Project Management course (SE302/1) at Üsküdar University.**
+**A comprehensive web-based platform for managing resit examinations at Üsküdar University**
 
-The **Resit Exam Management System** is a web-based platform designed to streamline and digitize the resit exam process at **Üsküdar University**. Built with a focus on **usability**, **scalability**, and **role-based access control**, the system supports three user types: **Students**, **Instructors**, and **Faculty Secretaries**, each with tailored features to manage their responsibilities effectively.
+[Features](#-features) • [Quick Start](#-quick-start) • [API Docs](#-api-documentation) • [Test Accounts](#-test-accounts)
 
-## Team Collaboration and Backend Development
-This project was developed by a dedicated team. I contributed primarily to the backend, implementing the server-side logic using Node.js with TypeScript and the Express.js framework to ensure a scalable and maintainable API.
-## 👥 User Roles & Functionalities
+</div>
+
+---
+
+> ⚠️ **Academic Project**: This is a coursework project developed for the Software Project Management course (SE302/1) at Üsküdar University. Not intended for production use.
+
+## 📋 Overview
+
+The Resit Exam Management System streamlines the resit examination process with role-based access for **Students**, **Instructors**, and **Faculty Secretaries**. Each role has tailored features to manage their responsibilities effectively.
+
+## ✨ Features
 
 ### 🎓 Students
-
-Students can:
-
-* View their grades and see which courses they are eligible to retake based on instructor-defined grade letters (e.g., DD, FF, CC).
-* Apply for resit exams and receive confirmation.
-* Cancel resit exam applications **before the cancellation deadline**.
-* View **instructor announcements or messages** related to resit exams.
-* Track the status of their applications in real time.
+- View grades and check resit eligibility based on instructor-defined grade letters
+- Apply for resit exams and receive real-time confirmation
+- Cancel applications before the deadline
+- View instructor announcements for resit exams
+- Track application status in real-time
+- Receive notifications when resit exams are confirmed
 
 ### 👨‍🏫 Instructors
-
-Instructors can:
-
-* Upload student grades (final/resit) via Excel files.
-* Create resit exams for each course and define eligible grade letters.
-* Download student application lists in **PDF or Excel** format.
-* Send **announcements** for resit exams to inform students of updates or instructions.
-* Monitor and manage student applications for their resit exams.
+- Create resit exams and define eligible grade letters (e.g., F, D, DD)
+- Upload student grades via Excel files
+- Send announcements to inform students
+- Download application lists in PDF/Excel format
+- Monitor and manage student applications
+- Receive notifications when resit dates are scheduled
 
 ### 🗂️ Faculty Secretaries
+- Manage student and instructor accounts
+- Enroll/unenroll users in courses
+- **Confirm resit exams** with date, time, and location
+- Oversee all resit exam processes
+- View system-wide statistics
 
-Faculty Secretaries can:
+## 🚀 Quick Start
 
-* Create, edit, or delete student and instructor accounts.
-* Enroll or unenroll students and instructors in courses.
-* Schedule **resit exam dates and locations**.
-* Oversee and coordinate resit exam processes across departments in line with academic policies.
+### Prerequisites
 
-## ✅ Key Features
+- **Node.js** 18+ 
+- **npm** (comes with Node.js)
 
-* Secure **role-based login** system.
-* Real-time eligibility checking based on instructor settings.
-* Excel-based bulk grade uploads.
-* PDF/Excel export for student application lists.
-* Integrated announcements from instructors to students.
-* Full admin control over users and course assignments.
--------------------------------------------
-# ⚠ Disclaimer
-This project was developed solely for academic purposes as part of the Software Project Management (SE302/1) course at Üsküdar University.
-Important notes:
+### Installation
 
-The system was not designed, tested, or reviewed for production-level security, performance, or compliance requirements.
-
-It should not be used in any real-world or production environment without significant further development and security hardening.
-
-The primary goal was to demonstrate project planning, team collaboration, and backend functionality for educational evaluation.
--------------------
-# 🚀 Getting Started
-
-This guide will help you set up and run the Resit Exam Management System locally.
-
-## 📋 Prerequisites
-
-Before you begin, ensure you have the following installed:
-
-- **Node.js** 
-- **npm** (usually comes with Node.js)
-
-
-
-## 🚀 Running the Application
-
-1. **Start the Backend Server**
 ```bash
+# Clone the repository
+git clone https://github.com/yourusername/Resit-Exam-Management-System.git
+cd Resit-Exam-Management-System
+
+# Install backend dependencies
 cd server
+npm install
+
+# Start the server
 npm start
 ```
 
+The server will start at `http://localhost:3000`
 
+### Seed Database (Optional)
 
-## 📝 Default Accounts
+To populate the database with test data:
 
-The system comes with default test accounts:
+```bash
+cd server
+npm run seed
+```
 
-- **Admin/Faculty Secretary**:
-  - secretary id: ---
-  - Password: ----
+## 🔑 Test Accounts
 
-- **Instructor**:
-  - instructor id: 12345611
-  - Password: pass123ff
+All test accounts use the password: **`password123`**
 
-- **Student**:
-  - student id: 20209958
-  - Password: pass123Y2Uskudar!#@123
+### Secretaries & Instructors
+| Role | ID | Email |
+|------|-----|-------|
+| Secretary | `sec-001` | sarah.johnson@uskudar.edu.tr |
+| Secretary | `sec-002` | michael.chen@uskudar.edu.tr |
+| Instructor | `inst-001` | youssef.atallah@uskudar.edu.tr |
+| Instructor | `inst-002` | emily.watson@uskudar.edu.tr |
+| Instructor | `inst-003` | ahmed.hassan@uskudar.edu.tr |
+| Instructor | `inst-004` | maria.garcia@uskudar.edu.tr |
+| Instructor | `inst-005` | john.smith@uskudar.edu.tr |
 
-## 📚 Additional Resources
+### Students
+| ID | Name | Has Failing Grades |
+|----|------|-------------------|
+| `stu-001` | Ali Yilmaz | ✅ SE302(F), SE201(D) |
+| `stu-002` | Ayşe Demir | ✅ CS101(F), SE401(F) |
+| `stu-003` | Mehmet Kaya | ✅ SE302(F), DS205(F), CS301(D) |
+| `stu-004` | Fatma Özdemir | ✅ MATH201(F), CS301(F) |
+| `stu-005` | Can Arslan | ✅ DB301(F) |
+| `stu-006` | Zeynep Şahin | ✅ SE201(F) |
+| `stu-007` | Emre Çelik | ✅ SE302(D), MATH201(F), SE401(F) |
+| `stu-008` | Elif Yıldız | ✅ DB301(F) |
+| `stu-009` | Burak Koç | ✅ CS101(F), DS205(F), SE201(F) |
+| `stu-010` | Selin Aktaş | ✅ CS101(D), CS301(F) |
 
-- [API Documentation](docs/api.md) | notion link: https://imaginary-methane-624.notion.site/API-Documentation-2137cfc12eeb80a7bce6dc7b96f0b3a9
+> 💡 **Tip**: Login as `stu-001` to test a student with multiple failing grades across different courses.
 
+## 📊 Sample Data
 
-- [Database Schema](docs/ERD.md)
+The seed script creates:
 
+| Entity | Count | Details |
+|--------|-------|---------|
+| Secretaries | 2 | Admin users |
+| Instructors | 5 | Course teachers |
+| Students | 10 | Enrolled in various courses |
+| Courses | 8 | SE302, CS101, MATH201, DS205, DB301, SE201, CS301, SE401 |
+| Enrollments | 40 | Student-course registrations with grades |
+| Resit Exams | 8 | All pending secretary confirmation |
+| Notifications | 10+ | Sample system and resit notifications |
 
+### Courses
+
+| Code | Name | Department | Instructor |
+|------|------|------------|------------|
+| SE302 | Software Project Management | Software Engineering | Dr. Youssef Atallah |
+| CS101 | Introduction to Computer Science | Computer Science | Prof. Emily Watson |
+| MATH201 | Calculus II | Mathematics | Dr. Ahmed Hassan |
+| DS205 | Data Structures and Algorithms | Computer Science | Prof. Emily Watson |
+| DB301 | Database Management Systems | Software Engineering | Dr. Maria Garcia |
+| SE201 | Object Oriented Programming | Software Engineering | Dr. Youssef Atallah |
+| CS301 | Operating Systems | Computer Science | Prof. John Smith |
+| SE401 | Software Architecture | Software Engineering | Dr. Maria Garcia |
+
+## 🏗️ Project Structure
+
+```
+Resit-Exam-Management-System/
+├── server/                    # Backend (Node.js + Express + TypeScript)
+│   ├── Auth/                  # Authentication handlers
+│   ├── datastore/             # Database layer
+│   │   ├── dao/               # Data Access Objects
+│   │   ├── sql/               # SQLite implementation
+│   │   │   └── migrations/    # Database migrations
+│   │   └── seed.ts            # Database seeding script
+│   ├── handlers/              # Request handlers
+│   ├── middleware/            # Express middleware
+│   ├── routes/                # API routes
+│   ├── types.ts               # TypeScript types
+│   └── server.ts              # Entry point
+│
+├── web/                       # Frontend (Vanilla JS + HTML + CSS)
+│   ├── css/                   # Stylesheets
+│   ├── js/                    # JavaScript modules
+│   │   ├── pages/             # Page-specific scripts
+│   │   └── utils/             # Shared utilities
+│   └── pages/                 # HTML pages
+│       ├── student/           # Student portal
+│       ├── instructor/        # Instructor portal
+│       └── secretary/         # Secretary portal
+│
+└── docs/                      # Documentation
+```
+
+## 📚 API Documentation
+
+Comprehensive API documentation is available:
+
+- **[API Reference](server/docs/README.md)** - Full endpoint documentation
+- **[Database Schema](server/docs/DATABASE_SCHEMA.md)** - ERD and table structures
+
+### Key Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/auth/signin` | User authentication |
+| GET | `/student/:id` | Get student profile |
+| GET | `/instructor/:id` | Get instructor profile |
+| GET | `/secretary/resit-exams` | List all resit exams |
+| PUT | `/secretary/confirm/resit-exam/:id` | Confirm resit exam |
+
+## 🛠️ Tech Stack
+
+**Backend:**
+- Node.js + Express.js
+- TypeScript
+- SQLite (better-sqlite3)
+- JWT Authentication
+
+**Frontend:**
+- Vanilla JavaScript (ES6 Modules)
+- HTML5 + CSS3
+- Font Awesome Icons
+
+## 👥 Team & Contribution
+
+This project was developed as a team effort for the SE302 Software Project Management course. 
+
+**My Contribution:** Backend development including:
+- RESTful API design and implementation
+- Database schema design
+- Authentication & authorization system
+- Secretary resit confirmation with notifications
+
+## ⚠️ Disclaimer
+
+This project was developed **solely for academic purposes**. It has not been tested for production-level security, performance, or compliance. **Do not use in a real-world environment** without significant development and security hardening.
+
+---
+
+<div align="center">
+
+📚 **Üsküdar University** | Software Engineering Department | 2024-2025
+
+</div>

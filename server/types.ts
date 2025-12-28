@@ -162,6 +162,7 @@ export type NotificationType =
   | 'grade_posted' 
   | 'resit_announced' 
   | 'resit_deadline' 
+  | 'resit_confirmed'
   | 'application_status' 
   | 'resit_result' 
   | 'system';

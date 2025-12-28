@@ -664,7 +664,11 @@ export class SqlDatastore implements Datastore {
           department, 
           created_at as createdAt, 
           created_by as createdBy, 
-          announcement
+          announcement,
+          exam_date as examDate,
+          deadline,
+          location,
+          updated_at as updatedAt
         FROM resit_exams 
         WHERE id = ?`, 
         [id]
@@ -709,10 +713,6 @@ export class SqlDatastore implements Datastore {
       // Return a complete ResitExam object
       return {
         ...exam,
-        examDate: null, // Column doesn't exist in schema
-        deadline: null, // Column doesn't exist in schema
-        location: null, // Column doesn't exist in schema
-        updatedAt: null, // Column doesn't exist in schema
         lettersAllowed,
         students,
         instructors
@@ -910,10 +910,12 @@ export class SqlDatastore implements Datastore {
 
 
   async updateResitExamBySecretary(resitExamId: string, examDate: Date, deadline: Date, location: string, secretaryId: string): Promise<void> {
-    // Note: exam_date, deadline, location, and updated_at columns don't exist in the resit_exams table schema
-    // This method is kept for API compatibility but doesn't update anything
-    console.warn('updateResitExamBySecretary: exam_date, deadline, location columns do not exist in schema');
-    // If you need to add these columns, create a migration file to add them to the resit_exams table
+    await this.db.run(
+      `UPDATE resit_exams 
+       SET exam_date = ?, deadline = ?, location = ?, updated_at = datetime('now', 'localtime', '+3 hours')
+       WHERE id = ?`,
+      [examDate.toISOString(), deadline.toISOString(), location, resitExamId]
+    );
   }
   async updateResitExamByInstructor(id: string, name: string, instructorID: string, department: string, letters: string[], courseId: string): Promise<void> {
     await this.db.run(
@@ -1011,8 +1013,43 @@ export class SqlDatastore implements Datastore {
 
   // --- Utility/List Methods ---
   async listResitExams(): Promise<ResitExam[] | undefined> {
-    const resitExams = await this.db.all('SELECT * FROM resit_exams');
-    return resitExams;
+    const resitExams = await this.db.all(`
+      SELECT 
+        id, 
+        course_id, 
+        name, 
+        department, 
+        created_at as createdAt, 
+        created_by as createdBy, 
+        announcement,
+        exam_date as examDate,
+        deadline,
+        location,
+        updated_at as updatedAt
+      FROM resit_exams
+    `);
+    
+    // Enrich with instructors and letters for each exam
+    const enrichedExams = await Promise.all(resitExams.map(async (exam: any) => {
+      const lettersRows = await this.db.all(
+        'SELECT letter FROM resit_exam_letters_allowed WHERE resit_exam_id = ?',
+        [exam.id]
+      );
+      const instructorsRows = await this.db.all(
+        `SELECT DISTINCT created_by as instructor_id FROM resit_exams WHERE id = ?
+         UNION
+         SELECT instructor_id FROM resit_exam_instructors WHERE resit_exam_id = ?`,
+        [exam.id, exam.id]
+      );
+      
+      return {
+        ...exam,
+        lettersAllowed: lettersRows.map((r: any) => r.letter).join(', '),
+        instructors: instructorsRows.map((r: any) => r.instructor_id).join(', ')
+      };
+    }));
+    
+    return enrichedExams;
   }
 
   async deleteUser(id: string): Promise<void> {
@@ -1034,7 +1071,11 @@ export class SqlDatastore implements Datastore {
         department, 
         created_at as createdAt, 
         created_by as createdBy,
-        announcement
+        announcement,
+        exam_date as examDate,
+        deadline,
+        location,
+        updated_at as updatedAt
       FROM resit_exams 
       WHERE course_id = ?`, 
       [courseId]
@@ -1079,10 +1120,6 @@ export class SqlDatastore implements Datastore {
     // Return a complete ResitExam object
     return {
       ...exam,
-      examDate: null, // Column doesn't exist in schema
-      deadline: null, // Column doesn't exist in schema
-      location: null, // Column doesn't exist in schema
-      updatedAt: null, // Column doesn't exist in schema
       lettersAllowed,
       students,
       instructors

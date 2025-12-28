@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instructors - Secretary - Uskudar</title>
+    <link rel="stylesheet" href="../../css/common.css">
+    <link rel="stylesheet" href="../../css/components/header.css">
+    <link rel="stylesheet" href="../../css/components/sidebar.css">
+    <link rel="stylesheet" href="../../css/components/notifications.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .page-header h1 { color: #2c3e50; font-size: 1.8rem; margin: 0; }
+        .filters-bar { display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; align-items: center; }
+        .search-box { flex: 1; min-width: 250px; position: relative; }
+        .search-box input { width: 100%; padding: 0.75rem 1rem 0.75rem 2.5rem; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; }
+        .search-box i { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #666; }
+        .stats-row { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
+        .stat-pill { background: white; padding: 0.75rem 1.25rem; border-radius: 20px; font-size: 0.9rem; color: #666; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .stat-pill strong { color: #1976d2; }
+        .data-table { width: 100%; background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow: hidden; }
+        .data-table table { width: 100%; border-collapse: collapse; }
+        .data-table th { background: #f8f9fa; padding: 1rem; text-align: left; font-weight: 600; color: #2c3e50; border-bottom: 2px solid #e0e0e0; }
+        .data-table td { padding: 1rem; border-bottom: 1px solid #f0f0f0; color: #444; }
+        .data-table tr:hover { background: #f8f9fa; }
+        .data-table tr:last-child td { border-bottom: none; }
+        .instructor-name { font-weight: 500; color: #2c3e50; }
+        .department-badge { display: inline-block; padding: 0.25rem 0.75rem; background: #f3e5f5; color: #7b1fa2; border-radius: 20px; font-size: 0.85rem; }
+        .courses-list { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+        .course-tag { background: #e3f2fd; color: #1976d2; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.8rem; }
+    </style>
+</head>
+<body>
+    <!-- Header Component -->
+    <header class="header">
+        <a href="dashboard.html" class="logo">Uskudar</a>
+        <div class="header-right">
+            <div class="notifications">
+                <button class="notification-btn" id="notificationBtn"><i class="fas fa-bell"></i><span class="notification-badge">0</span></button>
+                <div class="notification-dropdown">
+                    <div class="notification-header"><h3>Notifications</h3><button class="mark-all-read">Mark all as read</button></div>
+                    <div class="notification-list"><div class="notification-empty"><p>No notifications</p></div></div>
+                </div>
+            </div>
+            <div class="user-menu">
+                <div class="user-info"><span class="user-name">Secretary Name</span><i class="fas fa-chevron-down"></i></div>
+                <div class="dropdown-menu"><a href="#" class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sidebar Component -->
+    <aside class="sidebar">
+        <nav class="nav-menu">
+            <div class="nav-section">
+                <div class="nav-section-title">Main</div>
+                <a href="dashboard.html" class="nav-link"><i class="fas fa-home"></i> Dashboard</a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">Management</div>
+                <a href="resit-exams.html" class="nav-link"><i class="fas fa-redo"></i> Resit Exams</a>
+                <a href="students.html" class="nav-link"><i class="fas fa-users"></i> Students</a>
+                <a href="instructors.html" class="nav-link active"><i class="fas fa-chalkboard-teacher"></i> Instructors</a>
+                <a href="courses.html" class="nav-link"><i class="fas fa-book"></i> Courses</a>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="page-header">
+            <h1><i class="fas fa-chalkboard-teacher"></i> Instructors</h1>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat-pill">Total Instructors: <strong id="totalCount">-</strong></div>
+        </div>
+
+        <div class="filters-bar">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Search by name, ID, or department...">
+            </div>
+        </div>
+
+        <div class="data-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Instructor ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Department</th>
+                        <th>Courses</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr><td colspan="5" style="text-align: center; padding: 2rem;"><i class="fas fa-spinner fa-spin"></i> Loading instructors...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializePageHeader } from '../../js/utils/header.js';
+        import { initializeNotifications } from '../../js/utils/notifications.js';
+        import { updateSecretaryNameInHeader } from '../../js/utils/secretaryAuth.js';
+        import { authenticatedFetch } from '../../js/utils/auth.js';
+
+        let allInstructors = [];
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            initializePageHeader();
+            initializeNotifications();
+            await updateSecretaryNameInHeader();
+            await loadInstructors();
+            setupSearch();
+        });
+
+        async function loadInstructors() {
+            try {
+                const response = await authenticatedFetch('/secretary/instructors');
+                allInstructors = await response.json();
+                if (!Array.isArray(allInstructors)) allInstructors = [];
+                document.getElementById('totalCount').textContent = allInstructors.length;
+                renderInstructors(allInstructors);
+            } catch (error) {
+                console.error('Error loading instructors:', error);
+                document.getElementById('tableBody').innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 2rem; color: #dc3545;"><i class="fas fa-exclamation-triangle"></i> Error loading instructors</td></tr>`;
+            }
+        }
+
+        function renderInstructors(instructors) {
+            const tbody = document.getElementById('tableBody');
+            if (!instructors || instructors.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 2rem; color: #666;">No instructors found</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = instructors.map(instructor => {
+                const courses = instructor.courses || [];
+                const courseTags = Array.isArray(courses) 
+                    ? courses.slice(0, 3).map(c => `<span class="course-tag">${c}</span>`).join('') + (courses.length > 3 ? `<span class="course-tag">+${courses.length - 3}</span>` : '')
+                    : '-';
+                return `
+                    <tr>
+                        <td>${instructor.id || 'N/A'}</td>
+                        <td class="instructor-name">${instructor.name || 'N/A'}</td>
+                        <td>${instructor.email || 'N/A'}</td>
+                        <td><span class="department-badge">${instructor.department || 'N/A'}</span></td>
+                        <td><div class="courses-list">${courseTags}</div></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function setupSearch() {
+            document.getElementById('searchInput').addEventListener('input', (e) => {
+                const term = e.target.value.toLowerCase();
+                const filtered = allInstructors.filter(i => 
+                    (i.name || '').toLowerCase().includes(term) ||
+                    (i.id || '').toLowerCase().includes(term) ||
+                    (i.department || '').toLowerCase().includes(term) ||
+                    (i.email || '').toLowerCase().includes(term)
+                );
+                renderInstructors(filtered);
+            });
+        }
+    </script>
+</body>
+</html>

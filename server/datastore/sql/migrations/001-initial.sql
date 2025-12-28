@@ -51,6 +51,10 @@ CREATE TABLE resit_exams (
     created_at DATETIME NOT NULL,
     created_by VARCHAR(255) NOT NULL,
     announcement TEXT,
+    exam_date DATETIME,
+    deadline DATETIME,
+    location VARCHAR(255),
+    updated_at TIMESTAMP,
     FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
     FOREIGN KEY (created_by) REFERENCES users(id)
 );
