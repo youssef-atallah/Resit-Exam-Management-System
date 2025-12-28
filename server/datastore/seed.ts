@@ -6,6 +6,8 @@ export async function seedDatabase() {
   console.log('🌱 Starting database seeding...');
 
   try {
+    await db.clearDatabase();
+    console.log('🧹 Database cleared');
     // =========================================================================
     // SECRETARIES
     // =========================================================================
@@ -410,9 +412,9 @@ export async function seedDatabase() {
     // =========================================================================
     // RESIT EXAMS
     // =========================================================================
-    console.log('Creating resit exams...');
+    console.log('Creating resit exams with diverse scenarios...');
     
-    // Resit exam for SE302 (PENDING - needs secretary confirmation)
+    // 1. SE302 - PENDING (Awaiting Details)
     await db.createResitExamByInstuctor(
       'resit-SE302',
       'SE302',
@@ -424,9 +426,8 @@ export async function seedDatabase() {
     );
     await db.enrollStudentInResitExam('stu-001', 'resit-SE302');
     await db.enrollStudentInResitExam('stu-003', 'resit-SE302');
-    await db.enrollStudentInResitExam('stu-007', 'resit-SE302');
     
-    // Resit exam for CS101 (PENDING - needs secretary confirmation)
+    // 2. CS101 - ANNOUNCED (Future)
     await db.createResitExamByInstuctor(
       'resit-CS101',
       'CS101',
@@ -436,10 +437,13 @@ export async function seedDatabase() {
       ['FF'],
       'Resit exam for CS101. Focus on programming fundamentals, algorithms, and problem-solving techniques.'
     );
+    // Secretary confirms it for the future
+    const threeDaysAfter = new Date(); threeDaysAfter.setDate(threeDaysAfter.getDate() + 3);
+    const sevenDaysAfter = new Date(); sevenDaysAfter.setDate(sevenDaysAfter.getDate() + 7);
+    await db.updateResitExamBySecretary('resit-CS101', sevenDaysAfter, threeDaysAfter, 'Building A, Lab 102', 'sec-001');
     await db.enrollStudentInResitExam('stu-002', 'resit-CS101');
-    await db.enrollStudentInResitExam('stu-009', 'resit-CS101');
     
-    // Resit exam for MATH201 (PENDING)
+    // 3. MATH201 - DEADLINE PASSED (Exam is in future)
     await db.createResitExamByInstuctor(
       'resit-MATH201',
       'MATH201',
@@ -449,11 +453,13 @@ export async function seedDatabase() {
       ['FF', 'FD'],
       'Resit exam covering integrals, series, and differential equations. Bring your calculators!'
     );
+    // Secretary confirms it with a past deadline
+    const twoDaysAgo = new Date(); twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+    const fiveDaysAfter = new Date(); fiveDaysAfter.setDate(fiveDaysAfter.getDate() + 5);
+    await db.updateResitExamBySecretary('resit-MATH201', fiveDaysAfter, twoDaysAgo, 'Room 305', 'sec-001');
     await db.enrollStudentInResitExam('stu-004', 'resit-MATH201');
-    await db.enrollStudentInResitExam('stu-007', 'resit-MATH201');
-    await db.enrollStudentInResitExam('stu-003', 'resit-MATH201');
     
-    // Resit exam for DS205 (PENDING)
+    // 4. DS205 - EXAM FINISHED (Results Pending)
     await db.createResitExamByInstuctor(
       'resit-DS205',
       'DS205',
@@ -463,10 +469,13 @@ export async function seedDatabase() {
       ['FF'],
       'The resit exam will include implementation questions. You may use pseudocode for algorithms.'
     );
+    const fourDaysAgo = new Date(); fourDaysAgo.setDate(fourDaysAgo.getDate() - 4);
+    const oneDayAgo = new Date(); oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+    await db.updateResitExamBySecretary('resit-DS205', oneDayAgo, fourDaysAgo, 'CS Lab 1', 'sec-001');
     await db.enrollStudentInResitExam('stu-003', 'resit-DS205');
     await db.enrollStudentInResitExam('stu-009', 'resit-DS205');
     
-    // Resit exam for DB301 (PENDING)
+    // 5. DB301 - RESULTS AVAILABLE
     await db.createResitExamByInstuctor(
       'resit-DB301',
       'DB301',
@@ -474,12 +483,18 @@ export async function seedDatabase() {
       'Software Engineering',
       'inst-004',
       ['FF'],
-      'SQL queries, normalization, and ER diagrams will be covered. Practice makes perfect!'
+      'SQL queries, normalization, and ER diagrams will be covered.'
     );
+    const tenDaysAgo = new Date(); tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
+    const eightDaysAgo = new Date(); eightDaysAgo.setDate(eightDaysAgo.getDate() - 8);
+    await db.updateResitExamBySecretary('resit-DB301', eightDaysAgo, tenDaysAgo, 'Room 201', 'sec-001');
     await db.enrollStudentInResitExam('stu-005', 'resit-DB301');
     await db.enrollStudentInResitExam('stu-008', 'resit-DB301');
+    // Add results
+    await db.updateStudentResitExamResults('stu-005', 'resit-DB301', 75, 'CB');
+    await db.updateStudentResitExamResults('stu-008', 'resit-DB301', 82, 'BB');
     
-    // Resit exam for SE201 (PENDING)
+    // 6. SE201 - ANNOUNCED (Active)
     await db.createResitExamByInstuctor(
       'resit-SE201',
       'SE201',
@@ -489,11 +504,12 @@ export async function seedDatabase() {
       ['FF', 'FD'],
       'OOP concepts, design patterns, and Java programming. Bring your A-game!'
     );
+    const fiveDaysFuture = new Date(); fiveDaysFuture.setDate(fiveDaysFuture.getDate() + 5);
+    const tenDaysFuture = new Date(); tenDaysFuture.setDate(tenDaysFuture.getDate() + 10);
+    await db.updateResitExamBySecretary('resit-SE201', tenDaysFuture, fiveDaysFuture, 'Main Auditorium', 'sec-001');
     await db.enrollStudentInResitExam('stu-001', 'resit-SE201');
-    await db.enrollStudentInResitExam('stu-006', 'resit-SE201');
-    await db.enrollStudentInResitExam('stu-009', 'resit-SE201');
     
-    // Resit exam for CS301 (PENDING)
+    // 7. CS301 - PENDING
     await db.createResitExamByInstuctor(
       'resit-CS301',
       'CS301',
@@ -501,13 +517,10 @@ export async function seedDatabase() {
       'Computer Science',
       'inst-005',
       ['FF', 'FD'],
-      'Process management, memory management, and file systems. Multiple choice and short answer questions.'
+      'Process management, memory management, and file systems.'
     );
-    await db.enrollStudentInResitExam('stu-004', 'resit-CS301');
-    await db.enrollStudentInResitExam('stu-010', 'resit-CS301');
-    await db.enrollStudentInResitExam('stu-003', 'resit-CS301');
     
-    // Resit exam for SE401 (PENDING)
+    // 8. SE401 - DEADLINE PASSED (Exam today!)
     await db.createResitExamByInstuctor(
       'resit-SE401',
       'SE401',
@@ -515,12 +528,14 @@ export async function seedDatabase() {
       'Software Engineering',
       'inst-004',
       ['FF'],
-      'Architecture patterns, design decisions, and system design. Case study based exam.'
+      'Architecture patterns, design decisions, and system design.'
     );
+    const sevenDaysAgo = new Date(); sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const today = new Date(); // Exam is today
+    await db.updateResitExamBySecretary('resit-SE401', today, sevenDaysAgo, 'Upper Hall', 'sec-001');
     await db.enrollStudentInResitExam('stu-002', 'resit-SE401');
-    await db.enrollStudentInResitExam('stu-007', 'resit-SE401');
-    
-    console.log(`✅ Created 8 resit exams and enrolled students`);
+
+    console.log(`✅ Created 8 resit exams with diverse states`);
 
     // =========================================================================
     // SAMPLE NOTIFICATIONS
@@ -528,7 +543,6 @@ export async function seedDatabase() {
     console.log('Creating sample notifications...');
     
     const notifications: Notification[] = [
-      // Welcome notifications for students
       {
         id: uuidv4(),
         userId: 'stu-001',
@@ -536,105 +550,40 @@ export async function seedDatabase() {
         title: 'Welcome to Resit Exam System',
         message: 'Welcome Ali! You can view your grades and apply for resit exams from your dashboard.',
         isRead: true,
-        createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // 7 days ago
-      },
-      {
-        id: uuidv4(),
-        userId: 'stu-002',
-        type: 'system',
-        title: 'Welcome to Resit Exam System',
-        message: 'Welcome Ayşe! You can view your grades and apply for resit exams from your dashboard.',
-        isRead: true,
         createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
       },
-      // Resit announced notifications
       {
         id: uuidv4(),
         userId: 'stu-001',
-        type: 'resit_announced',
-        title: 'New Resit Exam: SE302',
-        message: 'A resit exam has been created for Software Project Management. Check your eligibility!',
-        relatedEntityType: 'resit_exam',
-        relatedEntityId: 'resit-SE302',
-        isRead: false,
-        createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) // 2 days ago
-      },
-      {
-        id: uuidv4(),
-        userId: 'stu-003',
-        type: 'resit_announced',
-        title: 'New Resit Exam: SE302',
-        message: 'A resit exam has been created for Software Project Management. Check your eligibility!',
-        relatedEntityType: 'resit_exam',
-        relatedEntityId: 'resit-SE302',
-        isRead: false,
-        createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
-      },
-      {
-        id: uuidv4(),
-        userId: 'stu-002',
         type: 'resit_announced',
         title: 'New Resit Exam: CS101',
         message: 'A resit exam has been created for Introduction to Computer Science. You are eligible!',
         relatedEntityType: 'resit_exam',
         relatedEntityId: 'resit-CS101',
         isRead: false,
-        createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000) // 1 day ago
-      },
-      // Grade posted notifications
-      {
-        id: uuidv4(),
-        userId: 'stu-004',
-        type: 'grade_posted',
-        title: 'Grade Posted: SE302',
-        message: 'Your grade for Software Project Management has been posted. You received an A!',
-        relatedEntityType: 'course',
-        relatedEntityId: 'SE302',
-        isRead: true,
-        createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000)
-      },
-      {
-        id: uuidv4(),
-        userId: 'stu-006',
-        type: 'grade_posted',
-        title: 'Grade Posted: CS101',
-        message: 'Your grade for Introduction to Computer Science has been posted. You received an A!',
-        relatedEntityType: 'course',
-        relatedEntityId: 'CS101',
-        isRead: true,
-        createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000)
-      },
-      // Instructor notifications
-      {
-        id: uuidv4(),
-        userId: 'inst-001',
-        type: 'system',
-        title: 'Welcome Dr. Atallah',
-        message: 'Welcome to the Resit Exam Management System. You can create and manage resit exams for your courses.',
-        isRead: true,
-        createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-      },
-      {
-        id: uuidv4(),
-        userId: 'inst-001',
-        type: 'application_status',
-        title: 'New Resit Application',
-        message: 'Ali Yilmaz has enrolled in the SE302 resit exam.',
-        relatedEntityType: 'resit_exam',
-        relatedEntityId: 'resit-SE302',
-        isRead: false,
         createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000)
       },
       {
         id: uuidv4(),
-        userId: 'inst-002',
+        userId: 'stu-005',
+        type: 'grade_posted',
+        title: 'Resit Result Available: DB301',
+        message: 'Your resit exam result for Database Management Systems is now available. You got a CB!',
+        relatedEntityType: 'resit_exam',
+        relatedEntityId: 'resit-DB301',
+        isRead: false,
+        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000)
+      },
+      {
+        id: uuidv4(),
+        userId: 'inst-001',
         type: 'application_status',
         title: 'New Resit Application',
-        message: 'Ayşe Demir has enrolled in the CS101 resit exam.',
+        message: 'Ali Yilmaz has enrolled in the SE201 resit exam.',
         relatedEntityType: 'resit_exam',
-        relatedEntityId: 'resit-CS101',
+        relatedEntityId: 'resit-SE201',
         isRead: false,
-        createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000) // 12 hours ago
+        createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000)
       }
     ];
 
@@ -655,7 +604,7 @@ export async function seedDatabase() {
     console.log(`   🎓 ${students.length} students`);
     console.log(`   📚 ${courses.length} courses`);
     console.log(`   📝 ${enrollments.length} course enrollments`);
-    console.log(`   📋 8 resit exams (all pending secretary confirmation)`);
+    console.log(`   📋 8 resit exams (Pending, Announced, Past Deadline, Finished)`);
     console.log(`   🔔 ${notifications.length} notifications`);
     
     console.log('\n🔑 Login Credentials (all passwords are "password123"):');
@@ -668,11 +617,10 @@ export async function seedDatabase() {
     console.log('   └─────────────┴────────────────────────────────────────────────┘');
     
     console.log('\n💡 Testing Tips:');
-    console.log('   • Login as secretary (sec-001) to confirm resit exam dates');
-    console.log('   • Login as instructor (inst-001) to manage SE302 and SE201 exams');
-    console.log('   • Login as student (stu-001) to see failing grades and apply for resits');
-    console.log('   • Student stu-001 has F grades in SE302 and D grades in SE201');
-    console.log('   • All 8 resit exams need date/location confirmation by secretary');
+    console.log('   • Login as stu-001: See "Awaiting Details" (SE302) and "Announced" (SE201)');
+    console.log('   • Login as stu-004: See "Deadline Passed" (MATH201)');
+    console.log('   • Login as stu-005: See "Resit Results" (DB301)');
+    console.log('   • Login as sec-001: See pending resits waiting for details');
 
   } catch (error) {
     console.error('❌ Error seeding database:', error);

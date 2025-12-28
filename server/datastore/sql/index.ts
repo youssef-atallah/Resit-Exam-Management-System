@@ -26,6 +26,29 @@ export class SqlDatastore implements Datastore {
     return this; // Return the SqlDatastore instance
   }
 
+  public async clearDatabase(): Promise<void> {
+    const tables = [
+      'notifications',
+      'resit_exam_enroll',
+      'resit_exam_application',
+      'resit_exam_students',
+      'resit_exam_instructors',
+      'resit_exam_letters_allowed',
+      'resit_exams',
+      'student_course_grades',
+      'course_students',
+      'courses',
+      'students',
+      'instructors',
+      'secretaries',
+      'users'
+    ];
+
+    for (const table of tables) {
+      await this.db.run(`DELETE FROM ${table}`);
+    }
+  }
+
   // --- Course Methods ---
   async createCourse(course: Course): Promise<void> {
     const createdAt = new Date().toISOString();
@@ -831,44 +854,44 @@ export class SqlDatastore implements Datastore {
   }
   async getStudentAllResitExamResults(studentId: string): Promise<{ resitExamId: string; grade: number; gradeLetter: string; submittedAt: Date; }[]> {
     const rows = await this.db.all(
-      `SELECT re.id as resitExamId, ree.ResitExamEnrollGrade as grade, 
-       ree.ResitExamEnrollLetterGrade as gradeLetter, 
-       ree.Status as submittedAt
+      `SELECT re.id as resitExamId, ree.grade as grade, 
+       ree.grade_letter as gradeLetter, 
+       ree.status as submittedAt
        FROM resit_exam_enroll ree
-       JOIN resit_exam_application rea ON ree.ResitExamApplicationId = rea.ResitExamApplicationId
-       JOIN resit_exams re ON rea.ResitExamId = re.id
-       WHERE rea.StudentId = ?`, [studentId]);
+       JOIN resit_exam_application rea ON ree.resit_exam_application_id = rea.id
+       JOIN resit_exams re ON rea.resit_exam_id = re.id
+       WHERE rea.student_id = ?`, [studentId]);
     return rows;
   }
   async getResitExamAllResults(resitExamId: string): Promise<{ studentId: string; grade: number; gradeLetter: string; submittedAt: Date; }[]> {
     const rows = await this.db.all(
-      `SELECT rea.StudentId as studentId, 
-       ree.ResitExamEnrollGrade as grade, 
-       ree.ResitExamEnrollLetterGrade as gradeLetter, 
-       ree.Status as submittedAt
+      `SELECT rea.student_id as studentId, 
+       ree.grade as grade, 
+       ree.grade_letter as gradeLetter, 
+       ree.status as submittedAt
        FROM resit_exam_enroll ree
-       JOIN resit_exam_application rea ON ree.ResitExamApplicationId = rea.ResitExamApplicationId
-       WHERE rea.ResitExamId = ?`, [resitExamId]);
+       JOIN resit_exam_application rea ON ree.resit_exam_application_id = rea.id
+       WHERE rea.resit_exam_id = ?`, [resitExamId]);
     return rows;
   }
   async getStudentResitExamResults(studentId: string, resitExamId: string): Promise<{ grade: number; gradeLetter: string; submittedAt: Date; } | undefined> {
     const row = await this.db.get(
-      `SELECT ree.ResitExamEnrollGrade as grade, 
-       ree.ResitExamEnrollLetterGrade as gradeLetter, 
-       ree.Status as submittedAt
+      `SELECT ree.grade as grade, 
+       ree.grade_letter as gradeLetter, 
+       ree.status as submittedAt
        FROM resit_exam_enroll ree
-       JOIN resit_exam_application rea ON ree.ResitExamApplicationId = rea.ResitExamApplicationId
-       WHERE rea.StudentId = ? AND rea.ResitExamId = ?`, [studentId, resitExamId]);
+       JOIN resit_exam_application rea ON ree.resit_exam_application_id = rea.id
+       WHERE rea.student_id = ? AND rea.resit_exam_id = ?`, [studentId, resitExamId]);
     return row;
   }
   async updateStudentResitExamResults(studentId: string, resitExamId: string, grade: number, gradeLetter: string): Promise<boolean> {
     const result = await this.db.run(
       `UPDATE resit_exam_enroll 
-       SET ResitExamEnrollGrade = ?, ResitExamEnrollLetterGrade = ?
-       WHERE ResitExamApplicationId IN (
-         SELECT ResitExamApplicationId 
+       SET grade = ?, grade_letter = ?
+       WHERE resit_exam_application_id IN (
+         SELECT id 
          FROM resit_exam_application 
-         WHERE StudentId = ? AND ResitExamId = ?
+         WHERE student_id = ? AND resit_exam_id = ?
        )`,
       [grade, gradeLetter, studentId, resitExamId]
     );

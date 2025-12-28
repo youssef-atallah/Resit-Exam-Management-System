@@ -13,6 +13,7 @@ import { UserDao } from './dao/userDao';
 
 export interface Datastore extends CourseDao, InstructorDao, ResitExamDao, StudentDao, SecretaryDao, UserDao, NotificationDao {
   getResitExamByCourseId(courseId: string): Promise<ResitExam | undefined>;
+  clearDatabase(): Promise<void>;
 }
 
 export let db: Datastore;
