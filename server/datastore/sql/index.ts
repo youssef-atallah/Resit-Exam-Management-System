@@ -131,8 +131,8 @@ export class SqlDatastore implements Datastore {
     );
     const now = new Date().toISOString();
     await this.db.run(
-      `INSERT INTO students (id, created_at, created_by, updated_at) VALUES (?, datetime(?, 'localtime', '+3 hours'), ?, datetime(?, 'localtime', '+3 hours'))`,
-      [student.id, now, student.createdBy, now]
+      `INSERT INTO students (id, created_at, created_by, updated_at, department, year_level) VALUES (?, datetime(?, 'localtime', '+3 hours'), ?, datetime(?, 'localtime', '+3 hours'), ?, ?)`,
+      [student.id, now, student.createdBy, now, student.department, student.yearLevel]
     );
   }
   async getAstudent(id: string): Promise<Student | undefined> {
@@ -230,16 +230,29 @@ export class SqlDatastore implements Datastore {
       await this.db.run('DELETE FROM secretaries WHERE id = ?', [id]);
       await this.db.run('DELETE FROM instructors WHERE id = ?', [id]);
       
-      // Delete the user record directly before deleting student
-      await this.db.run('DELETE FROM users WHERE id = ?', [id]);
-
+      
       // Delete the student record
       await this.db.run('DELETE FROM students WHERE id = ?', [id]);
+      
+      // Delete the user record
+      await this.db.run('DELETE FROM users WHERE id = ?', [id]);
 
     } catch (error) {
       console.error('Error deleting student:', error);
       throw error;
     }
+  }
+
+  async updateStudent(student: Student): Promise<void> {
+    await this.db.run(
+      `UPDATE users SET name = ?, email = ? WHERE id = ?`,
+      [student.name, student.email, student.id]
+    );
+    const now = new Date().toISOString();
+    await this.db.run(
+      `UPDATE students SET department = ?, year_level = ?, updated_at = datetime(?, 'localtime', '+3 hours') WHERE id = ?`,
+      [student.department, student.yearLevel, now, student.id]
+    );
   }
   async updateStudentInfo(id: string, name: string, email: string, password: string): Promise<void> {
     try {
@@ -422,7 +435,19 @@ export class SqlDatastore implements Datastore {
     }
   }
   async listStudents(): Promise<Student[] | undefined> {
-    const students = await this.db.all('SELECT * FROM students');
+    const students = await this.db.all(`
+      SELECT 
+        s.id, 
+        s.created_at as createdAt, 
+        s.created_by as createdBy, 
+        s.updated_at as updatedAt,
+        s.department,
+        s.year_level as yearLevel,
+        u.name,
+        u.email
+      FROM students s
+      LEFT JOIN users u ON s.id = u.id
+    `);
     return students;
   }
 
@@ -434,8 +459,8 @@ export class SqlDatastore implements Datastore {
       [instructor.id, instructor.name, instructor.email, instructor.password]
     );
     await this.db.run(
-      `INSERT INTO instructors (id, created_at, created_by, updated_at) VALUES (?, datetime(?, 'localtime', '+3 hours'), ?, datetime(?, 'localtime', '+3 hours'))`,
-      [instructor.id, instructor.createdAt, instructor.createdBy, instructor.updatedAt]
+      `INSERT INTO instructors (id, created_at, created_by, updated_at, department) VALUES (?, datetime(?, 'localtime', '+3 hours'), ?, datetime(?, 'localtime', '+3 hours'), ?)`,
+      [instructor.id, instructor.createdAt, instructor.createdBy, instructor.updatedAt, instructor.department]
     );
   }
   async getInstructorById(id: string): Promise<Instructor | undefined> {
@@ -581,21 +606,33 @@ export class SqlDatastore implements Datastore {
       throw error;
     }
   }
-  async updateInstructor(id: string, name: string, email: string, password: string): Promise<void> {
+  async updateInstructor(instructor: Instructor): Promise<void> {
     // Update the users table with the new user data
     await this.db.run(
       `UPDATE users SET name = ?, email = ?, password = ? WHERE id = ?`,
-      [name, email, password, id]
+      [instructor.name, instructor.email, instructor.password, instructor.id]
     );
 
-    // Update the instructors table with the updated_at timestamp and secretary ID
+    // Update the instructors table with the updated_at timestamp and department
     await this.db.run(
-      `UPDATE instructors SET updated_at = datetime('now', 'localtime', '+3 hours') WHERE id = ?`,
-      [id]
+      `UPDATE instructors SET updated_at = datetime('now', 'localtime', '+3 hours'), department = ? WHERE id = ?`,
+      [instructor.department, instructor.id]
     );
   }
   async listInstructors(): Promise<Instructor[] | undefined> {
-    const instructors = await this.db.all('SELECT * FROM instructors');
+    const instructors = await this.db.all(`
+      SELECT instructors.*, users.name, users.email 
+      FROM instructors 
+      LEFT JOIN users ON instructors.id = users.id
+    `);
+    
+    // Fetch courses for each instructor (optional, but requested in UI)
+    // Minimally return basic info + courses array
+    for (const inst of instructors) {
+        const courses = await this.db.all('SELECT name FROM courses WHERE instructor_id = ?', [inst.id]);
+        inst.courses = courses.map((c: any) => c.name);
+    }
+    
     return instructors;
   }
 
@@ -1015,18 +1052,20 @@ export class SqlDatastore implements Datastore {
   async listResitExams(): Promise<ResitExam[] | undefined> {
     const resitExams = await this.db.all(`
       SELECT 
-        id, 
-        course_id, 
-        name, 
-        department, 
-        created_at as createdAt, 
-        created_by as createdBy, 
-        announcement,
-        exam_date as examDate,
-        deadline,
-        location,
-        updated_at as updatedAt
-      FROM resit_exams
+        re.id, 
+        re.course_id, 
+        re.name, 
+        re.department, 
+        re.created_at as createdAt, 
+        re.created_by as createdBy, 
+        re.announcement,
+        re.exam_date as examDate,
+        re.deadline,
+        re.location,
+        re.updated_at as updatedAt,
+        c.name as courseName
+      FROM resit_exams re
+      LEFT JOIN courses c ON re.course_id = c.id
     `);
     
     // Enrich with instructors and letters for each exam

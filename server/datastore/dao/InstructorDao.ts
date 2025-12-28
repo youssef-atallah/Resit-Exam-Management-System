@@ -7,7 +7,7 @@ export interface InstructorDao {
   getInstructorById(id: string): Promise<Instructor | undefined>;
   
   deleteInstructor(id: string): Promise<void>;
-  updateInstructor(id: string, name: string, email: string, password: string): Promise<void>;
+  updateInstructor(instructor: Instructor): Promise<void>;
   
   // access instructor data
   getInsturctorCourses(id: string): Promise<string[] | undefined>;

@@ -29,6 +29,7 @@ export interface InstructorCourseDetails {
 export interface Instructor extends User {
   courses: string[]; // must be added not created | added from Course students
   resitExams: string[]; // must be added not created | added from ResitExam students
+  department?: string;
   createdAt: Date;
   createdBy: string;
   updatedAt: Date | null;
@@ -37,6 +38,8 @@ export interface Instructor extends User {
 export interface Student extends User {
   courses: string[]; // must be added not created | added from Course students
   resitExams: string[]; // must be added not created | added from ResitExam students
+  department?: string;
+  yearLevel?: number;
   createdAt: Date;
   createdBy: string;
   updatedAt: Date | null;

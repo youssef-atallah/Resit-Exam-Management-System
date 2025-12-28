@@ -233,7 +233,11 @@ export const updateInstructorInfo: RequestHandler<{ id: string }> = async (req, 
       return;
     }
 
-    await db.updateInstructor(id, name, email, password);
+    instructor.name = name;
+    instructor.email = email;
+    instructor.password = password;
+
+    await db.updateInstructor(instructor);
     res.status(200).send('Instructor information updated successfully');
   } catch (error) {
     if (error instanceof Error && error.message === 'Unauthorized') {
@@ -1150,15 +1154,19 @@ export const updateMyInstructorProfile: RequestHandler = async (req, res): Promi
       });
     }
 
-    const instructorExists = await db.getInstructorById(userId);
-    if (!instructorExists) {
+    const instructor = await db.getInstructorById(userId);
+    if (!instructor) {
       return res.status(404).json({
         success: false,
         error: 'Instructor not found'
       });
     }
 
-    await db.updateInstructor(userId, name, email, password);
+    instructor.name = name;
+    instructor.email = email;
+    instructor.password = password;
+
+    await db.updateInstructor(instructor);
     
     return res.status(200).json({
       success: true,

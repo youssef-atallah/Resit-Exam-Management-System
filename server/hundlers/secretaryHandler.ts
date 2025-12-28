@@ -1,6 +1,6 @@
 import { Request, Response, RequestHandler } from 'express';
 import { db } from '../datastore';
-import { Secretary, Notification } from '../types';
+import { Secretary, Notification, Student, Instructor } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 
 
@@ -332,3 +332,149 @@ export const updateResitExamBySecr: RequestHandler = async (req, res): Promise<a
 //     });
 //   }
 // };
+
+export const updateStudent: RequestHandler = async (req, res): Promise<any> => {
+  const { id } = req.params;
+  const { name, email, department, yearLevel } = req.body;
+
+  try {
+    const student = await db.getAstudent(id);
+    if (!student) {
+      return res.status(404).json({ success: false, error: 'Student not found' });
+    }
+
+    student.name = name || student.name;
+    student.email = email || student.email;
+    student.department = department || student.department;
+    student.yearLevel = yearLevel || student.yearLevel;
+
+    await db.updateStudent(student);
+    
+    return res.json({ success: true, message: 'Student updated successfully' });
+  } catch (error) {
+    console.error('Error updating student:', error);
+    return res.status(500).json({ success: false, error: 'Failed to update student' });
+  }
+};
+
+export const deleteStudent: RequestHandler = async (req, res): Promise<any> => {
+  const { id } = req.params;
+  
+  try {
+    await db.deleteStudent(id);
+    return res.json({ success: true, message: 'Student deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting student:', error);
+    return res.status(500).json({ success: false, error: 'Failed to delete student' });
+  }
+};
+
+export const createStudent: RequestHandler = async (req, res): Promise<any> => {
+  const { id, name, email, password, department, yearLevel } = req.body;
+
+  if (!id || !name || !email || !password) {
+    return res.status(400).json({ success: false, error: 'Missing required fields' });
+  }
+
+  try {
+    const existingUser = await db.getUserByEmail(email);
+    if (existingUser) {
+        return res.status(409).json({ success: false, error: 'Email already exists' });
+    }
+    
+    // Check ID existence?
+    // db.createStudent will fail if ID exists (PK).
+
+    const student: Student = {
+      id,
+      name,
+      email,
+      password,
+      department,
+      yearLevel: yearLevel ? parseInt(yearLevel) : undefined,
+      courses: [],
+      resitExams: [],
+      createdAt: new Date(),
+      createdBy: (req as any).user?.id || 'secretary',
+      updatedAt: null
+    };
+
+    await db.createStudent(student);
+    
+    return res.status(201).json({ success: true, message: 'Student created successfully' });
+  } catch (error) {
+    console.error('Error creating student:', error);
+    return res.status(500).json({ success: false, error: 'Failed to create student' });
+  }
+};
+
+export const updateInstructor: RequestHandler = async (req, res): Promise<any> => {
+  const { id } = req.params;
+  const { name, email, password, department } = req.body;
+
+  try {
+    const instructor = await db.getInstructorById(id);
+    if (!instructor) {
+      return res.status(404).json({ success: false, error: 'Instructor not found' });
+    }
+
+    instructor.name = name || instructor.name;
+    instructor.email = email || instructor.email;
+    if (password) instructor.password = password; 
+    instructor.department = department || instructor.department;
+
+    await db.updateInstructor(instructor);
+    
+    return res.json({ success: true, message: 'Instructor updated successfully' });
+  } catch (error) {
+    console.error('Error updating instructor:', error);
+    return res.status(500).json({ success: false, error: 'Failed to update instructor' });
+  }
+};
+
+export const deleteInstructor: RequestHandler = async (req, res): Promise<any> => {
+  const { id } = req.params;
+  
+  try {
+    await db.deleteInstructor(id);
+    return res.json({ success: true, message: 'Instructor deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting instructor:', error);
+    return res.status(500).json({ success: false, error: 'Failed to delete instructor' });
+  }
+};
+
+export const createInstructor: RequestHandler = async (req, res): Promise<any> => {
+  const { id, name, email, password, department } = req.body;
+
+  if (!id || !name || !email || !password) {
+    return res.status(400).json({ success: false, error: 'Missing required fields' });
+  }
+
+  try {
+    const existingUser = await db.getUserByEmail(email);
+    if (existingUser) {
+        return res.status(409).json({ success: false, error: 'Email already exists' });
+    }
+    
+    const instructor: Instructor = {
+      id,
+      name,
+      email,
+      password,
+      courses: [],
+      resitExams: [],
+      department,
+      createdAt: new Date(),
+      createdBy: (req as any).user?.id || 'secretary',
+      updatedAt: null
+    };
+
+    await db.createInstructor(instructor);
+    
+    return res.status(201).json({ success: true, message: 'Instructor created successfully' });
+  } catch (error) {
+    console.error('Error creating instructor:', error);
+    return res.status(500).json({ success: false, error: 'Failed to create instructor' });
+  }
+};
