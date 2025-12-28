@@ -89,7 +89,7 @@ async function updateUpcomingEvents() {
                         let timeString = 'Time TBA';
                         
                         if (exam.examDate) {
-                            const dateVal = new Date(parseInt(exam.examDate) || exam.examDate);
+                            const dateVal = new Date(exam.examDate);
                             if (!isNaN(dateVal.getTime())) {
                                 day = dateVal.getDate();
                                 month = dateVal.toLocaleString('en-US', { month: 'short' });
@@ -97,8 +97,9 @@ async function updateUpcomingEvents() {
                             }
                         }
 
-                        // Clean up name: Remove redundant " - Resit Exam" if present
-                        const displayName = exam.name.replace(/ - Resit Exam$/i, '');
+                        // Clean up name: Remove redundant " - Resit Exam" if present to avoid duplication
+                        const nameBase = (exam.name || '').replace(/ - Resit Exam$/i, '');
+                        const finalTitle = `${nameBase} - Resit Exam`;
                         
                         const eventItem = document.createElement('div');
                         eventItem.className = 'event-item';
@@ -108,20 +109,21 @@ async function updateUpcomingEvents() {
                                 <span class="month">${month}</span>
                             </div>
                             <div class="event-details">
-                                <h3>${displayName} - Resit Exam</h3>
+                                <h3>${finalTitle}</h3>
                                 <p>${timeString}</p>
                             </div>
                         `;
                         
                         // Add click handler for modal
                         eventItem.addEventListener('click', () => {
+                            const eventFullDate = exam.examDate ? new Date(exam.examDate).toLocaleDateString() : 'Date TBA';
                             openEventModal({
-                                title: `${displayName} - Resit Exam`,
+                                title: finalTitle,
                                 date: `${day} ${month}`,
                                 time: timeString,
                                 location: exam.location || 'Location TBA',
                                 description: exam.announcement || 'No additional details provided.',
-                                fullDate: exam.examDate ? new Date(parseInt(exam.examDate) || exam.examDate).toLocaleDateString() : 'Date TBA'
+                                fullDate: eventFullDate
                             });
                         });
 

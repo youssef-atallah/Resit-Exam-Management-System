@@ -235,9 +235,9 @@ function createCourseCard(course) {
         <div class="grade-info ${!course.grade ? 'no-grade' : ''}">
             <div class="grade-details">
                 <div class="grade-letter">${course.gradeLetter || '—'}</div>
-                <div class="grade-number">${course.grade ? course.grade : 'Not Graded'}</div>
+                <div class="grade-number">${(course.grade !== null && course.grade !== undefined) ? course.grade : 'Not Graded'}</div>
             </div>
-            <div class="grade-status">${course.grade ? 'Final Grade' : 'Pending'}</div>
+            <div class="grade-status">${(course.grade !== null && course.grade !== undefined) ? 'Final Grade' : 'Pending'}</div>
         </div>
     `;
 

@@ -138,7 +138,7 @@
                 if (!Array.isArray(allCourses)) allCourses = [];
                 
                 document.getElementById('totalCount').textContent = allCourses.length;
-                const withResit = allCourses.filter(c => c.resitExamId).length;
+                const withResit = allCourses.filter(c => c.resit_exam_id).length;
                 document.getElementById('resitCount').textContent = withResit;
                 
                 populateDepartmentFilter(allCourses);
@@ -156,7 +156,7 @@
                 return;
             }
             tbody.innerHTML = courses.map(course => {
-                const hasResit = course.resitExamId;
+                const hasResit = course.resit_exam_id;
                 return `
                     <tr>
                         <td>${course.id || 'N/A'}</td>
@@ -194,7 +194,7 @@
                     
                     const matchesDept = !deptFilter || c.department === deptFilter;
 
-                    const hasResit = !!c.resitExamId;
+                    const hasResit = !!c.resit_exam_id;
                     const matchesResit = !resitFilter || 
                                          (resitFilter === 'yes' && hasResit) || 
                                          (resitFilter === 'no' && !hasResit);

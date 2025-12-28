@@ -53,6 +53,7 @@ export interface Course {
   department: string;
   students: string[];  // Array of student IDs
   instructor_id: string | undefined; // only one instructor
+  resit_exam_id?: string | null;
   // courseRoom: string;
   createdAt: Date;
   createdBy: string;

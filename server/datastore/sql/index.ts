@@ -330,41 +330,28 @@ export class SqlDatastore implements Datastore {
   }
   async enrollStudentInCourse(studentId: string, courseId: string, grade?: number, gradeLetter?: string): Promise<boolean> {
     try {
-      // First check if the course is already assigned
+      // First check if already enrolled without a transaction to avoid locking if not needed
+      // (Optional: can also be inside transaction)
       const existingCourse = await this.db.get(
         `SELECT * FROM course_students 
          WHERE student_id = ? AND course_id = ?`,
         [studentId, courseId]
       );
 
-      if (!existingCourse) {
-        // Start a transaction
-        await this.db.run('BEGIN TRANSACTION');
+      await this.db.run('BEGIN TRANSACTION');
 
-        try {
+      try {
+        if (!existingCourse) {
           // Insert into course_students table
-          const courseResult = await this.db.run(
+          await this.db.run(
             `INSERT INTO course_students (student_id, course_id)
              VALUES (?, ?)`,
             [studentId, courseId]
           );
-
-          // Commit the transaction
-          await this.db.run('COMMIT');
-          return (courseResult.changes ?? 0) > 0;
-        } catch (error) {
-          // Rollback in case of error
-          await this.db.run('ROLLBACK');
-          throw error;
         }
-      }
 
-      // If grade is provided, update the grade in student_course_grades table
-      if (grade !== undefined && gradeLetter !== undefined) {
-        // Start a transaction
-        await this.db.run('BEGIN TRANSACTION');
-
-        try {
+        // If grade is provided, update the grade in student_course_grades table
+        if (grade !== undefined && gradeLetter !== undefined) {
           // Insert or update grade in student_course_grades table
           await this.db.run(
             `INSERT INTO student_course_grades (student_id, course_id, grade, grade_letter)
@@ -373,18 +360,20 @@ export class SqlDatastore implements Datastore {
              DO UPDATE SET grade = excluded.grade, grade_letter = excluded.grade_letter`,
             [studentId, courseId, grade, gradeLetter]
           );
-
-          // Commit the transaction
-          await this.db.run('COMMIT');
-          return true;
-        } catch (error) {
-          // Rollback in case of error
-          await this.db.run('ROLLBACK');
-          throw error;
         }
-      }
 
-      return true;
+        // Commit the transaction
+        await this.db.run('COMMIT');
+        return true;
+      } catch (error) {
+        // Rollback in case of error
+        try {
+          await this.db.run('ROLLBACK');
+        } catch (rbError) {
+          // Ignore rollback errors if transaction already closed
+        }
+        throw error;
+      }
     } catch (error) {
       console.error('Error in addCourseToStudent:', error);
       throw error;
