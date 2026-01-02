@@ -35,34 +35,36 @@ Authorization: Bearer <token>
 #### JWT-Based (Own Data)
 
 | Method | Endpoint | Auth | Role | Description |
-|--------|----------|------|------|-------------|
+|--------|----------|------|------|--------------|
+| GET | `/my/dashboard` | ✅ | Student | **[NEW]** Consolidated dashboard data |
 | GET | `/my/profile` | ✅ | Student | Get own profile |
 | PUT | `/my/profile` | ✅ | Student | Update own profile |
 | GET | `/my/courses` | ✅ | Student | Get own enrolled courses |
 | GET | `/my/course-details` | ✅ | Student | Get own course details with grades |
 | GET | `/my/resit-exams` | ✅ | Student | Get own resit exams |
+| POST | `/my/apply-resit` | ✅ | Student | Apply for resit exam |
+| DELETE | `/my/cancel-resit` | ✅ | Student | Cancel resit enrollment |
 
 #### Secretary Routes (Admin)
 
 | Method | Endpoint | Auth | Role | Description |
-|--------|----------|------|------|-------------|
+|--------|----------|------|------|--------------|
 | POST | `/student/` | ✅ | Secretary | Create new student |
 | DELETE | `/student/:id` | ✅ | Secretary | Delete student |
 | PUT | `/student/:id` | ✅ | Secretary | Update student info |
 | POST | `/student/:id` | ✅ | Secretary | Enroll student in course |
-| DELETE | `/student-course/:id` | ✅ | Secretary | Remove student from course |
-| POST | `/student/resit-exam/:id` | ✅ | Secretary | Enroll student in resit exam |
-| DELETE | `/student/resit-exam/:id` | ✅ | Secretary | Remove student from resit exam |
+| DELETE | `/student/:id/courses` | ✅ | Secretary | Remove student from course |
+| POST | `/student/:id/resit-exams` | ✅ | Secretary | Enroll student in resit exam |
+| DELETE | `/student/:id/resit-exams` | ✅ | Secretary | Remove student from resit exam |
 
-#### View by ID
+#### View by ID (RESTful)
 
 | Method | Endpoint | Auth | Role | Description |
-|--------|----------|------|------|-------------|
+|--------|----------|------|------|--------------|
 | GET | `/student/:id` | ✅ | Owner/Instructor/Secretary | Get student information |
-| GET | `/student/courses/:id` | ✅ | Owner/Instructor/Secretary | Get student's course IDs |
-| GET | `/student/c-details/:id` | ✅ | Owner/Instructor/Secretary | Get student's course details |
-| GET | `/student/resitexams/:id` | ✅ | Owner/Instructor/Secretary | Get student's resit exams |
-| GET | `/student/r-exams/:id` | ✅ | Owner/Instructor/Secretary | Get student's resit exams (alt) |
+| GET | `/student/:id/courses` | ✅ | Owner/Instructor/Secretary | Get student's course IDs |
+| GET | `/student/:id/course-details` | ✅ | Owner/Instructor/Secretary | Get student's course details |
+| GET | `/student/:id/resit-exams` | ✅ | Owner/Instructor/Secretary | Get student's resit exams |
 
 #### Instructor Routes
 
@@ -78,7 +80,8 @@ Authorization: Bearer <token>
 #### JWT-Based (Own Data)
 
 | Method | Endpoint | Auth | Role | Description |
-|--------|----------|------|------|-------------|
+|--------|----------|------|------|--------------|
+| GET | `/my/instructor/dashboard` | ✅ | Instructor | **[NEW]** Consolidated dashboard data |
 | GET | `/my/instructor/profile` | ✅ | Instructor | Get own profile |
 | PUT | `/my/instructor/profile` | ✅ | Instructor | Update own profile |
 | GET | `/my/instructor/courses` | ✅ | Instructor | Get own courses |
@@ -88,42 +91,41 @@ Authorization: Bearer <token>
 #### Secretary Routes (Admin)
 
 | Method | Endpoint | Auth | Role | Description |
-|--------|----------|------|------|-------------|
+|--------|----------|------|------|--------------|
 | POST | `/instructor` | ✅ | Secretary | Create new instructor |
 | DELETE | `/instructor/:id` | ✅ | Secretary | Delete instructor |
 | PUT | `/instructor/:id` | ✅ | Secretary | Update instructor info |
-| POST | `/instructor/course/:id` | ✅ | Secretary | Assign instructor to course |
-| DELETE | `/instructor/course/:id` | ✅ | Secretary | Unassign instructor from course |
+| POST | `/instructor/:id/courses` | ✅ | Secretary | Assign instructor to course |
+| DELETE | `/instructor/:id/courses` | ✅ | Secretary | Unassign instructor from course |
 
-#### View by ID
+#### View by ID (RESTful)
 
 | Method | Endpoint | Auth | Role | Description |
-|--------|----------|------|------|-------------|
+|--------|----------|------|------|--------------|
 | GET | `/instructor/:id` | ✅ | Owner/Secretary | Get instructor information |
-| GET | `/instructor/courses/:id` | ✅ | Owner/Secretary | Get instructor's course IDs |
-| GET | `/instructor/cdetails/:id` | ✅ | Owner/Secretary | Get instructor's course details |
+| GET | `/instructor/:id/courses` | ✅ | Owner/Secretary | Get instructor's course IDs |
+| GET | `/instructor/:id/course-details` | ✅ | Owner/Secretary | Get instructor's course details |
 
 #### Course Management
 
 | Method | Endpoint | Auth | Role | Description |
-|--------|----------|------|------|-------------|
+|--------|----------|------|------|--------------|
 | POST | `/instructor/course/grades/:courseId` | ✅ | Instructor | Set grades for multiple students |
 
 #### Resit Exam Management
 
 | Method | Endpoint | Auth | Role | Description |
-|--------|----------|------|------|-------------|
-| POST | `/instructor/r-exam/:id` | ✅ | Instructor | Create resit exam |
-| POST | `/r-exam/:id` | ✅ | Instructor | Create resit exam (alt) |
-| PUT | `/instructor/r-exam/:id` | ✅ | Instructor | Update resit exam |
-| DELETE | `/instructor/r-exam/:id` | ✅ | Instructor | Delete resit exam |
-| GET | `/instructor/r-exams/:id` | ✅ | Owner/Secretary | Get instructor's resit exams |
-| PUT | `/instructor/r-announcement/:id` | ✅ | Instructor | Set resit exam announcement |
+|--------|----------|------|------|--------------|
+| POST | `/instructor/:id/resit-exams` | ✅ | Instructor | Create resit exam |
+| PUT | `/instructor/resit-exam/:resitExamId` | ✅ | Instructor | Update resit exam |
+| DELETE | `/instructor/resit-exam/:resitExamId` | ✅ | Instructor | Delete resit exam |
+| GET | `/instructor/:id/resit-exams` | ✅ | Owner/Secretary | Get instructor's resit exams |
+| PUT | `/instructor/resit-announcement/:resitExamId` | ✅ | Instructor | Set resit exam announcement |
 
 #### Grading
 
 | Method | Endpoint | Auth | Role | Description |
-|--------|----------|------|------|-------------|
+|--------|----------|------|------|--------------|
 | PUT | `/instructor/course/:courseId/student/:studentId` | ✅ | Instructor | Update single student's resit grade |
 | PUT | `/instructor/resit-results/all/:resitExamId` | ✅ | Instructor | Update all students' resit grades |
 | GET | `/instructor/resit-results/exam/:resitExamId` | ✅ | Instructor | Get all results for resit exam |
@@ -159,8 +161,8 @@ Authorization: Bearer <token>
 ### 📝 Resit Exam Routes
 
 | Method | Endpoint | Auth | Role | Description |
-|--------|----------|------|------|-------------|
-| GET | `/r-exam/:id` | ✅ | All | Get resit exam details |
+|--------|----------|------|------|--------------|
+| GET | `/resit-exam/:id` | ✅ | All | Get resit exam details |
 
 ---
 
@@ -428,9 +430,61 @@ Authorization: Bearer <token>
 
 ```json
 {
-  "error": "Failed to process request",
-  "details": "Database connection error"
+  "success": false,
+  "error": {
+    "code": "INTERNAL_ERROR",
+    "message": "An unexpected error occurred"
+  },
+  "meta": {
+    "timestamp": 1704160000000
+  }
 }
+```
+
+---
+
+## Standardized Response Format (NEW)
+
+All API responses now follow this structure:
+
+### Success Response
+```json
+{
+  "success": true,
+  "data": { ... },
+  "meta": {
+    "timestamp": 1704160000000
+  }
+}
+```
+
+### Error Response
+```json
+{
+  "success": false,
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Student not found"
+  },
+  "meta": {
+    "timestamp": 1704160000000
+  }
+}
+```
+
+### Error Codes
+
+| Code | HTTP Status | Description |
+|------|-------------|-------------|
+| `VALIDATION_ERROR` | 400 | Invalid request data |
+| `MISSING_FIELD` | 400 | Required field missing |
+| `UNAUTHORIZED` | 401 | Authentication required |
+| `INVALID_TOKEN` | 401 | Token is invalid |
+| `TOKEN_EXPIRED` | 401 | Token has expired |
+| `FORBIDDEN` | 403 | Access denied |
+| `NOT_FOUND` | 404 | Resource not found |
+| `CONFLICT` | 409 | Resource already exists |
+| `INTERNAL_ERROR` | 500 | Server error |
 ```
 
 ---

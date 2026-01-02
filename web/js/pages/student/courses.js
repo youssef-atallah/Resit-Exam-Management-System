@@ -7,25 +7,12 @@ checkStudentAuth();
 // Function to format date
 function formatDate(timestamp) {
     if (!timestamp) return 'not announced';
-    
-    // Check if the timestamp is in the format "YYYY-MM-DD HH:mm:ss"
-    if (typeof timestamp === 'string' && timestamp.includes(' ')) {
-        // Convert the string to a Date object
-        const [datePart, timePart] = timestamp.split(' ');
-        const [year, month, day] = datePart.split('-');
-        const [hours, minutes, seconds] = timePart.split(':');
-        const date = new Date(year, month - 1, day, hours, minutes, seconds);
-        return date.toLocaleString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
+    let date = new Date(timestamp);
+    if (isNaN(date.getTime())) {
+        date = new Date(parseInt(timestamp));
     }
-    
-    // Handle numeric timestamp (milliseconds since epoch)
-    const date = new Date(parseInt(timestamp));
+    if (isNaN(date.getTime())) return 'Invalid Date';
+
     return date.toLocaleString('en-US', {
         year: 'numeric',
         month: 'short',
@@ -47,14 +34,8 @@ function getCurrentTime() {
 function formatRemainingTime(deadline) {
     if (!deadline) return 'no timer';
     
-    // Convert deadline string to Date object if it's in the format "YYYY-MM-DD HH:mm:ss"
-    let deadlineDate;
-    if (typeof deadline === 'string' && deadline.includes(' ')) {
-        const [datePart, timePart] = deadline.split(' ');
-        const [year, month, day] = datePart.split('-');
-        const [hours, minutes, seconds] = timePart.split(':');
-        deadlineDate = new Date(year, month - 1, day, hours, minutes, seconds);
-    } else {
+    let deadlineDate = new Date(deadline);
+    if (isNaN(deadlineDate.getTime())) {
         deadlineDate = new Date(parseInt(deadline));
     }
     
@@ -123,7 +104,7 @@ async function fetchStudentCourses() {
         const studentResitExams = studentDetails.resitExams || [];
 
         // First, fetch student course details to get grades and resit exam info
-        const studentDetailsResponse = await authenticatedFetch(`/student/c-details/${studentId}`);
+        const studentDetailsResponse = await authenticatedFetch(`/student/${studentId}/course-details`);
         if (!studentDetailsResponse.ok) {
             throw new Error('Failed to fetch student course details');
         }
@@ -153,7 +134,7 @@ async function fetchStudentCourses() {
                 const studentDetail = courseDetailsMap.get(courseId);
                 
                 // Check if this course has a resit exam
-                const hasResitExam = studentResitExams.some(resitId => resitId.startsWith(courseId));
+                const hasResitExam = studentResitExams.some(resitId => resitId.includes(courseId));
 
                 // Fetch instructor details using course/instructor endpoint (accessible to all authenticated users)
                 let instructorName = 'Instructor ';
@@ -242,14 +223,27 @@ function createCourseCard(course) {
     `;
 
     // Format the resit exam deadline if available - only show if deadline is set
-    const resitDeadline = course.resit_exam && course.resit_exam.deadline ? `
-        <div class="apply-deadline-info">
-            <i class="fas fa-hourglass-end"></i>
-            Deadline to Apply: 
-            <span class="apply-deadline">${formatDate(course.resit_exam.deadline)}</span>
-            <span class="remaining-time" data-deadline="${course.resit_exam.deadline}">(${formatRemainingTime(course.resit_exam.deadline)})</span>
-        </div>
-    ` : '';
+    // Format the resit exam deadline if available
+    let resitDeadline = '';
+    if (course.resit_exam) {
+        if (course.resit_exam.deadline) {
+            resitDeadline = `
+                <div class="apply-deadline-info">
+                    <i class="fas fa-hourglass-end"></i>
+                    Deadline to Apply: 
+                    <span class="apply-deadline">${formatDate(course.resit_exam.deadline)}</span>
+                    <span class="remaining-time" data-deadline="${course.resit_exam.deadline}">(${formatRemainingTime(course.resit_exam.deadline)})</span>
+                </div>
+            `;
+        } else {
+            resitDeadline = `
+                <div class="apply-deadline-info">
+                    <i class="fas fa-hourglass-start"></i>
+                     Deadline to Apply: <span style="color: #6b7280; font-style: italic;">Not Specified Yet</span>
+                </div>
+            `;
+        }
+    }
 
     // Determine resit button state
     console.log('Course:', course.code);
@@ -270,18 +264,36 @@ function createCourseCard(course) {
     
     let resitButton;
     
+    // Check if deadline has passed with timezone adjustment
+    let isDeadlinePassed = false;
+    if (course.resit_exam?.deadline) {
+        let deadlineDate = new Date(course.resit_exam.deadline);
+        if (isNaN(deadlineDate.getTime())) {
+            deadlineDate = new Date(parseInt(course.resit_exam.deadline));
+        }
+        const currentTime = getCurrentTime();
+        isDeadlinePassed = deadlineDate <= currentTime;
+    }
+
     if (course.hasAppliedForResit) {
-        // If student has already applied for resit, show View Resit Details and Cancel button
+        // If student has already applied for resit, show View Resit Details and Cancel button (if allowed)
         resitButton = `
             <div class="resit-applied-actions" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                 <a href="resit.html" class="btn btn-resit applied" style="flex: 1;">
                     <i class="fas fa-check"></i>
                     View Resit Details
                 </a>
+                ${!isDeadlinePassed ? `
                 <button class="btn btn-cancel-resit" data-course-id="${course.code}" style="flex: 1; background: #ef4444; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer;">
                     <i class="fas fa-times"></i>
                     Cancel
                 </button>
+                ` : `
+                <button class="btn btn-resit not-eligible" disabled style="flex: 1;">
+                    <i class="fas fa-clock"></i>
+                    Deadline Passed
+                </button>
+                `}
             </div>
         `;
     } else if (!hasResitExam) {
@@ -293,22 +305,6 @@ function createCourseCard(course) {
             </button>
         `;
     } else {
-        // Check if deadline has passed with timezone adjustment
-        let isDeadlinePassed = false;
-        if (course.resit_exam?.deadline) {
-            let deadlineDate;
-            if (typeof course.resit_exam.deadline === 'string' && course.resit_exam.deadline.includes(' ')) {
-                const [datePart, timePart] = course.resit_exam.deadline.split(' ');
-                const [year, month, day] = datePart.split('-');
-                const [hours, minutes, seconds] = timePart.split(':');
-                deadlineDate = new Date(year, month - 1, day, hours, minutes, seconds);
-            } else {
-                deadlineDate = new Date(parseInt(course.resit_exam.deadline));
-            }
-            const currentTime = getCurrentTime();
-            isDeadlinePassed = deadlineDate <= currentTime;
-        }
-
         if (!isGradeLetterAllowed) {
             resitButton = `
                 <button class="btn btn-resit not-eligible" disabled>

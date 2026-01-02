@@ -9,7 +9,7 @@ async function fetchCourses() {
         if (!instructorId) {
             throw new Error('No instructor ID found');
         }
-        const response = await authenticatedFetch(`/instructor/cdetails/${instructorId}`, {
+        const response = await authenticatedFetch(`/instructor/${instructorId}/course-details`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -127,7 +127,7 @@ window.confirmAndCancelResit = async function(resitExamId) {
         async () => {
             try {
                 const instructorId = getUserId();
-                const response = await authenticatedFetch(`/instructor/r-exam/${instructorId}`, {
+                const response = await authenticatedFetch(`/instructor/resit-exam/${resitExamId}`, {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json'
@@ -634,7 +634,7 @@ window.showAnnounceModal = function(courseId) {
         }
         try {
             const instructorId = getUserId();
-            const response = await authenticatedFetch(`/instructor/r-announcement/${instructorId}`, {
+            const response = await authenticatedFetch(`/instructor/resit-announcement/${courseId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'

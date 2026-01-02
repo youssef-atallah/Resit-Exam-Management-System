@@ -94,23 +94,13 @@
     .page-header h1 { margin: 0; color: #1f2937; }
     .gpa-display { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 12px; font-weight: 600; }
     .gpa-value { font-size: 1.5rem; }
-    .grades-container { background: white; border-radius: 12px; padding: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-    .grades-grid { display: grid; gap: 1.5rem; }
-    .grade-card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.5rem; transition: all 0.3s; }
-    .grade-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); transform: translateY(-2px); }
-    .grade-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-    .course-info h3 { margin: 0 0 0.25rem 0; color: #1f2937; }
-    .course-code { color: #6b7280; font-size: 0.9rem; }
-    .grade-display { display: flex; flex-direction: column; align-items: center; padding: 1rem; border-radius: 10px; min-width: 100px; }
-    .grade-letter { font-size: 2rem; font-weight: 700; margin-bottom: 0.25rem; }
-    .grade-number { font-size: 0.9rem; color: #6b7280; }
-    .grade-breakdown { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e5e7eb; }
-    .grade-breakdown h4 { margin: 0 0 0.75rem 0; color: #374151; font-size: 0.95rem; }
-    .breakdown-items { display: grid; gap: 0.5rem; }
-    .breakdown-item { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; background: #f9fafb; border-radius: 6px; }
-    .item-name { color: #4b5563; }
-    .item-score { font-weight: 600; color: #1f2937; }
-    .item-weight { color: #6b7280; font-size: 0.85rem; }
+    .grades-container { background: transparent; padding: 0; display: block !important; }
+    .grades-grid { 
+        display: grid !important; 
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)) !important; 
+        gap: 1.25rem !important;
+        width: 100% !important;
+    }
     </style>
 
     <style>

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { signInHandler } from '../Auth/authHandler';
+import { signInHandler, refreshTokenHandler } from '../Auth/authHandler';
 
 const router = Router();
 
@@ -16,4 +16,8 @@ const router = Router();
   // becarful  Auth/signin - Sign in user
 router.post('/signin', signInHandler);
 
+// POST /refresh - Refresh JWT token (extends expiration)
+router.post('/refresh', refreshTokenHandler);
+
 export default router;
+

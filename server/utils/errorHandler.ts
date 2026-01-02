@@ -1,24 +1,32 @@
 import { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
-import { ApiError } from '../utils/apiError';
-import { ErrorCodes } from '../utils/apiResponse';
+import { ApiError } from './apiError';
+import { ApiResponse, ErrorCodes } from './apiResponse';
 
 /**
  * ============================================================================
  * CENTRALIZED ERROR HANDLER MIDDLEWARE
  * ============================================================================
  * 
- * Catches all errors thrown in route handlers and sends standardized responses.
+ * This middleware catches all errors thrown in route handlers and 
+ * sends standardized API responses.
  * 
- * How it works:
- *   1. Catches ApiError - returns proper status code and error structure
- *   2. Catches JWT errors - returns 401 with appropriate message
- *   3. Catches unknown errors - returns 500 without leaking details
+ * Benefits:
+ *   - Consistent error format across all endpoints
+ *   - Proper logging of errors
+ *   - Hides internal error details in production
+ * 
+ * Usage in server.ts:
+ *   import { errorHandler, notFoundHandler } from './utils/errorHandler';
+ *   
+ *   // After all routes
+ *   app.use(notFoundHandler);
+ *   app.use(errorHandler);
  * ============================================================================
  */
 
 
 /**
- * Log error details
+ * Log error details (could be extended to use proper logging library)
  */
 function logError(err: Error, req: Request): void {
   console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -56,7 +64,9 @@ export const errorHandler: ErrorRequestHandler = (
         message: err.message,
         details: process.env.NODE_ENV === 'development' ? err.details : undefined
       },
-      meta: { timestamp: Date.now() }
+      meta: {
+        timestamp: Date.now()
+      }
     });
     return;
   }
@@ -65,7 +75,10 @@ export const errorHandler: ErrorRequestHandler = (
   if (err.name === 'JsonWebTokenError') {
     res.status(401).json({
       success: false,
-      error: { code: ErrorCodes.INVALID_TOKEN, message: 'Invalid token' },
+      error: {
+        code: ErrorCodes.INVALID_TOKEN,
+        message: 'Invalid token'
+      },
       meta: { timestamp: Date.now() }
     });
     return;
@@ -74,7 +87,10 @@ export const errorHandler: ErrorRequestHandler = (
   if (err.name === 'TokenExpiredError') {
     res.status(401).json({
       success: false,
-      error: { code: ErrorCodes.TOKEN_EXPIRED, message: 'Token has expired' },
+      error: {
+        code: ErrorCodes.TOKEN_EXPIRED,
+        message: 'Token has expired'
+      },
       meta: { timestamp: Date.now() }
     });
     return;
@@ -85,7 +101,9 @@ export const errorHandler: ErrorRequestHandler = (
     success: false,
     error: {
       code: ErrorCodes.INTERNAL_ERROR,
-      message: process.env.NODE_ENV === 'development' ? err.message : 'An unexpected error occurred'
+      message: process.env.NODE_ENV === 'development' 
+        ? err.message 
+        : 'An unexpected error occurred'
     },
     meta: { timestamp: Date.now() }
   });

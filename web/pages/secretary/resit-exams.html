@@ -391,7 +391,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2><i class="fas fa-calendar-check"></i> Confirm Resit Exam</h2>
-                <button class="close-modal">&times;</button>
+                <button class="close-modal" onclick="closeModal()">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="course-info-box">
@@ -432,7 +432,7 @@
         import { updateSecretaryNameInHeader } from '../../js/utils/secretaryAuth.js';
         import { authenticatedFetch, getUserId } from '../../js/utils/auth.js';
 
-        let allResitExams = [];
+        window.allResitExams = [];
         let currentFilter = 'all';
 
         document.addEventListener('DOMContentLoaded', async () => {
@@ -447,11 +447,9 @@
         async function loadResitExams() {
             try {
                 const response = await authenticatedFetch('/secretary/resit-exams');
-                allResitExams = await response.json();
+                const data = await response.json();
                 
-                if (!Array.isArray(allResitExams)) {
-                    allResitExams = [];
-                }
+                window.allResitExams = Array.isArray(data) ? data : [];
                 
                 renderResitExams();
             } catch (error) {
@@ -469,13 +467,12 @@
             const grid = document.getElementById('resitGrid');
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             
-            let filteredExams = allResitExams.filter(exam => {
+            let filteredExams = window.allResitExams.filter(exam => {
                 // Filter by status
                 const isPending = !exam.examDate || !exam.location;
                 if (currentFilter === 'pending' && !isPending) return false;
                 if (currentFilter === 'confirmed' && isPending) return false;
                 
-                // Filter by search
                 // Filter by search
                 const name = (exam.name || '').toLowerCase();
                 const courseId = (exam.course_id || '').toLowerCase();
@@ -505,6 +502,9 @@
                 
                 const examDate = exam.examDate ? new Date(exam.examDate).toLocaleString() : 'Not set';
                 const deadline = exam.deadline ? new Date(exam.deadline).toLocaleString() : 'Not set';
+                
+                // Safe string for onclick
+                const courseIdSafe = exam.course_id || '';
                 
                 return `
                     <div class="resit-card" data-id="${exam.id || exam.course_id}">
@@ -539,7 +539,7 @@
                             </div>
                         </div>
                         <div class="resit-card-footer">
-                            <button class="btn btn-primary" onclick="openConfirmModal('${exam.course_id}', '${exam.name || 'Course'}')">
+                            <button class="btn btn-primary" onclick="window.openConfirmModal('${courseIdSafe}')">
                                 <i class="fas fa-edit"></i> ${isPending ? 'Confirm' : 'Edit'}
                             </button>
                         </div>
@@ -564,8 +564,7 @@
                 });
             });
 
-            // Modal close
-            document.querySelector('.close-modal').addEventListener('click', closeModal);
+            // Modal close on backdrop click
             document.getElementById('confirmModal').addEventListener('click', (e) => {
                 if (e.target === document.getElementById('confirmModal')) {
                     closeModal();
@@ -574,9 +573,15 @@
         }
 
         // Make functions global for onclick handlers
-        window.openConfirmModal = function(courseId, courseName) {
+        window.openConfirmModal = function(courseId) {
+            const exam = window.allResitExams.find(e => e.course_id === courseId);
+            if (!exam) {
+                console.error('Exam not found for courseId:', courseId);
+                return;
+            }
+
             document.getElementById('courseId').value = courseId;
-            document.getElementById('modalCourseName').textContent = courseName;
+            document.getElementById('modalCourseName').textContent = exam.name || 'Course';
             document.getElementById('modalCourseCode').textContent = `Course ID: ${courseId}`;
             
             // Set minimum dates
@@ -585,6 +590,49 @@
             document.getElementById('deadline').min = nowString;
             document.getElementById('examDate').min = nowString;
             
+            // Pre-fill data if it exists (Fix for Edit bug)
+            if (exam.examDate) {
+                // Convert to local datetime-local format (YYYY-MM-DDTHH:mm)
+                const d = new Date(exam.examDate);
+                // Adjust for timezone offset to show correct local time in input
+                const offset = d.getTimezoneOffset() * 60000;
+                const localISOTime = (new Date(d - offset)).toISOString().slice(0, 16);
+                document.getElementById('examDate').value = localISOTime;
+            } else {
+                document.getElementById('examDate').value = '';
+            }
+
+            if (exam.deadline) {
+                const d = new Date(exam.deadline);
+                const offset = d.getTimezoneOffset() * 60000;
+                const localISOTime = (new Date(d - offset)).toISOString().slice(0, 16);
+                document.getElementById('deadline').value = localISOTime;
+            } else {
+                 document.getElementById('deadline').value = '';
+            }
+
+            if (exam.location) {
+                document.getElementById('location').value = exam.location;
+            } else {
+                document.getElementById('location').value = '';
+            }
+            
+            // Update title based on whether we are confirming or editing
+            const isEditing = !!(exam.examDate && exam.location);
+            const titleEl = document.querySelector('#confirmModal h2');
+            if (titleEl) {
+                titleEl.innerHTML = isEditing ? 
+                    '<i class="fas fa-edit"></i> Edit Resit Exam' : 
+                    '<i class="fas fa-calendar-check"></i> Confirm Resit Exam';
+            }
+
+            const confirmBtn = document.querySelector('#confirmModal .btn-success');
+            if (confirmBtn) {
+                 confirmBtn.innerHTML = isEditing ?
+                    '<i class="fas fa-save"></i> Save Changes' :
+                    '<i class="fas fa-check"></i> Confirm Exam';
+            }
+
             document.getElementById('confirmModal').classList.add('show');
         };
 

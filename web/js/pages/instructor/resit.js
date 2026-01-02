@@ -7,7 +7,7 @@ async function fetchResitExams() {
         if (!instructorId) {
             throw new Error('No instructor ID found');
         }
-        const response = await authenticatedFetch(`/instructor/r-exams/${instructorId}`);
+        const response = await authenticatedFetch(`/instructor/${instructorId}/resit-exams`);
         const data = await response.json();
         
         if (!data.success) {
@@ -429,7 +429,7 @@ window.uploadGrades = function(resitId) {
 window.downloadStudentList = async function(resitId, format) {
     try {
         // Fetch resit exam details which includes enrolled students
-        const response = await authenticatedFetch(`/r-exam/${resitId}`);
+        const response = await authenticatedFetch(`/resit-exam/${resitId}`);
         const result = await response.json();
         
         if (!result.success) {

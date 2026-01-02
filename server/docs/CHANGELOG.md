@@ -4,11 +4,66 @@ All notable changes to the Resit Exam Management System.
 
 ---
 
+## [2.1.0] - 2025-01-02
+
+### 🎉 API Design Improvements
+
+This release introduces professional API design patterns and route standardization.
+
+### ✨ Added
+
+#### Consolidated Dashboard Endpoints (BFF Pattern)
+- `GET /my/dashboard` - All student dashboard data in ONE request
+- `GET /my/instructor/dashboard` - All instructor dashboard data in ONE request
+- Reduces 4-6 API calls to just 1 per dashboard load
+
+#### Standardized Response Format
+- New `ApiResponse` utility for consistent response structure
+- New `ApiError` class for standardized error throwing
+- Enhanced `errorMiddleware` with centralized error handling
+
+#### New Student Self-Service Routes
+- `POST /my/apply-resit` - Self-enrollment in resit exams
+- `DELETE /my/cancel-resit` - Self-cancellation of resit enrollment
+
+### 🔄 Changed
+
+#### Route Naming Standardization
+All routes now use **kebab-case** and **RESTful** structure:
+
+| Old Route | New Route |
+|-----------|-----------|
+| `/student/c-details/:id` | `/student/:id/course-details` |
+| `/student/resitexams/:id` | `/student/:id/resit-exams` |
+| `/instructor/cdetails/:id` | `/instructor/:id/course-details` |
+| `/instructor/r-exams/:id` | `/instructor/:id/resit-exams` |
+| `/instructor/r-exam/:id` | `/instructor/resit-exam/:resitExamId` |
+| `/r-exam/:id` | `/resit-exam/:id` |
+
+> **Note**: Old routes are kept as **DEPRECATED** for backward compatibility
+
+#### Secretary Route Updates
+| Old Route | New Route |
+|-----------|-----------|
+| `/student-course/:id` | `/student/:id/courses` |
+| `/instructor/course/:id` | `/instructor/:id/courses` |
+
+### 🐛 Fixed
+
+- Fixed dashboard data extraction to work with new `ApiResponse` wrapper
+- Removed unused database query in student dashboard handler
+
+### 📚 Documentation
+
+- Updated `QUICK_REFERENCE.md` with new routes and response format
+- Added error codes reference table
+- Updated all route examples to use new naming convention
+
+---
+
 ## [2.0.0] - 2024-12-27
 
 ### 🎉 Major Release - Role-Based Authentication & Authorization
-
-This release introduces comprehensive JWT-based authentication with role-based access control.
 
 ### ✨ Added
 

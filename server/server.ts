@@ -1,6 +1,6 @@
 import express from 'express';
 import {  RequestMiddleware } from './middleware/loggerMiddleware';
-import { errorHandler } from './middleware/errorMiddleware';
+import { errorHandler, notFoundHandler } from './middleware/errorMiddleware';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -37,8 +37,9 @@ import { initializeDb } from './datastore';
   app.use('/', secretaryRoutes);
   app.use('/', notificationRoutes);
 
-  // general error handler for all errors
-  app.use(errorHandler);
+  // Error handling (order matters!)
+  app.use(notFoundHandler);  // Handle 404 for unknown routes
+  app.use(errorHandler);     // Handle all other errors
 
   const port =  3000;
   app.listen(port, () => {

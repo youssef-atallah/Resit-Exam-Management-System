@@ -58,7 +58,7 @@ export function signJWT(object: JWTObject): string {
   return jsonwebtoken.sign(
     { id: object.id, role: object.role }, 
     secret, 
-    { expiresIn: '24h' }
+    { expiresIn: '7d' }
   );
 } 
 
@@ -239,4 +239,28 @@ export const requireOwnerOrRole = (...allowedRoles: Array<'student' | 'instructo
     });
     return;
   };
+};
+
+// Refresh token endpoint - generates new token if current one is still valid
+export const refreshTokenHandler: RequestHandler = async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader?.startsWith('Bearer ')) {
+      res.status(401).json({ error: 'No token provided' });
+      return;
+    }
+
+    const token = authHeader.substring(7);
+    const decoded = verifyJWT(token); // Will throw if expired
+    
+    // Generate new token with fresh expiration
+    const newToken = signJWT({ id: decoded.id, role: decoded.role });
+    
+    res.status(200).json({
+      message: 'Token refreshed',
+      token: newToken
+    });
+  } catch (error) {
+    res.status(401).json({ error: 'Token expired or invalid - please log in again' });
+  }
 };

@@ -266,7 +266,21 @@ Enroll a student in a course.
 ### Remove Student from Course
 
 <details>
-<summary><b>DELETE</b> <code>/student-course/:id</code></summary>
+<summary><b>DELETE</b> <code>/student/:id/courses</code></summary>
+
+### Description
+Remove a student from a course and delete their grade.
+
+### Access
+🔐 **Secretary Only**
+
+### Request Body
+```json
+{
+  "courseId": "CS101",
+  "secretaryId": "sec-001"
+}
+```
 
 ### Description
 Remove a student from a course and delete their grade.
@@ -350,7 +364,7 @@ Remove a student from a resit exam.
 ### Get Student's Courses
 
 <details>
-<summary><b>GET</b> <code>/student/courses/:id</code></summary>
+<summary><b>GET</b> <code>/student/:id/courses</code></summary>
 
 ### Description
 Get list of course IDs the student is enrolled in.
@@ -371,7 +385,7 @@ Get list of course IDs the student is enrolled in.
 ### Get Course Details with Grades
 
 <details>
-<summary><b>GET</b> <code>/student/c-details/:id</code></summary>
+<summary><b>GET</b> <code>/student/:id/course-details</code></summary>
 
 ### Description
 Get detailed course information including grades and resit exam status.
@@ -414,7 +428,7 @@ Get detailed course information including grades and resit exam status.
 ### Get Student's Resit Exams
 
 <details>
-<summary><b>GET</b> <code>/student/resitexams/:id</code></summary>
+<summary><b>GET</b> <code>/student/:id/resit-exams</code></summary>
 
 ### Description
 Get list of resit exams the student is enrolled in.
@@ -481,6 +495,6 @@ Get list of resit exams the student is enrolled in.
 
 ---
 
-*Last Updated: December 27, 2025*
+*Last Updated: January 2, 2025*
 
 </div>

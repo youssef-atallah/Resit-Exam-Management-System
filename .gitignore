@@ -1,5 +1,7 @@
 node_modules/
-.claude
 frontend/
 tasks.txt
+new_tasks.md
+errors.md
+architecture_design.md
 web/replace_function.py

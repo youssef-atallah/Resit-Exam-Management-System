@@ -37,7 +37,7 @@ async function loadProfileData() {
         
         // Let's fetch dashboard-like data to get counts
         const studentId = getUserId();
-        const statsResponse = await authenticatedFetch(`/student/c-details/${studentId}`);
+        const statsResponse = await authenticatedFetch(`/student/${studentId}/course-details`);
         
         if (statsResponse.ok) {
             // The API returns the array directly properly
@@ -60,7 +60,7 @@ async function loadProfileData() {
         }
 
         // Fetch Resit Exams count
-        const resitResponse = await authenticatedFetch(`/student/resitexams/${studentId}`);
+        const resitResponse = await authenticatedFetch(`/student/${studentId}/resit-exams`);
         if (resitResponse.ok) {
             const resitData = await resitResponse.json();
             const resitExams = resitData.resitExams || [];

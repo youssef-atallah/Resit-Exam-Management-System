@@ -203,6 +203,8 @@ export class SqlDatastore implements Datastore {
                 re.name as resit_exam_name,
                 re.deadline as resit_deadline,
                 re.exam_date as resit_exam_date,
+                ree.grade as resit_grade,
+                ree.grade_letter as resit_grade_letter,
                 u.id as instructor_user_id,
                 u.name as instructor_name,
                 u.email as instructor_email
@@ -210,6 +212,8 @@ export class SqlDatastore implements Datastore {
             JOIN courses c ON cs.course_id = c.id
             LEFT JOIN student_course_grades scg ON cs.student_id = scg.student_id AND cs.course_id = scg.course_id
             LEFT JOIN resit_exams re ON c.id = re.course_id
+            LEFT JOIN resit_exam_application rea ON re.id = rea.resit_exam_id AND rea.student_id = cs.student_id
+            LEFT JOIN resit_exam_enroll ree ON rea.id = ree.resit_exam_application_id
             LEFT JOIN instructors i ON c.instructor_id = i.id
             LEFT JOIN users u ON i.id = u.id
             WHERE cs.student_id = ?`, [id]);
@@ -232,6 +236,8 @@ export class SqlDatastore implements Datastore {
             location: '',
             grade: row.grade,
             gradeLetter: row.grade_letter,
+            resitGrade: row.resit_grade || null,
+            resitGradeLetter: row.resit_grade_letter || null,
             resit_exam: row.resit_exam_id ? {
                 id: row.resit_exam_id,
                 name: row.resit_exam_name,
@@ -949,12 +955,17 @@ export class SqlDatastore implements Datastore {
         );
 
         // Update the student's course grade in student_course_grades
+        // COMMMENTED OUT: We want to preserve the original grade.
+        // The resit grade is stored in resit_exam_enroll.
+        /*
         const gradeRes = await this.db.run(
           `INSERT OR REPLACE INTO student_course_grades 
            (student_id, course_id, grade, grade_letter) 
            VALUES (?, ?, ?, ?)`,
           [result.studentId, resitExam.course_id, result.grade, result.gradeLetter]
       );
+      */
+     const gradeRes = { changes: 1 }; // Mock success for the check below
 
         if (enrollRes.changes === 0 || gradeRes.changes === 0) allSuccess = false;
       } catch (error) {

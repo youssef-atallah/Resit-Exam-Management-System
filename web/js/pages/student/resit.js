@@ -68,7 +68,7 @@ function updateRemainingTimes() {
             // If deadline has passed, update the button state
             if (remainingTime === 'Deadline Passed') {
                 const card = element.closest('.course-item');
-                const cancelBtn = card?.querySelector('.cancel-resit');
+                const cancelBtn = card?.querySelector('.cancel-resit-btn');
                 if (cancelBtn) {
                     cancelBtn.remove();
                 }
@@ -105,7 +105,7 @@ async function fetchStudentResitExams() {
         const resitPromises = studentDetails.resitExams.map(async (resitId) => {
             try {
                 // Use the actual resit exam ID from the database
-                const response = await authenticatedFetch(`/r-exam/${resitId}`);
+                const response = await authenticatedFetch(`/resit-exam/${resitId}`);
                 if (!response.ok) {
                     throw new Error(`Failed to fetch resit exam ${resitId}`);
                 }
@@ -350,9 +350,11 @@ function createResitExamCard(exam) {
                     '<button class="btn btn-danger btn-disabled" disabled style="flex: 1;">Deadline Passed</button>' :
                     ''
             }
-            <button class="btn btn-danger cancel-resit-btn" data-resit-id="${exam.id}" style="flex: 1;">
-                <i class="fas fa-times"></i> Cancel
-            </button>
+            ${!isDeadlinePassed ? 
+                `<button class="btn btn-danger cancel-resit-btn" data-resit-id="${exam.id}" style="flex: 1;">
+                    <i class="fas fa-times"></i> Cancel
+                </button>` : ''
+            }
         </div>
     `;
 

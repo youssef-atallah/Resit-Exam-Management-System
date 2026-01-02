@@ -752,4 +752,229 @@
     .profile-badges {
         justify-content: center;
     }
+}
+
+/* ============================================================================
+   GRADE CARD STYLES - Ultra Modern Design
+   ============================================================================ */
+
+/* Grades Grid Layout */
+.grades-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+}
+
+/* Grade Card Container */
+.grade-card {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 1.75rem;
+    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.grade-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px -5px rgba(0, 0, 0, 0.1);
+    border-color: rgba(99, 102, 241, 0.2);
+}
+
+/* Decorative top accent */
+.grade-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899);
+    opacity: 0.9;
+}
+
+/* Card Header */
+.grade-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+}
+
+.course-title {
+    flex: 1;
+    padding-right: 1rem;
+}
+
+.course-title h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1e293b;
+    line-height: 1.4;
+    letter-spacing: -0.01em;
+}
+
+.course-id {
+    display: inline-block;
+    font-size: 0.75rem;
+    color: #64748b;
+    font-weight: 600;
+    background: #f8fafc;
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    letter-spacing: 0.02em;
+}
+
+/* Status Badge */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    flex-shrink: 0;
+}
+
+.status-badge.improved {
+    background: rgba(16, 185, 129, 0.1);
+    color: #059669;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.status-badge.improved i {
+    font-size: 0.8rem;
+}
+
+/* Grades List Layout */
+.grades-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+/* Grade Row */
+.grade-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    background: #f8fafc;
+    transition: all 0.2s;
+}
+
+.grade-row:hover {
+    background: #f1f5f9;
+}
+
+.grade-row.highlight {
+    background: #ffffff;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.05);
+}
+
+/* Label Section */
+.grade-row-label {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: #64748b;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.grade-row-label i {
+    color: #94a3b8;
+    font-size: 0.9rem;
+    width: 16px;
+    text-align: center;
+}
+
+.final-tag {
+    background: rgba(16, 185, 129, 0.1);
+    color: #059669;
+    font-size: 0.55rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin: 0 0.5rem;
+    letter-spacing: 0.5px;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    white-space: nowrap;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+/* Value Section */
+.grade-row-value {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.grade-score-text {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #334155;
+}
+
+.grade-divider {
+    color: #cbd5e1;
+    font-weight: 300;
+}
+
+.grade-letter-text {
+    font-size: 1.25rem;
+    font-weight: 800;
+    min-width: 2rem;
+    text-align: center;
+}
+
+/* Divider Line */
+.grade-row-divider {
+    height: 1px;
+    background: #e2e8f0;
+    margin: 0.25rem 0.5rem;
+}
+
+/* Status Row (No Resit) */
+.grade-status-row {
+    padding: 0.5rem 1rem;
+    display: flex;
+    justify-content: center;
+}
+
+.status-text {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.status-text.pending {
+    color: #f59e0b;
+}
+
+.status-text.final {
+    color: #10b981;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .grades-grid {
+        grid-template-columns: 1fr;
+    }
 } 

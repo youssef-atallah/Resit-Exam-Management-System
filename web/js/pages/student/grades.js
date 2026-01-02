@@ -18,8 +18,16 @@ function calculateGPA(courses) {
     let totalCourses = 0;
 
     courses.forEach(course => {
-        if (course.gradeLetter && gradePoints[course.gradeLetter] !== undefined) {
-            totalPoints += gradePoints[course.gradeLetter];
+        // Use resit grade if available and valid points, otherwise use original grade
+        let letterToCheck = course.gradeLetter;
+        
+        // If there is a resit grade, it typically supersedes the course grade for GPA
+        if (course.resitGradeLetter) {
+             letterToCheck = course.resitGradeLetter;
+        }
+
+        if (letterToCheck && gradePoints[letterToCheck] !== undefined) {
+            totalPoints += gradePoints[letterToCheck];
             totalCourses++;
         }
     });
@@ -41,31 +49,74 @@ function createGradeCard(course) {
     const card = document.createElement('div');
     card.className = 'grade-card';
     
-    const gradeColor = getGradeColor(course.gradeLetter);
+    // Check if there's a resit grade
+    const hasResitGrade = course.resitGrade !== null && course.resitGrade !== undefined;
+    const courseGradeColor = getGradeColor(course.gradeLetter);
+    const resitGradeColor = hasResitGrade ? getGradeColor(course.resitGradeLetter) : null;
+    
+    // Determine if grade improved
+    const gradeImproved = hasResitGrade && course.resitGrade > course.grade;
 
     card.innerHTML = `
-        <div class="grade-header">
-            <div class="course-info">
+        <div class="grade-card-header">
+            <div class="course-title">
                 <h3>${course.courseName}</h3>
-                <p class="course-code">${course.courseId}</p>
+                <span class="course-id">${course.courseId}</span>
             </div>
-            <div class="grade-display" style="background: ${gradeColor}20; border-color: ${gradeColor};">
-                <div class="grade-letter" style="color: ${gradeColor};">${course.gradeLetter || 'N/A'}</div>
-                <div class="grade-number">${course.grade || '--'}/100</div>
-            </div>
+            ${hasResitGrade ? `
+                <span class="status-badge ${gradeImproved ? 'improved' : 'same'}">
+                    <i class="fas ${gradeImproved ? 'fa-arrow-up' : 'fa-equals'}"></i>
+                    ${gradeImproved ? 'Improved' : 'Resit Taken'}
+                </span>
+            ` : ''}
         </div>
         
-        <div class="grade-breakdown">
-            <h4>Grade Breakdown</h4>
-            <div class="breakdown-items">
-                ${course.breakdown ? course.breakdown.map(item => `
-                    <div class="breakdown-item">
-                        <span class="item-name">${item.name}</span>
-                        <span class="item-score">${item.score}/${item.total}</span>
-                        <span class="item-weight">(${item.weight}%)</span>
-                    </div>
-                `).join('') : '<p class="no-breakdown">No breakdown available</p>'}
+        <div class="grades-list">
+            <!-- Course Grade Row -->
+            <div class="grade-row">
+                <div class="grade-row-label">
+                    <i class="fas fa-book"></i>
+                    <span>Course Grade</span>
+                </div>
+                <div class="grade-row-value">
+                    <span class="grade-score-text">${course.grade || '--'}</span>
+                    <span class="grade-divider">-</span>
+                    <span class="grade-letter-text" style="color: ${courseGradeColor};">${course.gradeLetter || 'N/A'}</span>
+                </div>
             </div>
+            
+            ${hasResitGrade ? `
+                <!-- Arrow/Divider -->
+                <div class="grade-row-divider"></div>
+                
+                <!-- Resit Grade Row -->
+                <div class="grade-row highlight">
+                    <div class="grade-row-label">
+                        <i class="fas fa-redo"></i>
+                        <span>Resit Exam Grade</span>
+                    </div>
+                    <span class="final-tag">Final Grade</span>
+                    <div class="grade-row-value">
+                        <span class="grade-score-text">${course.resitGrade || '--'}</span>
+                        <span class="grade-divider">-</span>
+                        <span class="grade-letter-text" style="color: ${resitGradeColor};">${course.resitGradeLetter || 'N/A'}</span>
+                    </div>
+                </div>
+            ` : `
+                 <!-- No Resit Info -->
+                 <div class="grade-row-divider"></div>
+                 <div class="grade-status-row">
+                    ${course.resit_exam ? `
+                        <span class="status-text pending">
+                            <i class="fas fa-hourglass-half"></i> Resit grade not announced
+                        </span>
+                    ` : `
+                        <span class="status-text final">
+                            <i class="fas fa-check-circle"></i> Final Grade
+                        </span>
+                    `}
+                 </div>
+            `}
         </div>
     `;
 
@@ -85,7 +136,7 @@ async function loadGrades() {
         gradesGrid.innerHTML = '<div class="loading">Loading grades...</div>';
 
         // Fetch student course details
-        const response = await authenticatedFetch(`/student/c-details/${studentId}`);
+        const response = await authenticatedFetch(`/student/${studentId}/course-details`);
         if (!response.ok) {
             throw new Error('Failed to fetch grades');
         }
@@ -116,12 +167,12 @@ async function loadGrades() {
             })
         );
 
-        // Filter courses with grades
-        const coursesWithGrades = coursesWithNames.filter(c => c.grade);
+        // Use all courses
+        const coursesToDisplay = coursesWithNames;
 
         // Display grades
         gradesGrid.innerHTML = '';
-        if (coursesWithGrades.length === 0) {
+        if (coursesToDisplay.length === 0) {
             gradesGrid.innerHTML = `
                 <div class="no-grades">
                     <i class="fas fa-graduation-cap"></i>
@@ -132,7 +183,7 @@ async function loadGrades() {
             return;
         }
 
-        coursesWithGrades.forEach(course => {
+        coursesToDisplay.forEach(course => {
             const card = createGradeCard(course);
             gradesGrid.appendChild(card);
         });
